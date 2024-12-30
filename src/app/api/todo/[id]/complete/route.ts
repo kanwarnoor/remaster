@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } } 
+  { params }: { params: Record<string, string> } 
 ) {
   const { id } = params; 
   const { isCompleted } = await req.json();
