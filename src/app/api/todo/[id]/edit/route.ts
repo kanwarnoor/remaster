@@ -6,7 +6,7 @@ export async function PUT(
   req: NextResponse,
   { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
+  const { id } = params;
   const { title } = await req.json();
   await connectDb();
 
