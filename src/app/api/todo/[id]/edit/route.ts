@@ -1,9 +1,9 @@
 import connectDb from "@/lib/mongodb";
 import Todo from "@/models/Todo";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
-  req: NextResponse,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
