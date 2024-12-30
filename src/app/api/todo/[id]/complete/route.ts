@@ -2,11 +2,11 @@ import connectDb from "@/lib/mongodb";
 import Todo from "@/models/Todo";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(
+export const PUT = async (
   req: NextRequest,
-  context: { params: {id: string} } 
-) {
-  const { id } = context.params; 
+  { params }: { params: { id: string } }
+) => {
+  const { id } = params;
   const { isCompleted } = await req.json();
 
   await connectDb();
@@ -17,4 +17,4 @@ export async function PUT(
     { message: "Todo updated successfully" },
     { status: 200 }
   );
-}
+};
