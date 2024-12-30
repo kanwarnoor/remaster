@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Record<string, string> } 
+  context: { params: {id: string} } 
 ) {
-  const { id } = params; 
+  const { id } = context.params; 
   const { isCompleted } = await req.json();
 
   await connectDb();
