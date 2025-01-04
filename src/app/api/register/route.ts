@@ -3,11 +3,11 @@ import User from "@/models/User";
 import { NextRequest } from "next/server";
 import bcrypt from "bcrypt";
 
-export default async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const { username, email, password } = await request.json();
 
   await connectDb();
-  
+
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
