@@ -35,6 +35,7 @@ export default function page() {
             type="text"
             value={username}
             className="text-black"
+            required
             onChange={(e) => setUsername(e.target.value)}
           />
           <label htmlFor="username">password</label>
@@ -42,6 +43,7 @@ export default function page() {
             type="password"
             value={password}
             className="text-black"
+            required
             onChange={(e) => setPassword(e.target.value)}
           />
 
