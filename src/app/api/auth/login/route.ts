@@ -15,13 +15,13 @@ export async function POST(req: NextRequest) {
     const user = await User.findOne({ username });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found", status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
-      return NextResponse.json({ error: "Invalid password", status: 401 });
+      return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
     const token = jwt.sign(
@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
       { expiresIn: "1h" }
     );
 
-    return NextResponse.json({ token });
+    return NextResponse.json({ token }, {status: 200});
   } catch (error: any) {
-    return NextResponse.json({ error: error.message, status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

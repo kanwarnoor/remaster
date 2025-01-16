@@ -1,55 +1,34 @@
-"use client";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
-import React from "react";
-import { useState } from "react";
-import axios from "axios";
+interface DecodedToken {
+  username: string;
+  id: string;
+}
 
-export default function page() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+export default async function AdminPage() {
+  const cookieStore = await cookies();
+  const token =  cookieStore.get("token")?.value;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  if (!token) {
+    return <div>Unauthorized. Please log in.</div>;
+  }
 
-    try {
-      const response = await axios.post("/api/login", {
-        username: username,
-        password: password,
-      });
-      alert("token " + response.data.token);
-      setError("");
-    } catch (error: any) {
-      console.error(error);
-      setError(error.message);
-    }
-  };
+  let username = "";
+  try {
+    const decoded: DecodedToken = jwtDecode(token);
+    username = decoded.username;
+  } catch (error) {
+    return <div>Invalid token. Please log in again.</div>;
+  }
 
   return (
-    <>
-      <div className="flex flex-col items-center justify-center w-full h-full">
-        <h1>Admin login</h1>
-        <form onSubmit={(e) => handleSubmit(e)} className="flex flex-col ">
-          <label htmlFor="username">email/username</label>
-          <input
-            type="text"
-            value={username}
-            className="text-black"
-            required
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <label htmlFor="username">password</label>
-          <input
-            type="password"
-            value={password}
-            className="text-black"
-            required
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <button type="submit">Submit</button>
-        </form>
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="p-6 bg-white rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Welcome, {username}!
+        </h1>
       </div>
-    </>
+    </div>
   );
 }
