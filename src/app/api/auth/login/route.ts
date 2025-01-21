@@ -3,16 +3,19 @@ import User from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { userInfo } from "os";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
 
 export async function POST(req: NextRequest) {
-  const { username, password } = await req.json();
+  const { identifier, password } = await req.json();
 
   await connectDb();
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({
+      $or: [{ username: identifier }, { email: identifier }],
+    });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -25,12 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username },
+      { id: user._id, username: user.username, email: user.email },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    return NextResponse.json({ token }, {status: 200});
+    return NextResponse.json({ token }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

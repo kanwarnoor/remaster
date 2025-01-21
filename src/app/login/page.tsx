@@ -6,7 +6,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -16,10 +16,9 @@ export default function LoginPage() {
 
     try {
       const res = await axios.post("/api/auth/login", {
-        username,
+        identifier,
         password,
       });
-      console.log("API Response:", res);
       
       if(res.status == 200){
         Cookies.set("token", res.data.token);
@@ -27,13 +26,10 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       if (error.response) {
-        // Server responded with a non-2xx status code
         setError(error.response.data.error || "Login failed.");
       } else if (error.request) {
-        // Request was made but no response received
         setError("No response from the server. Please try again.");
       } else {
-        // Something else happened
         setError(error.message || "An unexpected error occurred.");
       }
     }
@@ -48,12 +44,12 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Login</h1>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
-          <label className="block text-gray-700">Username</label>
+          <label className="block text-gray-700">Username or Email</label>
           <input
             type="text"
             className="w-full p-2 border rounded-lg"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
           />
         </div>
