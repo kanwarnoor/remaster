@@ -26,8 +26,6 @@ export default async function AdminPage() {
     return <div>Invalid token. Please log in again.</div>;
   }
 
-
-
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="p-6 rounded-lg ">
