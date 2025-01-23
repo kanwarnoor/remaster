@@ -48,6 +48,7 @@ export default function LoginPage() {
           <input
             type="text"
             className="w-full p-2 border rounded-lg"
+            id="username"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             required
@@ -58,6 +59,7 @@ export default function LoginPage() {
           <input
             type="password"
             className="w-full p-2 border rounded-lg"
+            id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

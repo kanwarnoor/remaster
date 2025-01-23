@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import connectDb from "@/libs/connectDb";
+import Provider from "@/libs/Provider";
 
 export const metadata: Metadata = {
   title: "Remaster",
@@ -15,7 +16,9 @@ export default async function RootLayout({
   await connectDb();
   return (
     <html lang="en">
-      <body className={`antialiased`}>{children}</body>
+      <body className={`antialiased`}>
+        <Provider>{children}</Provider>
+      </body>
     </html>
   );
 }
