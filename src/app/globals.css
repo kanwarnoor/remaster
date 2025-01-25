@@ -1,8 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body{
+body {
   background-color: white;
   color: black;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.navbar{
+  font-family: 'Bebas Neue';
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import connectDb from "@/libs/connectDb";
 import Provider from "@/libs/Provider";
+import Navbar from "./components/Navbar";
+import { AuthProvider } from "@/libs/AuthContext";
 
 export const metadata: Metadata = {
   title: "Remaster",
@@ -17,7 +19,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <Provider>{children}</Provider>
+        <AuthProvider>
+          <Navbar />
+          <Provider>{children}</Provider>
+        </AuthProvider>
       </body>
     </html>
   );
