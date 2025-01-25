@@ -33,6 +33,9 @@ const userModel = new Schema(
       type: Boolean,
       default: false,
     },
+    tracks: [
+      // follow chatgpt for database design
+    ]
   },
   {
     timestamps: true,
