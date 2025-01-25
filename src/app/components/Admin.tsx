@@ -45,7 +45,7 @@ export default function Admin({ token }: { token: string }) {
           </h1>
           <button
             onClick={() => logout()}
-            className="px-7 py-3 mt-3 border-black border-2 rounded-full"
+            className="px-7 py-3 mt-3 border-white border-2 rounded-full"
           >
             Logout
           </button>

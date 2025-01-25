@@ -12,7 +12,6 @@ export default function Popup({ message, onConfirm, onCancel }: PopupProps) {
 
       <div
         className="fixed inset-0 flex items-center justify-center z-0"
-
       >
         <motion.div
           initial={{
@@ -27,13 +26,13 @@ export default function Popup({ message, onConfirm, onCancel }: PopupProps) {
             scale: 0.7,
           }}
  
-          className="px-20 py-16 max-w-[50%] flex flex-col m-auto justify-center text-center rounded-xl bg-white/50 backdrop-blur-xl shadow-2xl"
+          className="px-20 py-16 max-w-[50%] flex flex-col m-auto justify-center text-center rounded-xl bg-white/10 backdrop-blur-xl shadow-2xl z-30"
         >
           <p className="text-3xl font-bold">{message}</p>
           <div className="mt-5 flex justify-center">
             <button
               onClick={onCancel}
-              className="px-4 py-2 font-bold text-black"
+              className="px-4 py-2 font-bold text-white"
             >
               Cancel
             </button>

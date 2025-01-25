@@ -5,10 +5,31 @@
 @tailwind utilities;
 
 body {
-  background-color: white;
-  color: black;
+  background-color: #141414;
+  color: white;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
-.navbar{
+.navbar, .remaster{
   font-family: 'Bebas Neue';
+}
+/* Spinner */
+.white-spinner {
+   border-radius: 50%;
+   background: radial-gradient(farthest-side,white 94%,#0000) top/9px 9px no-repeat,
+          conic-gradient(#0000 30%,white);
+   -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 9px),#000 0);
+   animation: spinner 1s infinite linear;
+}
+.remaster-spinner {
+  border-radius: 50%;
+  background: radial-gradient(farthest-side,white 94%,#0000) top/9px 9px no-repeat,
+         conic-gradient(#0000 30%,white);
+  -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 9px),#000 0);
+  animation: spinner 1s infinite linear;
+}
+
+@keyframes spinner {
+   100% {
+      transform: rotate(1turn);
+   }
 }
