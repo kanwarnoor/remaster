@@ -33,9 +33,10 @@ const userModel = new Schema(
       type: Boolean,
       default: false,
     },
-    tracks: [
-      // follow chatgpt for database design
-    ]
+    tracks: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tracks",
+    },
   },
   {
     timestamps: true,

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import connectDb from "@/libs/connectDb";
 import Provider from "@/libs/Provider";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "@/libs/AuthContext";
@@ -15,7 +14,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await connectDb();
   return (
     <html lang="en">
       <body className={`antialiased`}>
