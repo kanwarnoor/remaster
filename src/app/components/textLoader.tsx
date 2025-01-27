@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 export default function TextLoader() {
+  // tesing
 
   return (
     <div className="w-fit h-fit fixed top-0 bottom-0 right-0 left-0 m-auto text-center justify-center items-center flex remaster text-remaster">
