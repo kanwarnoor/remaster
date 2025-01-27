@@ -1,10 +1,11 @@
+
+
 import React from "react";
-import TextLoader from "../components/TextLoader";
 
 export default function loading() {
   return (
-    <div className="w-screen h-screen bg-red-200">
-      <TextLoader />
+    <div className="flex m-auto w-screen h-screen justify-center items-center ">
+    <div className="remaster-spinner w-9 h-9 flex"></div>
     </div>
   );
 }
