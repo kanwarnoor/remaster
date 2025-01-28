@@ -3,6 +3,11 @@ import "./globals.css";
 import Provider from "@/libs/Provider";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "@/libs/AuthContext";
+// import inter font
+import {Inter} from "next/font/google"
+
+const inter = Inter({subsets: ['latin']})
+
 
 export const metadata: Metadata = {
   title: "Remaster",
@@ -16,7 +21,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
+      <body className={`${inter.className} antialiased`}>
         <AuthProvider>
           <Navbar />
           <Provider>{children}</Provider>
