@@ -2,29 +2,27 @@
 
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { useAuth } from "@/libs/AuthContext";
 import Popup from "./Popup";
 import { AnimatePresence } from "framer-motion";
 
 export default function () {
-  const { user, logout } = useAuth();
-  const [currentUser, setCurrentUser] = useState(user);
+  const [currentUser, setCurrentUser] = useState("");
   const [popup, setPopup] = useState(false);
 
-  useEffect(() => {
-    setCurrentUser(user);
-  }, [user]);
+  // useEffect(() => {
+  //   setCurrentUser(user);
+  // }, [user]);
 
-  const handleLogout = () => {
-    setPopup(true);
-  };
-  const handleConfirmLogout = () => {
-    setPopup(false);
-    logout();
-  };
-  const handleCancelLogout = () => {
-    setPopup(false);
-  };
+  // const handleLogout = () => {
+  //   setPopup(true);
+  // };
+  // const handleConfirmLogout = () => {
+  //   setPopup(false);
+  //   logout();
+  // };
+  // const handleCancelLogout = () => {
+  //   setPopup(false);
+  // };
 
   return (
     <>
@@ -34,17 +32,15 @@ export default function () {
       <div className="navbar h-16 pr-5 text-center fixed right-0 justify-center items-center m-auto flex font-black text-2xl  select-none aboslute text-remaster z-10">
         {currentUser ? (
           <>
-            {currentUser.username}
-            <button onClick={handleLogout} className="ml-2 text-white cursor-pointer">
-              Logout
-            </button>
+            {currentUser}
+            <button className="ml-2 text-white cursor-pointer">Logout</button>
           </>
         ) : (
           <Link href={"/login"}>Login</Link>
         )}
       </div>
- 
-      <AnimatePresence>
+
+      {/* <AnimatePresence>
         {popup && (
           <Popup
             message={"Leaving remaster?"}
@@ -52,7 +48,7 @@ export default function () {
             onConfirm={handleConfirmLogout}
           />
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </>
   );
 }

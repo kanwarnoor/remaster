@@ -2,37 +2,43 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import Cookies from "js-cookie";
 
+const loginUser = async ({
+  username,
+  password,
+}: {
+  username: string;
+  password: string;
+}) => {
+  const res = await axios.post("/api/auth/login", {
+    username,
+    password,
+  });
+
+  return res.data;
+};
 export default function LoginPage() {
-  const [identifier, setIdentifier] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (data) => {
+      router.push("/");
+    },
+    onError: (error: any) => {
+      setError(error.response.data.error);
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      const res = await axios.post("/api/auth/login", {
-        identifier,
-        password,
-      });
-      
-      if(res.status == 200){
-        Cookies.set("token", res.data.token);
-        router.push("/admin");
-      }
-    } catch (error: any) {
-      if (error.response) {
-        setError(error.response.data.error || "Login failed.");
-      } else if (error.request) {
-        setError("No response from the server. Please try again.");
-      } else {
-        setError(error.message || "An unexpected error occurred.");
-      }
-    }
+    setError("");
+    mutate({ username, password });
   };
 
   return (
@@ -49,8 +55,8 @@ export default function LoginPage() {
             type="text"
             className="w-full p-2 border rounded-lg"
             id="username"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
@@ -65,12 +71,22 @@ export default function LoginPage() {
             required
           />
         </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded-lg"
-        >
-          Login
-        </button>
+
+        {isPending ? (
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg flex items-center justify-center"
+          >
+            <div className="w-6 h-6 white-spinner"></div>
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg"
+          >
+            Login
+          </button>
+        )}
       </form>
     </div>
   );
