@@ -2,9 +2,50 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+import cookies from "js-cookie";
 
 export default function FileUpload() {
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {};
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log("File found: " + file.name);
+      if (!file.type.startsWith("audio/")) {
+        console.log("Please select an audio file!");
+        return;
+      }
+
+      try {
+        const token = cookies.get("token");
+        if (!token) {
+          console.log("Please login to upload files");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await axios.post("api/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if(response.status === 200){
+          console.log("File uploaded successfully");
+        }
+        else{
+          console.log("Failed to upload file");
+        }
+      } catch (err) {
+        console.log(err);
+        console.log("Failed to upload file");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen">
