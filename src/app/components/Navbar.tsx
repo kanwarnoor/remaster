@@ -3,26 +3,21 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import Popup from "./Popup";
+import { user } from "@/libs/Auth";
 import { AnimatePresence } from "framer-motion";
 
 export default function () {
-  const [currentUser, setCurrentUser] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
   const [popup, setPopup] = useState(false);
 
-  // useEffect(() => {
-  //   setCurrentUser(user);
-  // }, [user]);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const info = await user();
+      // setCurrentUser(info);
+    };
 
-  // const handleLogout = () => {
-  //   setPopup(true);
-  // };
-  // const handleConfirmLogout = () => {
-  //   setPopup(false);
-  //   logout();
-  // };
-  // const handleCancelLogout = () => {
-  //   setPopup(false);
-  // };
+    fetchUser();
+  }, []);
 
   return (
     <>
@@ -36,7 +31,7 @@ export default function () {
             <button className="ml-2 text-white cursor-pointer">Logout</button>
           </>
         ) : (
-          <Link href={"/login"}>Login</Link>
+          <Link href="/login">Login</Link>
         )}
       </div>
 
