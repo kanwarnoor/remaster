@@ -1,20 +1,40 @@
-import Cookies from "js-cookie";
+"use server";
 
-import { useState, useEffect } from "react";
 import jwt from "jsonwebtoken";
-import { useRouter } from "next/navigation";
+import { cookies } from "next/headers";
 
-export const user = async () => {
-  const token = Cookies.get("token");
+interface User {
+  username: string;
+}
 
-  if(!token){
+export const User = async () => {
+  const cookie = await cookies();
+  const token = cookie.get("token");
+
+  if (!token) {
+    console.log("No token found");
     return null;
   }
 
-  // decode and verify token
-  const user = await jwt.decode(token);
+  try {
+    const decoded = jwt.verify(
+      token.value,
+      process.env.JWT_SECRET || "nimda"
+    ) as User;
+    return decoded;
+  } catch (error) {
+    console.log("Invalid token: ", error);
+    return null;
+  }
+};
 
-
-  // return true if token is valid
-  return user;
+export const Logout = async () => {
+  (await cookies()).set({
+    name: "token",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 0,
+  });
 };
