@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import cookies from "js-cookie";
 import Notification from "@/app/components/Notification";
-import { set } from "mongoose";
 
 export default function FileUpload() {
   const [error, setError] = useState({ show: false, message: "", type: "" });
