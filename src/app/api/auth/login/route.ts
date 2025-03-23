@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
 
   await connectDb();
 
-  // Check if user exists
   let user;
   try {
     user = await User.findOne({
