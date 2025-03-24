@@ -3,35 +3,42 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import cookies from "js-cookie";
+import { User } from "@/libs/Auth";
 import Notification from "@/app/components/Notification";
 
 export default function FileUpload() {
-  const [error, setError] = useState({ show: false, message: "", type: "" });
+  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setError({ show: false, message: "", type: "" });
+      setPopup({ show: false, message: "", type: "" });
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [error.show]);
+  }, [popup]);
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
+  // handle file upload
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const droppedFiles = e.dataTransfer?.files;
+    const file = droppedFiles?.[0] || null;
     if (file) {
       console.log("File found: " + file.name);
       if (!file.type.startsWith("audio/")) {
         console.log("Please select an audio file!");
+        setPopup({
+          show: true,
+          message: "Please select an audio file!",
+          type: "error",
+        });
         return;
       }
 
       try {
-        const token = cookies.get("token");
-        if (!token) {
-          setError({
+        const decoded = await User();
+
+        if (!decoded) {
+          setPopup({
             show: true,
             message: "Please login to upload files",
             type: "error",
@@ -42,21 +49,25 @@ export default function FileUpload() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await axios.post("api/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.post("api/upload", formData);
 
         if (response.status === 200) {
           console.log("File uploaded successfully");
+          setPopup({
+            show: true,
+            message: "File uploaded successfully",
+            type: "success",
+          });
         } else {
           console.log("Failed to upload file");
         }
       } catch (err) {
         console.log(err);
-        console.log("Failed to upload file");
+        setPopup({
+          show: true,
+          message: "Failed to upload file!",
+          type: "success",
+        });
       }
     }
   };
@@ -64,7 +75,7 @@ export default function FileUpload() {
   return (
     <>
       <AnimatePresence>
-        {error.show && <Notification message={error.message} type="error" />}
+        {popup.show && <Notification message={popup.message} type="error" />}
       </AnimatePresence>
       <div className="flex flex-col items-center justify-center h-screen w-screen overflow-hidden">
         <motion.p
@@ -101,7 +112,8 @@ export default function FileUpload() {
           <input
             type="file"
             accept="audio/*"
-            onChange={handleFileChange}
+            // onChange={handleFileChange}
+            onDrop={handleFileDrop}
             className="absolute inset-16 opacity-0"
           />
         </motion.div>

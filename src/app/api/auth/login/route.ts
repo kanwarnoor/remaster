@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const token = jwt.sign(
     { id: user._id, username: user.username },
     process.env.JWT_SECRET || "nimda",
-    { expiresIn: "1h" }
+    { expiresIn: "7d" }
   );
 
   (await cookies()).set({
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 60 * 60, // 1 week
+    maxAge: 60 * 60 * 24 * 7, // 1 week
     path: "/",
   });
 

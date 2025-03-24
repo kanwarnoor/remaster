@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.772.0",
+    "@aws-sdk/s3-request-presigner": "^3.772.0",
     "@tanstack/react-query": "^5.66.0",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.7.9",
@@ -19,7 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "mongoose": "^8.9.3",
-    "next": "15.1.3",
+    "next": "^15.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
