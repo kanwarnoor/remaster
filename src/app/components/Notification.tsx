@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { color, motion } from "framer-motion";
 
 interface NotificationProps {
   message: string;
-  type: 'error' | 'success' | 'info' | 'warning';
+  type: "error" | "success" | "info" | "warning" | "";
 }
 
 const notificationStyles = {
-  "error": "bg-remaster text-white",
-  "success": "bg-green-500 text-white",
-  "info": "bg-blue-500 text-white",
-  "warning": "bg-yellow-500 text-black",
+  error: "bg-remaster text-white",
+  success: "bg-green-500 text-white",
+  info: "bg-white text-black",
+  warning: "bg-yellow-500 text-black",
+  "" : "bg-white text-black"
 };
 
 export default function Notification({ message, type }: NotificationProps) {

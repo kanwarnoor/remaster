@@ -7,7 +7,11 @@ import { User } from "@/libs/Auth";
 import Notification from "@/app/components/Notification";
 
 export default function FileUpload() {
-  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
+  const [popup, setPopup] = useState<{
+    show: boolean;
+    message: string;
+    type: "error" | "success" | "info" | "warning" | "";
+  }>({ show: false, message: "", type: "" });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,6 +42,7 @@ export default function FileUpload() {
         const decoded = await User();
 
         if (!decoded) {
+          console.log("user not logged in!")
           setPopup({
             show: true,
             message: "Please login to upload files",
@@ -66,7 +71,7 @@ export default function FileUpload() {
         setPopup({
           show: true,
           message: "Failed to upload file!",
-          type: "success",
+          type: "error",
         });
       }
     }
@@ -75,7 +80,9 @@ export default function FileUpload() {
   return (
     <>
       <AnimatePresence>
-        {popup.show && <Notification message={popup.message} type="error" />}
+        {popup.show && (
+          <Notification message={popup.message} type={popup.type} />
+        )}
       </AnimatePresence>
       <div className="flex flex-col items-center justify-center h-screen w-screen overflow-hidden">
         <motion.p
