@@ -2,10 +2,23 @@ import mongoose, { Schema } from "mongoose";
 
 const trackModel = new Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+      required: true,
+    },
     name: {
       type: String,
-      required: false,
+      required: true,
       default: "untitled",
+    },
+    size: {
+      type: Number,
+      required: true,
+    },
+    s3Key: {
+      type: String,
+      required: true,
     },
     artist: {
       type: String,
@@ -15,25 +28,11 @@ const trackModel = new Schema(
     album: {
       type: String,
       required: false,
-      default: "undefined",
     },
     art: {
       type: String,
       required: false,
       default: "undefined",
-    },
-    url: {
-      type: String,
-      required: true,
-    },
-    duration: {
-      type: Number,
-      required: false,
-      default: 0,
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Users",
     },
   },
   {

@@ -33,10 +33,10 @@ const userModel = new Schema(
       type: Boolean,
       default: false,
     },
-    tracks: {
+    tracks: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Tracks",
-    },
+    }],
   },
   {
     timestamps: true,

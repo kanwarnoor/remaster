@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { User } from "@/libs/Auth";
+import { User as Decoded } from "@/libs/Auth";
+import User from "@/models/User";
+import Track from "@/models/Track";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "",
@@ -13,7 +15,7 @@ const s3Client = new S3Client({
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await User();
+    const user = await Decoded();
 
     if (user == null) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
     // Create a unique key for the file in S3
     const fileExt = file.name.split(".").pop();
     const timestamp = Date.now();
-    const fileName = `${user.username}-${file.name}-${fileExt}`;
+    const fileName = `${user.username}-${file.name}-${timestamp}`;
 
     // Convert file to buffer for S3 upload
     const arrayBuffer = await file.arrayBuffer();
@@ -63,6 +65,24 @@ export async function POST(req: NextRequest) {
     const url = await getSignedUrl(s3Client, getObjectCommand, {
       expiresIn: 3600, // URL expiration time in seconds;
     });
+
+    // Save the file metadata to the database
+    const track = await Track.create({
+      user: user._id,
+      name: file.name,
+      size: file.size,
+      s3Key: `audio/${fileName}`,
+    });
+    await User.updateOne(
+      {
+        _id: user._id,
+      },
+      {
+        $push: {
+          tracks: track._id,
+        },
+      }
+    );
 
     return NextResponse.json({
       success: true,

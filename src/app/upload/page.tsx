@@ -63,8 +63,6 @@ export default function FileUpload() {
             message: "File uploaded successfully",
             type: "success",
           });
-        } else {
-          console.log("Failed to upload file");
         }
       } catch (err) {
         console.log(err);

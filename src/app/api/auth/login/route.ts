@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   // make a token
   const token = jwt.sign(
-    { id: user._id, username: user.username },
+    { _id: user._id, username: user.username },
     process.env.JWT_SECRET || "nimda",
     { expiresIn: "7d" }
   );
