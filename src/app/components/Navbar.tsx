@@ -23,7 +23,8 @@ export default function Navbar() {
   const logoutMutation = useMutation({
     mutationFn: async () => await Logout(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user"] }); // Refetch user after logout
+      queryClient.resetQueries({ queryKey: ["user"] });
+      queryClient.resetQueries({ queryKey: ["userTracks"] });
       setPopup(false);
     },
   });

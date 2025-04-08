@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React from "react";
 import { motion } from "framer-motion";
@@ -22,7 +22,7 @@ export default function Tile({ title, artist }: Props) {
           transition={{
             duration: 0.3,
           }}
-          className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex"
+          className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"
         ></motion.div>
         <motion.div
           initial={{
@@ -35,11 +35,13 @@ export default function Tile({ title, artist }: Props) {
             duration: 1,
             delay: 0.3,
           }}
+          className="w-full cursor-pointer"
         >
           <p className="font-bold text-lg leading-none mt-2">{title}</p>
           <p className="font-bold text-base leading-tight text-white/50">
             {artist}
           </p>
+          
         </motion.div>
       </div>
     </div>

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.772.0",
+    "@aws-sdk/lib-storage": "^3.782.0",
     "@aws-sdk/s3-request-presigner": "^3.772.0",
     "@tanstack/react-query": "^5.66.0",
     "aws-sdk": "^2.1692.0",

@@ -12,6 +12,7 @@ export default function FileUpload() {
     message: string;
     type: "error" | "success" | "info" | "warning" | "";
   }>({ show: false, message: "", type: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -26,15 +27,15 @@ export default function FileUpload() {
     e.preventDefault();
     const droppedFiles = e.dataTransfer?.files;
     const file = droppedFiles?.[0] || null;
+    setLoading(true);
     if (file) {
-      console.log("File found: " + file.name);
       if (!file.type.startsWith("audio/")) {
-        console.log("Please select an audio file!");
         setPopup({
           show: true,
           message: "Please select an audio file!",
           type: "error",
         });
+        setLoading(false);
         return;
       }
 
@@ -42,12 +43,13 @@ export default function FileUpload() {
         const decoded = await User();
 
         if (!decoded) {
-          console.log("user not logged in!")
+          console.log("user not logged in!");
           setPopup({
             show: true,
             message: "Please login to upload files",
             type: "error",
           });
+          setLoading(false);
           return;
         }
 
@@ -63,6 +65,7 @@ export default function FileUpload() {
             message: "File uploaded successfully",
             type: "success",
           });
+          setLoading(false);
         }
       } catch (err) {
         console.log(err);
@@ -71,6 +74,7 @@ export default function FileUpload() {
           message: "Failed to upload file!",
           type: "error",
         });
+        setLoading(false);
       }
     }
   };
@@ -110,9 +114,19 @@ export default function FileUpload() {
           transition={{
             duration: 0.3,
           }}
-          className="border-2 rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed"
+          className={`border-2 w-[450px] rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed ${'upload'}`}
+  
         >
-          <p className="font-bold remaster text-5xl">DROP IT LIKE IT'S HOT🔥</p>
+          {!loading ? (
+            <div className="flex gap-2">
+              <div className="w-10 h-10 remaster-spinner"></div>
+              <p className="font-bold remaster text-5xl">Loading...</p>
+            </div>
+          ) : (
+            <p className="font-bold remaster text-5xl">
+              DROP IT LIKE IT'S HOT🔥
+            </p>
+          )}
 
           <input
             type="file"

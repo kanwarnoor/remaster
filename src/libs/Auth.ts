@@ -8,6 +8,22 @@ interface User {
   username: string;
 }
 
+export const loggedIn = async () => {
+  const cookie = await cookies();
+  const token = cookie.get("token");
+
+  if (!token) {
+    return false;
+  }
+
+  try {
+    jwt.verify(token.value, process.env.JWT_SECRET || "nimda");
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 export const User = async () => {
   const cookie = await cookies();
   const token = cookie.get("token");

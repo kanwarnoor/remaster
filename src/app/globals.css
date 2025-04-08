@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,27 +10,96 @@ body {
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
-.navbar, .remaster{
-  font-family: 'Bebas Neue';
+.navbar,
+.remaster {
+  font-family: "Bebas Neue";
 }
 /* Spinner */
 .white-spinner {
-   border-radius: 50%;
-   background: radial-gradient(farthest-side,white 94%,#0000) top/9px 9px no-repeat,
-          conic-gradient(#0000 30%,white);
-   -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 9px),#000 0);
-   animation: spinner 1s infinite linear;
+  border-radius: 50%;
+  background: radial-gradient(farthest-side, white 94%, #0000) top/9px 9px
+      no-repeat,
+    conic-gradient(#0000 30%, white);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 9px), #000 0);
+  animation: spinner 1s infinite linear;
 }
 .remaster-spinner {
   border-radius: 50%;
-  background: radial-gradient(farthest-side,#fd1b00 94%,#0000) top/9px 9px no-repeat,
-         conic-gradient(#0000 30%,#fd1b00);
-  -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 9px),#000 0);
+  background: radial-gradient(farthest-side, #fd1b00 94%, #0000) top/9px 9px
+      no-repeat,
+    conic-gradient(#0000 30%, #fd1b00);
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 9px), #000 0);
   animation: spinner 1s infinite linear;
 }
 
+
+
 @keyframes spinner {
-   100% {
-      transform: rotate(1turn);
-   }
+  100% {
+    transform: rotate(1turn);
+  }
 }
+
+.upload {
+  border-style: solid;
+
+  animation: upload 2000ms linear infinite;
+}
+
+
+@keyframes upload {
+  0% {
+    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
+  }
+  6.25% {
+    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0);
+  }
+  12.5% {
+    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+  }
+  18.75% {
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4);
+  }
+  25% {
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8);
+  }
+  31.25% {
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1);
+  }
+  37.5% {
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8);
+  }
+  43.75% {
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1);
+  }
+  56.25% {
+    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
+  }
+  62.5% {
+    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0);
+  }
+  68.75% {
+    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+  }
+  75% {
+    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4);
+  }
+  81.25% {
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8);
+  }
+  87.5% {
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1);
+  }
+  93.75% {
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
+  }
+}
+
+
+
