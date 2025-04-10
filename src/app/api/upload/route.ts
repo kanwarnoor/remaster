@@ -10,6 +10,7 @@ import User from "@/models/User";
 import Track from "@/models/Track";
 import { Buffer } from "buffer";
 import path from "path";
+import { parseBuffer } from "music-metadata";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
 
@@ -19,7 +20,7 @@ const s3Client = new S3Client({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
   },
-})
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,13 +44,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const fileExt = path.extname(file.name); // safer than split('.')
-    const timestamp = Date.now();
-    const fileName = `${user.username}-${timestamp}${fileExt}`;
-    const s3Key = `audio/${fileName}`;
-
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    const metadata = await parseBuffer(buffer, file.type);
+
+    if (!metadata) {
+      return NextResponse.json(
+        { error: "Failed to parse metadata" },
+        { status: 400 }
+      );
+    }
+
+    const { common, format } = metadata;
+
+    const timestamp = Date.now();
+    const fileName = `${user.username}-${timestamp}-${common.title}`;
+    const s3Key = `audio/${fileName}`;
 
     // Upload to S3
     await s3Client.send(
@@ -73,25 +84,26 @@ export async function POST(req: NextRequest) {
       expiresIn: 3600,
     });
 
-    // Save metadata to DB
+    // // Save metadata to DB
     const track = await Track.create({
       user: user._id,
-      name: file.name,
+      name: common.title || file.name,
       artist: user.username,
       size: file.size,
+      duration: format.duration || 0,
+      album: common.album || "",
       s3Key,
     });
 
-    await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });
+    // await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });
 
     return NextResponse.json({
       success: true,
       message: "File uploaded successfully",
       file: {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        url,
+        name: common.title,
+        type: common.title,
+        size: format.size,
       },
     });
   } catch (error) {

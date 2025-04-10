@@ -102,7 +102,8 @@ export default function FileUpload() {
           }}
           className=" font-bold text-white/50"
         >
-          upload your audio files here
+          {loading ? ("dropping the heat, please wait!") : "drag and drop your audio files here"} <br />
+
         </motion.p>
         <motion.div
           initial={{
@@ -114,10 +115,10 @@ export default function FileUpload() {
           transition={{
             duration: 0.3,
           }}
-          className={`border-2 w-[450px] rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed ${'upload'}`}
+          className={`border-2 w-[450px] rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed ${loading &&'upload'}`}
   
         >
-          {!loading ? (
+          {loading ? (
             <div className="flex gap-2">
               <div className="w-10 h-10 remaster-spinner"></div>
               <p className="font-bold remaster text-5xl">Loading...</p>
