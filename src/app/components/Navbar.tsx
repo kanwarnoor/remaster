@@ -17,6 +17,7 @@ export default function Navbar() {
     queryKey: ["user"],
     queryFn: async () => await User(),
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    
   });
 
   // Logout mutation

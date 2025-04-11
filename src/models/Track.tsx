@@ -29,6 +29,11 @@ const trackModel = new Schema(
       type: String,
       required: false,
     },
+    duration: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
     art: {
       type: String,
       required: false,
@@ -38,7 +43,7 @@ const trackModel = new Schema(
       type: String,
       enum: ["public", "private"],
       default: "private",
-    }
+    },
   },
   {
     timestamps: true,

@@ -60,7 +60,9 @@ export async function POST(req: NextRequest) {
 
     const timestamp = Date.now();
     const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
-    const fileName = `${user.username}-${timestamp}-${common.title || nameWithoutExtension}`;
+    const fileName = `${user.username}-${timestamp}-${
+      common.title || nameWithoutExtension
+    }`;
     const s3Key = `audio/${fileName}`;
 
     // Upload to S3
@@ -76,14 +78,14 @@ export async function POST(req: NextRequest) {
     );
 
     // Generate a signed GET URL for playback or download
-    const getObjectCommand = new GetObjectCommand({
-      Bucket: AWS_BUCKET_NAME,
-      Key: s3Key,
-    });
+    // const getObjectCommand = new GetObjectCommand({
+    //   Bucket: AWS_BUCKET_NAME,
+    //   Key: s3Key,
+    // });
 
-    const url = await getSignedUrl(s3Client, getObjectCommand, {
-      expiresIn: 3600,
-    });
+    // const url = await getSignedUrl(s3Client, getObjectCommand, {
+    //   expiresIn: 3600,
+    // });
 
     // get and save the cover from image to s3.
     const art = common.picture?.[0];
@@ -91,7 +93,9 @@ export async function POST(req: NextRequest) {
     if (art) {
       const artBuffer = Buffer.from(art.data);
 
-      const artFileName = `${user.username}-${timestamp}-${common.title || nameWithoutExtension}-art`;
+      const artFileName = `${user.username}-${timestamp}-${
+        common.title || nameWithoutExtension
+      }-art`;
       const artS3Key = `images/${artFileName}`;
 
       await s3Client.send(

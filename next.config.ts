@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
         hostname: 'remaster-storage.s3.ap-south-1.amazonaws.com',
         pathname: '/images/**', // allow only cover art
       },
+      
     ],
   },
 };

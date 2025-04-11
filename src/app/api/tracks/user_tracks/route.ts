@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { User as Decoded } from "@/libs/Auth";
 import User from "@/models/User";
 import Track from "@/models/Track";
+import connectDb from "@/libs/connectDb";
 
 export async function GET(req: NextRequest) {
   const user = await Decoded();
@@ -12,6 +13,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    await connectDb();
+    
     const tracks = await Track.find({ user: user._id });
 
     if (!tracks) {
@@ -20,9 +23,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(tracks, { status: 200 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch tracks" },
-      { status: 500 }
-    );
+    console.error("Error fetching tracks: ", error);
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Track from "@/models/Track";
 import Tile from "@/app/components/Tile";
 import { useQuery } from "@tanstack/react-query";
@@ -8,19 +8,56 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import ColorThief from "colorthief";
+import { set } from "mongoose";
 
 export default function page() {
   const [playing, setPlaying] = React.useState(false);
   const { id } = useParams();
+  const colorThief = new ColorThief();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [colors, setColors] = useState<[number, number, number][]>([]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["track", id],
     queryFn: async () => {
-      const response = await axios.get(`/api/tracks/${id}/getTrack`);
+      const response = await axios.get(`/api/tracks/track_by_id?id=${id}`);
       return response.data;
     },
     enabled: !!id,
   });
+
+  const s3key = data?.s3Key;
+
+  const { data: audio } = useQuery({
+    queryKey: ["audio", s3key],
+    queryFn: async () => {
+      const response = await axios.get(`/api/tracks/play?s3key=${s3key}`);
+      return response.data;
+    },
+    enabled: !!id && !!s3key,
+  });
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete) {
+      getColor();
+    } else {
+      if (img) {
+        img.onload = getColor;
+      }
+    }
+
+    function getColor() {
+      try {
+        const colorThief = new ColorThief();
+        const palette = colorThief.getPalette(img).slice(0, 5);
+        setColors(palette);
+      } catch (err) {
+        console.error("Color Thief error:", err);
+      }
+    }
+  }, [data?.art]);
 
   if (isLoading) {
     return (
@@ -39,10 +76,54 @@ export default function page() {
     );
   }
 
+  function formatTime(seconds: number) {
+    seconds = Math.floor(seconds);
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hrs > 0) {
+      return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(
+        2,
+        "0"
+      )}`;
+    } else {
+      return `${mins}:${String(secs).padStart(2, "0")}`;
+    }
+  }
+
+  const handleSong = () => {
+
+    if (!audio?.url) {
+      return;
+    }
+
+    const sound = new Audio(audio.url);
+
+    sound
+      .play()
+      .then(() => {})
+      .catch((err) => {
+        console.error("Playback failed:", err);
+      });
+  };
+
   return (
     <>
       <div className="w-screen h-fit pt-16 text-center select-none">
-        <div className="h-80 rounded mx-20 mt-10 flex justify-left text-left ">
+        <div
+          className="absolute top-0 w-screen -z-10  h-[500px]"
+          style={
+            colors.length >= 1
+              ? {
+                  backgroundImage: `linear-gradient(to bottom, 
+                  rgb(${colors[0].join(",")}) 5%,
+                  rgb(0, 0, 0) 100%, rgb(0, 0, 0) 100%`,
+                }
+              : {}
+          }
+        ></div>
+        <div className="h-80 rounded mx-20 mt-10 flex justify-left text-left">
           <motion.div
             initial={{ opacity: 0, filter: "blur(20px)" }}
             animate={{
@@ -61,15 +142,20 @@ export default function page() {
               priority
               className="w-80  h-full transition rounded"
             />
+            <img
+              ref={imgRef}
+              src={data.art || "/music.jpg"}
+              crossOrigin="anonymous"
+              style={{ display: "none" }}
+              alt="color-thief-img"
+            />
           </motion.div>
           <div className="w-full">
             <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
               <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2  pb-1">
                 {data.name}
               </p>
-              <p className="text-lg font-bold text-neutral-400">
-                {data.artist}
-              </p>
+              <p className="text-lg font-bold ">{data.artist}</p>
             </div>
             <div className="w-[100%] ml-10 h-[35%] flex items-center">
               {playing ? (
@@ -111,6 +197,7 @@ export default function page() {
                     xmlns="http://www.w3.org/2000/svg"
                     className="size-14 cursor-pointer"
                     onClick={() => {
+                      handleSong();
                       setPlaying(!playing);
                     }}
                   >
@@ -129,8 +216,8 @@ export default function page() {
 
         {/* tracklist */}
         <div className="w-full justify-start flex flex-col">
-          <div className="flex mt-10 mx-20 h-12 rounded-lg ">
-            <div className=" w-[5%] justify-center items-center flex">
+          <div className="flex mt-10 mx-20 h-14 rounded-lg hover:bg-neutral-800 cursor-pointer ">
+            <div className="w-[5%] justify-left items-center flex ml-5">
               <svg
                 viewBox="0 0 24.00 24.00"
                 fill="none"
@@ -147,7 +234,6 @@ export default function page() {
                   {" "}
                   <path
                     d="M12 3L14.0357 8.16153C14.2236 8.63799 14.3175 8.87622 14.4614 9.0771C14.5889 9.25516 14.7448 9.41106 14.9229 9.53859C15.1238 9.68245 15.362 9.77641 15.8385 9.96432L21 12L15.8385 14.0357C15.362 14.2236 15.1238 14.3175 14.9229 14.4614C14.7448 14.5889 14.5889 14.7448 14.4614 14.9229C14.3175 15.1238 14.2236 15.362 14.0357 15.8385L12 21L9.96432 15.8385C9.77641 15.362 9.68245 15.1238 9.53859 14.9229C9.41106 14.7448 9.25516 14.5889 9.0771 14.4614C8.87622 14.3175 8.63799 14.2236 8.16153 14.0357L3 12L8.16153 9.96432C8.63799 9.77641 8.87622 9.68245 9.0771 9.53859C9.25516 9.41106 9.41106 9.25516 9.53859 9.0771C9.68245 8.87622 9.77641 8.63799 9.96432 8.16153L12 3Z"
-                 
                     strokeWidth="0.9600000000000002"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -160,6 +246,9 @@ export default function page() {
             </div>
             <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold">
               {data.artist}
+            </div>
+            <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold justify-end select-all pr-3">
+              {formatTime(data.duration)}
             </div>
           </div>
         </div>

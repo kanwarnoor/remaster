@@ -8,77 +8,61 @@ import Upload from "./components/Upload";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { loggedIn } from "@/libs/Auth";
+import { User } from "@/libs/Auth";
 
-export default function page() {
+export default function Page() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [loginChecked, setLoginChecked] = useState(false);
-  const [login, setLogin] = useState(false);
 
-  useEffect(() => {
-    const checkLogin = async () => {
-      const loggedInStatus = await loggedIn();
-      setLogin(loggedInStatus);
-      setLoginChecked(true);
-    };
-    checkLogin();
-  }, []);
+  const { data: currentUser } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => await User(),
+    staleTime: 1000 * 60 * 5,
+  });
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["userTracks"],
-    queryFn: () => {
-      return axios.get("/api/tracks/user_tracks");
-    },
+    queryFn: () => axios.get("/api/tracks/user_tracks"),
     refetchOnWindowFocus: false,
-    enabled: loginChecked && login == true,
+    enabled: !!currentUser?.username,
   });
 
   const deleteTrack = async (id: string) => {
-    const res = await axios.delete("/api/tracks/delete_track", {
-      data: {
-        id,
-      },
-    });
-
-    if (res.status == 200) {
+    const res = await axios.delete("/api/tracks/delete_track", { data: { id } });
+    if (res.status === 200) {
       queryClient.invalidateQueries({ queryKey: ["userTracks"] });
     } else {
       console.log("Error deleting track");
     }
   };
 
-  // const handleUpload = () => {
-  //   router.push("/upload");
-  // };
+  if (isError) {
+    return <div>Error: {error?.message || "Something went wrong"}</div>;
+  }
 
   return (
     <>
-      {login && isLoading && (
-        <div className="w-screen h-screen flex justify-center items-center ">
+      {currentUser && isLoading && (
+        <div className="w-screen h-screen flex justify-center items-center">
           <Loader />
         </div>
       )}
-      <section className="w-screen h-screen flex flex-col justify-center items-center ">
-        {/* <h1 className="m-10">User Tracks</h1> */}
+      <section className="w-screen h-screen flex flex-col justify-center items-center">
         <div className="flex-row flex gap-5">
           {data?.data.map((track: any) => {
             const type = track.album == null ? "single/" : "album/";
             return (
               <div key={track._id}>
                 <Tile title={track.name} artist={track.artist} art={track.art} link={type + track._id} />
-                <p
-                  className="text-remaster cursor-pointer"
-                  onClick={() => deleteTrack(track._id)}
-                >
+                <p className="text-remaster cursor-pointer" onClick={() => deleteTrack(track._id)}>
                   delete
                 </p>
               </div>
             );
           })}
         </div>
-        {/* <Upload click={handleUpload} /> */}
-      </section>{" "}
+      </section>
     </>
   );
 }
+
