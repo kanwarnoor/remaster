@@ -34,6 +34,11 @@ const trackModel = new Schema(
       required: false,
       default: "undefined",
     },
+    visiblility: {
+      type: String,
+      enum: ["public", "private"],
+      default: "private",
+    }
   },
   {
     timestamps: true,

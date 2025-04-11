@@ -63,9 +63,10 @@ export default function page() {
         {/* <h1 className="m-10">User Tracks</h1> */}
         <div className="flex-row flex gap-5">
           {data?.data.map((track: any) => {
+            const type = track.album == null ? "single/" : "album/";
             return (
               <div key={track._id}>
-                <Tile title={track.name} artist={track.artist} art={track.art} />
+                <Tile title={track.name} artist={track.artist} art={track.art} link={type + track._id} />
                 <p
                   className="text-remaster cursor-pointer"
                   onClick={() => deleteTrack(track._id)}

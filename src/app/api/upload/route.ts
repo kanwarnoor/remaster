@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       artist: user.username,
       size: file.size,
       duration: format.duration || 0,
-      album: common.album || null,
+      album: null,
       s3Key: s3Key,
       art: coverUrl,
     });
