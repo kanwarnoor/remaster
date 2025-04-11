@@ -84,18 +84,42 @@ export async function POST(req: NextRequest) {
       expiresIn: 3600,
     });
 
-    // // Save metadata to DB
+    // get and save the cover from image to s3.
+    const art = common.picture?.[0];
+    let coverUrl = null;
+    if (art) {
+      const artBuffer = Buffer.from(art.data);
+
+      const artFileName = `${user.username}-${timestamp}-${common.title}-art`;
+      const artS3Key = `images/${artFileName}`;
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: AWS_BUCKET_NAME,
+          Key: artS3Key,
+          Body: artBuffer,
+          ContentType: art.format,
+          CacheControl: "public, max-age=31536000", // encourage caching
+          ACL: "private", // or "public-read" depending on your use-case
+        })
+      );
+
+      coverUrl = `https://${AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artS3Key}`;
+    }
+
+    // Save metadata to DB
     const track = await Track.create({
       user: user._id,
       name: common.title || file.name,
       artist: user.username,
       size: file.size,
       duration: format.duration || 0,
-      album: common.album || "",
-      s3Key,
+      album: common.album || null,
+      s3Key: s3Key,
+      art: coverUrl,
     });
 
-    // await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });
+    await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });
 
     return NextResponse.json({
       success: true,
@@ -103,7 +127,7 @@ export async function POST(req: NextRequest) {
       file: {
         name: common.title,
         type: common.title,
-        size: format.size,
+        size: file.size,
       },
     });
   } catch (error) {

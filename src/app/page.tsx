@@ -13,15 +13,17 @@ import { loggedIn } from "@/libs/Auth";
 export default function page() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [loginChecked, setLoginChecked] = useState(false);
   const [login, setLogin] = useState(false);
 
   useEffect(() => {
     const checkLogin = async () => {
       const loggedInStatus = await loggedIn();
       setLogin(loggedInStatus);
+      setLoginChecked(true);
     };
     checkLogin();
-  });
+  }, []);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["userTracks"],
@@ -29,7 +31,7 @@ export default function page() {
       return axios.get("/api/tracks/user_tracks");
     },
     refetchOnWindowFocus: false,
-    enabled: login == true,
+    enabled: loginChecked && login == true,
   });
 
   const deleteTrack = async (id: string) => {
@@ -63,7 +65,7 @@ export default function page() {
           {data?.data.map((track: any) => {
             return (
               <div key={track._id}>
-                <Tile title={track.name} artist={track.artist} />
+                <Tile title={track.name} artist={track.artist} art={track.art} />
                 <p
                   className="text-remaster cursor-pointer"
                   onClick={() => deleteTrack(track._id)}

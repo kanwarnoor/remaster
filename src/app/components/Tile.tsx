@@ -2,13 +2,15 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface Props {
   title: string;
   artist: string;
+  art?: string;
 }
 
-export default function Tile({ title, artist }: Props) {
+export default function Tile({ title, artist, art }: Props) {
   return (
     <div className="flex flex-col">
       <div className="">
@@ -23,7 +25,18 @@ export default function Tile({ title, artist }: Props) {
             duration: 0.3,
           }}
           className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"
-        ></motion.div>
+        >
+          {art && (
+            <Image
+              src={art || ""}
+              alt={"art"}
+              height={0}
+              width={0}
+              sizes="100% 100%"
+              className="w-full h-full rounded"
+            />
+          )}
+        </motion.div>
         <motion.div
           initial={{
             opacity: 0,
@@ -41,7 +54,6 @@ export default function Tile({ title, artist }: Props) {
           <p className="font-bold text-base leading-tight text-white/50">
             {artist}
           </p>
-          
         </motion.div>
       </div>
     </div>
