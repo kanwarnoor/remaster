@@ -59,7 +59,8 @@ export async function POST(req: NextRequest) {
     const { common, format } = metadata;
 
     const timestamp = Date.now();
-    const fileName = `${user.username}-${timestamp}-${common.title}`;
+    const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
+    const fileName = `${user.username}-${timestamp}-${common.title || nameWithoutExtension}`;
     const s3Key = `audio/${fileName}`;
 
     // Upload to S3
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (art) {
       const artBuffer = Buffer.from(art.data);
 
-      const artFileName = `${user.username}-${timestamp}-${common.title}-art`;
+      const artFileName = `${user.username}-${timestamp}-${common.title || nameWithoutExtension}-art`;
       const artS3Key = `images/${artFileName}`;
 
       await s3Client.send(
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     // Save metadata to DB
     const track = await Track.create({
       user: user._id,
-      name: common.title || file.name,
+      name: common.title || nameWithoutExtension,
       artist: user.username,
       size: file.size,
       duration: format.duration || 0,
@@ -124,11 +125,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "File uploaded successfully",
-      file: {
-        name: common.title,
-        type: common.title,
-        size: file.size,
-      },
     });
   } catch (error) {
     console.error("Upload error:", error);
