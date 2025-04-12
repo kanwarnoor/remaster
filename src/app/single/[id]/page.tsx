@@ -14,9 +14,22 @@ export default function page() {
   const [playing, setPlaying] = React.useState(false);
   const { id } = useParams();
   const colorThief = new ColorThief();
+  const [user, setUser] = useState<any>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const queryClient = useQueryClient();
   const [colors, setColors] = useState<[number, number, number][]>([]);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const user = await User();
+      if (!user) {
+        return;
+      }
+      setUser(user);
+    };
+
+    getUser();
+  }, []);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["track", id],
@@ -130,7 +143,7 @@ export default function page() {
   return (
     <>
       <InsideNavbar link="/" />
-      <div className="w-screen h-fit pt-16 text-center select-none">
+      <div className="w-screen h-fit pt-10 text-center select-none ">
         <div
           className="absolute top-0 w-screen -z-10  h-[500px]"
           style={
@@ -172,21 +185,28 @@ export default function page() {
           </motion.div>
           <div className="w-full">
             <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
-              {data.visibility === "private" ? (
-                <p
-                  className="text-sm font-bold cursor-pointer"
-                  onClick={() => toggleVisibility()}
-                >
-                  Private
-                </p>
+              {user && user._id === data.user ? (
+                <>
+                  {data.visibility === "private" ? (
+                    <p
+                      className="text-sm font-bold cursor-pointer"
+                      onClick={() => toggleVisibility()}
+                    >
+                      Private
+                    </p>
+                  ) : (
+                    <p
+                      className="text-sm font-bold cursor-pointer"
+                      onClick={() => toggleVisibility()}
+                    >
+                      Public
+                    </p>
+                  )}
+                </>
               ) : (
-                <p
-                  className="text-sm font-bold cursor-pointer"
-                  onClick={() => toggleVisibility()}
-                >
-                  Public
-                </p>
+                <p className="text-sm h-5 font-bold cursor-pointer "></p>
               )}
+
               <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2  pb-1">
                 {data.name}
               </p>

@@ -12,8 +12,6 @@ export async function GET(req: Request) {
 
   const user = await User();
 
-  console.log("user:", user);
-
   try {
     const track = await Track.findById(id);
     if (!track) {

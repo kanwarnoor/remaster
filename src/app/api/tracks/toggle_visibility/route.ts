@@ -1,5 +1,6 @@
 import Track from "@/models/Track";
 import connectDb from "@/libs/connectDb";
+import { User } from "@/libs/Auth";
 
 export async function PUT(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -18,6 +19,15 @@ export async function PUT(req: Request) {
     if (!track) {
       return new Response("Track not found", { status: 404 });
     }
+    // check if track belong to user
+    const user = await User();
+    if (!user) {
+      return new Response("User not found", { status: 404 });
+    }
+    if (track.user.toString() !== user._id.toString()) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
     if (track.visibility === visibility) {
       return new Response("Track already has this visibility", { status: 200 });
     }

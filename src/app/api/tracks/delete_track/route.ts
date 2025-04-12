@@ -3,6 +3,7 @@ import { loggedIn } from "@/libs/Auth";
 import Track from "@/models/Track";
 import User from "@/models/User";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import connectDb from "@/libs/connectDb";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "",
@@ -26,6 +27,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
+    await connectDb();
     const track = await Track.findById(id);
 
     if (!track) {
@@ -33,17 +35,16 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete the file from S3
-    if(track.s3Key){
-      try{
+    if (track.s3Key) {
+      try {
         const deleteParams = {
           Bucket: process.env.AWS_BUCKET_NAME || "",
           Key: track.s3Key,
-        }
+        };
         const command = new DeleteObjectCommand(deleteParams);
         await s3Client.send(command);
         console.log(`File deleted from S3: ${track.s3Key}`);
-      }
-      catch(s3Error){
+      } catch (s3Error) {
         console.error(`Failed to delete file from S3: ${s3Error}`);
       }
     }
