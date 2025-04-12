@@ -39,7 +39,7 @@ const trackModel = new Schema(
       required: false,
       default: "undefined",
     },
-    visiblility: {
+    visibility: {
       type: String,
       enum: ["public", "private"],
       default: "private",

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { User } from "@/libs/Auth";
+import Navbar from "./components/Navbar";
 
 export default function Page() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function Page() {
           <Loader />
         </div>
       )}
+      <Navbar/>
       <section className="w-screen h-screen flex flex-col justify-center items-center">
         <div className="flex-row flex gap-5">
           {data?.data.map((track: any) => {

@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Track from "@/models/Track";
-import Tile from "@/app/components/Tile";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import ColorThief from "colorthief";
-import { set } from "mongoose";
+import { User } from "@/libs/Auth";
+import InsideNavbar from "@/app/components/InsideNavbar";
 
 export default function page() {
   const [playing, setPlaying] = React.useState(false);
   const { id } = useParams();
   const colorThief = new ColorThief();
   const imgRef = useRef<HTMLImageElement>(null);
+  const queryClient = useQueryClient();
   const [colors, setColors] = useState<[number, number, number][]>([]);
 
   const { data, isLoading, error } = useQuery({
@@ -62,17 +62,20 @@ export default function page() {
   if (isLoading) {
     return (
       <div className="w-screen h-screen flex justify-center items-center">
-        <p>Loading...</p>
+        <div className="remaster-spinner w-10 h-10"></div>
       </div>
     );
   }
 
   if (!data || error) {
     return (
-      <div className="w-screen h-screen flex flex-col justify-center items-center ">
-        <Image src={"/dead.png"} height={500} width={500} alt={""} priority />
-        <p className="text-3xl font-bold mt-5">Track does not exist!</p>
-      </div>
+      <>
+        <InsideNavbar link="/" />
+        <div className="w-screen h-screen flex flex-col justify-center items-center ">
+          <Image src={"/dead.png"} height={500} width={500} alt={""} priority />
+          <p className="text-3xl font-bold mt-5">Track does not exist!</p>
+        </div>
+      </>
     );
   }
 
@@ -93,7 +96,6 @@ export default function page() {
   }
 
   const handleSong = () => {
-
     if (!audio?.url) {
       return;
     }
@@ -108,8 +110,26 @@ export default function page() {
       });
   };
 
+  const toggleVisibility = async () => {
+    const visibility = data.visibility == "private" ? "public" : "private";
+    try {
+      const res = await axios.put(
+        `/api/tracks/toggle_visibility?id=${id}&visibility=${visibility}`
+      );
+
+      if (res.status !== 200) {
+        throw new Error("Failed to toggle visibility");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["track", id] });
+    } catch (error) {
+      console.error("Error toggling visibility:", error);
+    }
+  };
+
   return (
     <>
+      <InsideNavbar link="/" />
       <div className="w-screen h-fit pt-16 text-center select-none">
         <div
           className="absolute top-0 w-screen -z-10  h-[500px]"
@@ -117,8 +137,8 @@ export default function page() {
             colors.length >= 1
               ? {
                   backgroundImage: `linear-gradient(to bottom, 
-                  rgb(${colors[0].join(",")}) 5%,
-                  rgb(0, 0, 0) 100%, rgb(0, 0, 0) 100%`,
+                  rgba(${colors[0].join(",")}, 0.7) 5%,
+                  rgba(0, 0, 0, 1) 100%, rgb(0, 0, 0) 100%`,
                 }
               : {}
           }
@@ -152,6 +172,21 @@ export default function page() {
           </motion.div>
           <div className="w-full">
             <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
+              {data.visibility === "private" ? (
+                <p
+                  className="text-sm font-bold cursor-pointer"
+                  onClick={() => toggleVisibility()}
+                >
+                  Private
+                </p>
+              ) : (
+                <p
+                  className="text-sm font-bold cursor-pointer"
+                  onClick={() => toggleVisibility()}
+                >
+                  Public
+                </p>
+              )}
               <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2  pb-1">
                 {data.name}
               </p>
@@ -215,8 +250,8 @@ export default function page() {
         </div>
 
         {/* tracklist */}
-        <div className="w-full justify-start flex flex-col">
-          <div className="flex mt-10 mx-20 h-14 rounded-lg hover:bg-neutral-800 cursor-pointer ">
+        <div className="w-full justify-start flex flex-col ">
+          <div className="flex mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 cursor-pointer ">
             <div className="w-[5%] justify-left items-center flex ml-5">
               <svg
                 viewBox="0 0 24.00 24.00"
@@ -251,6 +286,8 @@ export default function page() {
               {formatTime(data.duration)}
             </div>
           </div>
+
+          <div>{data.timestamps}</div>
         </div>
       </div>
     </>
