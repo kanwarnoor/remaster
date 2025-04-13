@@ -20,7 +20,7 @@ export default function Tile({ title, artist, art, link }: Props) {
     }
   };
   return (
-    <div className="flex flex-col w-[200px]">
+    <div className="flex flex-col rounded">
       <div className="" onClick={handleClick}>
         <motion.div
           initial={{ opacity: 0, filter: "blur(20px)" }}

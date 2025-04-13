@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
       coverUrl = `https://${AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artS3Key}`;
     }
-
+  
     // Save metadata to DB
     const track = await Track.create({
       user: user._id,
