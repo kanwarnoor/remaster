@@ -8,10 +8,6 @@ export async function GET(request: Request) {
   try {
     const track = await Track.find({ visibility: "public" });
 
-    if (!track || track.length === 0) {
-      return NextResponse.json({ message: "No tracks found" }, { status: 404 });
-    }
-
     return NextResponse.json(track, { status: 200 });
   } catch (error) {
     console.log("Error fetching tracks: ", error);

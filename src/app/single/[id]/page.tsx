@@ -31,11 +31,16 @@ export default function page() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["track", id],
     queryFn: async () => {
-      const response = await axios.get(`/api/tracks/track_by_id?id=${id}`);
-      return response.data;
+      return (await axios.get(`/api/tracks/track_by_id?id=${id}`)).data;
     },
     enabled: !!id,
     refetchOnWindowFocus: false,
+    retry: (failureCount, error) => {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 403) return false; // No retry on 403
+      }
+      return failureCount < 3; // Retry up to 3 times for other errors
+    },
   });
 
   const toggleVisibility = async () => {
@@ -70,7 +75,7 @@ export default function page() {
   useEffect(() => {
     if (audio?.url) {
       const newAudio = new Audio(audio.url);
-  
+
       const onPlay = () => setPlaying(true);
       const onPause = () => setPlaying(false);
       const onEnded = () => setPlaying(false);
@@ -78,14 +83,14 @@ export default function page() {
         newAudio.currentTime = 0;
         newAudio.play();
       };
-  
+
       newAudio.addEventListener("playing", onPlay);
       newAudio.addEventListener("pause", onPause);
       newAudio.addEventListener("ended", onEnded);
       newAudio.addEventListener("reset", onReset);
-  
+
       setTrack(newAudio);
-  
+
       return () => {
         newAudio.pause();
         newAudio.removeEventListener("playing", onPlay);
@@ -95,7 +100,6 @@ export default function page() {
       };
     }
   }, [audio?.url]);
-  
 
   const handleSong = (action: string) => {
     if (!audio?.url) {

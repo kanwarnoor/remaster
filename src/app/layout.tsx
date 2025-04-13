@@ -17,9 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
       <body className={`${inter.className} antialiased`}>
         <Provider>
-
           {children}
         </Provider>
       </body>

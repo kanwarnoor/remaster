@@ -23,27 +23,22 @@ export default function Tile({ title, artist, art, link }: Props) {
     <div className="flex flex-col w-[200px]">
       <div className="" onClick={handleClick}>
         <motion.div
-          initial={{
-            opacity: 0,
-          }}
+          initial={{ opacity: 0, filter: "blur(20px)" }}
           animate={{
             opacity: 1,
+            filter: "blur(0px)",
           }}
-          transition={{
-            duration: 0.3,
-          }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
           className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"
         >
-   
-            <Image
-              src={art || "/music.jpg"}
-              alt={"art"}
-              height={0}
-              width={0}
-              sizes="100% 100%"
-              className="w-full h-full rounded"
-            />
-  
+          <Image
+            src={art || "/music.jpg"}
+            alt={"art"}
+            height={0}
+            width={0}
+            sizes="100% 100%"
+            className="w-full h-full rounded"
+          />
         </motion.div>
         <motion.div
           initial={{
@@ -58,7 +53,9 @@ export default function Tile({ title, artist, art, link }: Props) {
           }}
           className="w-fit max-w-full cursor-pointer"
         >
-          <p className="font-bold text-lg leading-none mt-2 text-ellipsis overflow-hidden">{title}</p>
+          <p className="font-bold text-lg leading-none mt-2 text-ellipsis overflow-hidden">
+            {title}
+          </p>
           <p className="font-bold text-base leading-tight text-white/50 text-ellipsis overflow-hidden">
             {artist}
           </p>

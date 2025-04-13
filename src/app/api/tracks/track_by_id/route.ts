@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     const isOwner = !!user && track.user.toString() === user._id.toString();
 
     if (track.visibility === "private" && !isOwner) {
-      return new Response("Forbidden", { status: 403 });
+      return NextResponse.json({message: "Forbidden"}, { status: 403 });
     }
 
     return NextResponse.json(track, { status: 200 });
