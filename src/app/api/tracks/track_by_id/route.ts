@@ -1,10 +1,13 @@
 import Track from "@/models/Track";
 import { NextResponse } from "next/server";
 import { User } from "@/libs/Auth";
+import dbConnect from "@/libs/connectDb";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
+
+  await dbConnect();
 
   if (!id) {
     return new Response("Track ID is required", { status: 400 }); // should be 400 for missing ID
