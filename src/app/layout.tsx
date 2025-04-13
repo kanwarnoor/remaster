@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "./components/Navbar";
 import Provider from "@/libs/Provider"; // Import QueryProvider
 import { Inter } from "next/font/google";
 

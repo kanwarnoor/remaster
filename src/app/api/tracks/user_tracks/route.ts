@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { User as Decoded } from "@/libs/Auth";
-import User from "@/models/User";
 import Track from "@/models/Track";
 import connectDb from "@/libs/connectDb";
 

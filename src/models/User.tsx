@@ -36,6 +36,10 @@ const userModel = new Schema(
     tracks: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Tracks",
+      liked: {
+        type: Boolean,
+        default: false,
+      }
     }],
   },
   {

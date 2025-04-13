@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { User } from "@/libs/Auth";
 import Notification from "@/app/components/Notification";
+import InsideNavbar from "../components/InsideNavbar";
 
 export default function FileUpload() {
   const [popup, setPopup] = useState<{
@@ -81,12 +82,13 @@ export default function FileUpload() {
 
   return (
     <>
+      <InsideNavbar link={"/"} />
       <AnimatePresence>
         {popup.show && (
           <Notification message={popup.message} type={popup.type} />
         )}
       </AnimatePresence>
-      <div className="flex flex-col items-center justify-center h-screen w-screen overflow-hidden">
+      <div className="flex flex-col items-center justify-center h-screen w-screen overflow-hidden ">
         <motion.p
           initial={{
             opacity: 0,
@@ -102,8 +104,10 @@ export default function FileUpload() {
           }}
           className=" font-bold text-white/50"
         >
-          {loading ? ("dropping the heat, please wait!") : "drag and drop your audio files here"} <br />
-
+          {loading
+            ? "dropping the heat, please wait!"
+            : "drag and drop your audio files here"}{" "}
+          <br />
         </motion.p>
         <motion.div
           initial={{
@@ -115,8 +119,9 @@ export default function FileUpload() {
           transition={{
             duration: 0.3,
           }}
-          className={`border-2 w-[450px] rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed ${loading &&'upload'}`}
-  
+          className={`border-2 w-[500px] rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed ${
+            loading && "upload"
+          }`}
         >
           {loading ? (
             <div className="flex gap-2">
