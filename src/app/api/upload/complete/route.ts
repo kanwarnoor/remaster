@@ -3,7 +3,12 @@ import { User as Decoded } from "@/libs/Auth";
 import User from "@/models/User";
 import Track from "@/models/Track";
 import connectDb from "@/libs/connectDb";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  PutObjectCommand,
+  S3Client,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
 
@@ -85,6 +90,17 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
+    // delete the file from S3 if it was uploaded
+    try {
+      const getObject = new GetObjectCommand({
+        Bucket: AWS_BUCKET_NAME,
+        Key: `audio/${name}`,
+      });
+      const response = await s3Client.send(getObject);
+
+      // if object exists
+    } catch (error) {}
+
     console.error("Error saving file:", error);
     return NextResponse.json(
       { error: "Failed to upload file", details: (error as Error).message },

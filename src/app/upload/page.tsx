@@ -6,8 +6,10 @@ import axios from "axios";
 import Notification from "@/app/components/Notification";
 import InsideNavbar from "../components/InsideNavbar";
 import { parseBlob } from "music-metadata";
+import { useRouter } from "next/navigation";
 
 export default function FileUpload() {
+  const router = useRouter();
   const [popup, setPopup] = useState<{
     show: boolean;
     message: string;
@@ -61,7 +63,7 @@ export default function FileUpload() {
           return;
         }
 
-        const url = response.data;
+        const {url, name} = response.data;
         const upload = await axios.put(url, file, {
           headers: {
             "Content-Type": file.type,
@@ -96,6 +98,7 @@ export default function FileUpload() {
           });
         }
         setLoading(false);
+        router.push("/");
       } catch (err) {
         console.log(err);
         setPopup({

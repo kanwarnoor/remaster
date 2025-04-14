@@ -38,9 +38,8 @@ export async function POST(req: NextRequest) {
       }),
       { expiresIn: 3600 }
     );
-    console.log("Signed URL:", url);
 
-    return NextResponse.json(url, { status: 200 });
+    return NextResponse.json({ url, name }, { status: 200 });
   } catch (error) {
     console.error(
       "Detailed error:",
