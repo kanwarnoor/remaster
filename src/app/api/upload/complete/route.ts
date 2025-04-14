@@ -51,7 +51,7 @@ export async function POST(req: Request) {
           await s3Client.send(
             new PutObjectCommand({
               Bucket: AWS_BUCKET_NAME,
-              Key: `image/${name}`,
+              Key: `images/${name}`,
               Body: artBuffer,
               ContentType: art.format,
               CacheControl: "public, max-age=31536000",
