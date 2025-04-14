@@ -17,15 +17,7 @@ const s3Client = new S3Client({
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("AWS Setup", {
-      region: process.env.AWS_REGION ? "✓" : "✗",
-      bucketName: process.env.AWS_BUCKET_NAME ? "✓" : "✗",
-      accessKey: process.env.AWS_ACCESS_KEY_ID ? "✓" : "✗",
-      secretKey: process.env.AWS_SECRET_ACCESS_KEY ? "✓" : "✗"
-    });
-
     const user = await Decoded();
-    console.log("User auth:", user ? "Authenticated" : "Not authenticated");
     if (!user) {
       return NextResponse.json(
         { error: "Please login to upload!" },
@@ -33,37 +25,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const { fileName, type, size } = await req.json();
 
     const name = `${user.username}-${crypto.randomBytes(8).toString("hex")}`;
-    console.log("File name:", name);
-
-    if (!file) {
-      return NextResponse.json({ error: "No file provided!" }, { status: 400 });
-    }
-    if (!file.type.startsWith("audio/")) {
-      return NextResponse.json(
-        { error: "File must be audio" },
-        { status: 400 }
-      );
-    }
 
     const url = await getSignedUrl(
       s3Client,
       new PutObjectCommand({
         Bucket: bucketName,
         Key: `audio/${name}`,
-        ContentType: file.type,
+        ContentType: type,
       }),
       { expiresIn: 3600 }
     );
     console.log("Signed URL:", url);
 
-    return NextResponse.json(
-      { url, name, fileName: file.name, type: file.type, size: file.size },
-      { status: 200 }
-    );
+    return NextResponse.json(url, { status: 200 });
   } catch (error) {
     console.error(
       "Detailed error:",

@@ -45,7 +45,11 @@ export default function FileUpload() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await axios.post("api/upload/init", formData);
+        const response = await axios.post("api/upload/init", {
+          fileName: file.name,
+          type: file.type,
+          size: file.size,
+        });
 
         if (response.status !== 200) {
           setPopup({
@@ -57,10 +61,10 @@ export default function FileUpload() {
           return;
         }
 
-        const { url, name, fileName, type, size } = response.data;
+        const url = response.data;
         const upload = await axios.put(url, file, {
           headers: {
-            "Content-Type": type,
+            "Content-Type": file.type,
           },
         });
 
@@ -78,10 +82,10 @@ export default function FileUpload() {
         
         const save = await axios.post("api/upload/complete", {
           name,
-          type,
-          fileName,
+          type: file.type,
+          fileName: file.name,
           metadata,
-          size,
+          size: file.size,
         });
 
         if (save.status === 200) {
