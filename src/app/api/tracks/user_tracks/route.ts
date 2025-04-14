@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     await connectDb();
-    
+
     const tracks = await Track.find({ user: user._id });
 
     if (!tracks) {

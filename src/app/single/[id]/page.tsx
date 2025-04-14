@@ -6,13 +6,16 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
 import { User } from "@/libs/Auth";
+import { AnimatePresence } from "framer-motion";
 import InsideNavbar from "@/app/components/InsideNavbar";
 import SongPage from "@/app/components/SongPage";
+import Player from "@/app/components/Player";
 
 export default function page() {
   const { id } = useParams();
   const [user, setUser] = useState<any>(null);
   const [playing, setPlaying] = React.useState(false);
+  const [player, setPlayer] = useState(false);
   const [track, setTrack] = useState<any>(null);
   const queryClient = useQueryClient();
 
@@ -76,7 +79,10 @@ export default function page() {
     if (audio?.url) {
       const newAudio = new Audio(audio.url);
 
-      const onPlay = () => setPlaying(true);
+      const onPlay = () => {
+        setPlaying(true);
+        setPlayer(true);
+      };
       const onPause = () => setPlaying(false);
       const onEnded = () => setPlaying(false);
       const onReset = () => {
@@ -153,6 +159,13 @@ export default function page() {
         handleSong={handleSong}
         playing={playing}
       />
+      <AnimatePresence>
+        {player && (
+          <div className="fixed bottom-0 w-full h-20 px-20 mb-10">
+            <Player handleSong={handleSong} playing={playing} />
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

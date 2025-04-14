@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'remaster-storage.s3.ap-south-1.amazonaws.com',
+        hostname: 'remaster-storage.s3.amazonaws.com',
         pathname: '**', // allow only cover art
       },
       

@@ -21,9 +21,9 @@ const s3Client = new S3Client({
 });
 
 export async function POST(req: Request) {
-  try {
-    const { name, type, metadata, fileName, size } = await req.json();
+  const { name, type, metadata, fileName, size } = await req.json();
 
+  try {
     if (!name || !type || !metadata || !fileName || !size) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
           await s3Client.send(
             new PutObjectCommand({
               Bucket: AWS_BUCKET_NAME,
-              Key: `images/${name}`,
+              Key: `images/track/${name}`,
               Body: artBuffer,
               ContentType: art.format,
               CacheControl: "public, max-age=31536000",
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
             })
           );
 
-          coverUrl = `https://${AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/images/${name}`;
+          coverUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/images/track/${name}`;
         }
       } catch (error) {
         console.error("Error uploading cover art:", error);
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       size: size,
       duration: format.duration || 0,
       album: null,
-      s3Key: `audio/${name}`,
+      s3Key: name,
       art: coverUrl,
     });
 
@@ -92,15 +92,35 @@ export async function POST(req: Request) {
   } catch (error) {
     // delete the file from S3 if it was uploaded
     try {
-      const getObject = new GetObjectCommand({
+      const audioObject = new GetObjectCommand({
         Bucket: AWS_BUCKET_NAME,
         Key: `audio/${name}`,
       });
-      const response = await s3Client.send(getObject);
+      const imageObject = new GetObjectCommand({
+        Bucket: AWS_BUCKET_NAME,
+        Key: `images/track/${name}`,
+      });
+      const audio = await s3Client.send(audioObject);
+      const image = await s3Client.send(imageObject);
 
       // if object exists
+      if (audio.Body) {
+        const deleteParams = {
+          Bucket: AWS_BUCKET_NAME,
+          Key: `audio/${name}`,
+        };
+        const command = new DeleteObjectCommand(deleteParams);
+        await s3Client.send(command);
+      }
+      if (image.Body) {
+        const deleteParams = {
+          Bucket: AWS_BUCKET_NAME,
+          Key: `images/track/${name}`,
+        };
+        const command = new DeleteObjectCommand(deleteParams);
+        await s3Client.send(command);
+      }
     } catch (error) {}
-
     console.error("Error saving file:", error);
     return NextResponse.json(
       { error: "Failed to upload file", details: (error as Error).message },

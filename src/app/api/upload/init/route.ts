@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { fileName, type, size } = await req.json();
+    const { type } = await req.json();
 
     const name = `${user.username}-${crypto.randomBytes(8).toString("hex")}`;
 

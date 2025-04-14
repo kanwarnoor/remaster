@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  S3Client,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
@@ -15,8 +12,8 @@ const s3Client = new S3Client({
   },
 });
 
-export async function GET(req: NextRequest){
-  const {searchParams} = new URL(req.url);
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
   const s3Key = searchParams.get("s3key");
 
   if (!s3Key) {
@@ -26,7 +23,7 @@ export async function GET(req: NextRequest){
   try {
     const getObjectCommand = new GetObjectCommand({
       Bucket: AWS_BUCKET_NAME,
-      Key: s3Key,
+      Key: `audio/${s3Key}`,
     });
     const url = await getSignedUrl(s3Client, getObjectCommand, {
       expiresIn: 3600,
@@ -41,16 +38,13 @@ export async function GET(req: NextRequest){
   }
 
   // get the audio file from s3
- 
-
 
   // const getObjectCommand = new GetObjectCommand({
-    //   Bucket: AWS_BUCKET_NAME,
-    //   Key: s3Key,
-    // });
+  //   Bucket: AWS_BUCKET_NAME,
+  //   Key: s3Key,
+  // });
 
-    // const url = await getSignedUrl(s3Client, getObjectCommand, {
-    //   expiresIn: 3600,
-    // });
-
+  // const url = await getSignedUrl(s3Client, getObjectCommand, {
+  //   expiresIn: 3600,
+  // });
 }

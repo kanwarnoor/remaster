@@ -29,15 +29,14 @@ const trackModel = new Schema(
       type: String,
       required: false,
     },
+    art: {
+      type: String,
+      required: false,
+    },
     duration: {
       type: Number,
       required: true,
       default: 0,
-    },
-    art: {
-      type: String,
-      required: false,
-      default: "undefined",
     },
     visibility: {
       type: String,

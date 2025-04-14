@@ -48,9 +48,7 @@ export default function FileUpload() {
         formData.append("file", file);
 
         const response = await axios.post("api/upload/init", {
-          fileName: file.name,
           type: file.type,
-          size: file.size,
         });
 
         if (response.status !== 200) {
@@ -63,7 +61,7 @@ export default function FileUpload() {
           return;
         }
 
-        const {url, name} = response.data;
+        const { url, name } = response.data;
         const upload = await axios.put(url, file, {
           headers: {
             "Content-Type": file.type,
@@ -81,7 +79,7 @@ export default function FileUpload() {
         }
 
         const metadata = await parseBlob(file);
-        
+
         const save = await axios.post("api/upload/complete", {
           name,
           type: file.type,
