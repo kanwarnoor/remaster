@@ -122,6 +122,17 @@ export default function page() {
       return;
     }
 
+    if(action == "previous") {
+
+      if (track.currentTime < 5) {
+        track.currentTime = 0;
+        return;
+      }
+  
+      track.currentTime = 0;
+      return;
+    }
+
     if (action == "reset") {
       const resetEvent = new Event("reset");
       track.dispatchEvent(resetEvent);

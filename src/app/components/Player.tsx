@@ -33,7 +33,10 @@ export default function Player({ handleSong, playing }: Props) {
       <div className="relative w-[40%] h-full flex items-center justify-center  gap-3">
         <div>
           {/* previous */}
-          <div className="cursor-pointer" onClick={() => handleSong("previous")}>
+          <div
+            className="cursor-pointer"
+            onClick={() => handleSong("previous")}
+          >
             <svg
               viewBox="0 -2 12 12"
               version="1.1"
