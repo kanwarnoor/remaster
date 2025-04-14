@@ -49,6 +49,22 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
+
+    // Delte the art from S3
+    if (track.art) {
+      try {
+        const deleteParams = {
+          Bucket: process.env.AWS_BUCKET_NAME || "",
+          Key: track.art,
+        };
+        const command = new DeleteObjectCommand(deleteParams);
+        await s3Client.send(command);
+        console.log(`File deleted from S3: ${track.art}`);
+      } catch (s3Error) {
+        console.error(`Failed to delete file from S3: ${s3Error}`);
+      }
+    }
+
     const deletedTrack = await Track.deleteOne({ _id: id });
 
     if (!deletedTrack) {

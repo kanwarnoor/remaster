@@ -6,12 +6,14 @@ import Tile from "./components/Tile";
 import Upload from "./components/Upload";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { User } from "@/libs/Auth";
 import Navbar from "./components/Navbar";
 import TracksList from "./components/TracksList";
 
 export default function Page() {
+  const queryClient = useQueryClient();
+
   const { data: currentUser } = useQuery({
     queryKey: ["user"],
     queryFn: async () => await User(),
@@ -34,16 +36,16 @@ export default function Page() {
     retry: false,
   });
 
-  // const deleteTrack = async (id: string) => {
-  //   const res = await axios.delete("/api/tracks/delete_track", {
-  //     data: { id },
-  //   });
-  //   if (res.status === 200) {
-  //     queryClient.invalidateQueries({ queryKey: ["userTracks"] });
-  //   } else {
-  //     console.log("Error deleting track");
-  //   }
-  // };
+  const deleteTrack = async (id: string) => {
+    const res = await axios.delete("/api/tracks/delete_track", {
+      data: { id },
+    });
+    if (res.status === 200) {
+      queryClient.invalidateQueries({ queryKey: ["userTracks"] });
+    } else {
+      console.log("Error deleting track");
+    }
+  };
 
   return (
     <>
