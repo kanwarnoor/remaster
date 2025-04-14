@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { User } from "@/libs/Auth";
 import Notification from "@/app/components/Notification";
 import InsideNavbar from "../components/InsideNavbar";
+import { parseBlob } from "music-metadata";
 
 export default function FileUpload() {
   const [popup, setPopup] = useState<{
@@ -29,6 +29,7 @@ export default function FileUpload() {
     const droppedFiles = e.dataTransfer?.files;
     const file = droppedFiles?.[0] || null;
     setLoading(true);
+
     if (file) {
       if (!file.type.startsWith("audio/")) {
         setPopup({
@@ -41,38 +42,64 @@ export default function FileUpload() {
       }
 
       try {
-        const decoded = await User();
+        const formData = new FormData();
+        formData.append("file", file);
 
-        if (!decoded) {
-          console.log("user not logged in!");
+        const response = await axios.post("api/upload/init", formData);
+
+        if (response.status !== 200) {
           setPopup({
             show: true,
-            message: "Please login to upload files",
+            message: response.data.error,
             type: "error",
           });
           setLoading(false);
           return;
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
+        const { url, name, fileName, type, size } = response.data;
+        const upload = await axios.put(url, file, {
+          headers: {
+            "Content-Type": type,
+          },
+        });
 
-        const response = await axios.post("api/upload", formData);
-
-        if (response.status === 200) {
-          console.log("File uploaded successfully");
+        if (upload.status !== 200) {
           setPopup({
             show: true,
-            message: "File uploaded successfully",
-            type: "success",
+            message: upload.data.error,
+            type: "error",
           });
           setLoading(false);
+          return;
         }
+
+        const metadata = await parseBlob(file);
+        
+        const save = await axios.post("api/upload/complete", {
+          name,
+          type,
+          fileName,
+          metadata,
+          size,
+        });
+
+        if (save.status === 200) {
+          setPopup({
+            show: true,
+            message: "File uploaded successfully!",
+            type: "success",
+          });
+        }
+        setLoading(false);
       } catch (err) {
         console.log(err);
         setPopup({
           show: true,
-          message: "Failed to upload file!",
+          message:
+            axios.isAxiosError(err) && err.response?.data?.error
+              ? err.response.data.error
+              : "Failed to upload file",
           type: "error",
         });
         setLoading(false);

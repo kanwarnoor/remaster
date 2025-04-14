@@ -58,6 +58,7 @@ export default function Page() {
               data={userTracks}
               isLoading={userLoading}
               type="user"
+              deleteTrack={deleteTrack}
             />
           </section>
         )}
@@ -69,6 +70,7 @@ export default function Page() {
               data={publicTracks}
               isLoading={publicLoading}
               type="public"
+              deleteTrack={deleteTrack}
             />
           </section>
         )}

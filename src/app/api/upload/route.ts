@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { User as Decoded } from "@/libs/Auth";
 import User from "@/models/User";
 import Track from "@/models/Track";
 import { Buffer } from "buffer";
-import path from "path";
 import { parseBuffer } from "music-metadata";
+import crypto from "crypto";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
 
@@ -60,32 +56,20 @@ export async function POST(req: NextRequest) {
 
     const timestamp = Date.now();
     const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
-    const fileName = `${user.username}-${timestamp}-${
-      common.title || nameWithoutExtension
-    }`;
+    const randomBytes = crypto.randomBytes(8).toString("hex");
+    const fileName = `${user.username}-${randomBytes}`;
     const s3Key = `audio/${fileName}`;
 
-    // Upload to S3
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: AWS_BUCKET_NAME,
-        Key: s3Key,
-        Body: buffer,
-        ContentType: file.type,
-        CacheControl: "public, max-age=31536000", // encourage caching
-        ACL: "private", // or "public-read" depending on your use-case
-      })
-    );
-
-    // Generate a signed GET URL for playback or download
-    // const getObjectCommand = new GetObjectCommand({
+    // create a singed URL from aws s3
+    // const signedUrl = await getSignedUrl(s3Client, new PutObjectCommand({
     //   Bucket: AWS_BUCKET_NAME,
     //   Key: s3Key,
-    // });
+    //   Body: buffer,
+    //   ContentType: file.type,
+    //   CacheControl: "public, max-age=31536000", // encourage caching
+    //   ACL: "private", // or "public-read" depending on your use-case
+    // }));
 
-    // const url = await getSignedUrl(s3Client, getObjectCommand, {
-    //   expiresIn: 3600,
-    // });
 
     // get and save the cover from image to s3.
     const art = common.picture?.[0];
@@ -111,7 +95,7 @@ export async function POST(req: NextRequest) {
 
       coverUrl = `https://${AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artS3Key}`;
     }
-  
+
     // Save metadata to DB
     const track = await Track.create({
       user: user._id,
