@@ -1,10 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
-import { loggedIn } from "@/libs/Auth";
+import { User as Decoded } from "@/libs/Auth";
 import Track from "@/models/Track";
 import User from "@/models/User";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import connectDb from "@/libs/connectDb";
-import TracksList from "@/app/components/TracksList";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "",
@@ -15,9 +14,9 @@ const s3Client = new S3Client({
 });
 
 export async function DELETE(req: NextRequest) {
-  const login = await loggedIn();
+  const user = await Decoded();
 
-  if (!login) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -33,6 +32,13 @@ export async function DELETE(req: NextRequest) {
 
     if (!track) {
       return NextResponse.json({ message: "Track not found" }, { status: 404 });
+    }
+
+    if (track.user.toString() !== user._id.toString()) {
+      return NextResponse.json(
+        { error: "You are not authorized to delete this track" },
+        { status: 403 }
+      );
     }
 
     // Delete the file from S3

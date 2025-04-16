@@ -9,9 +9,8 @@ interface PopupProps {
 
 export default function Popup({ message, onConfirm, onCancel }: PopupProps) {
   return (
-
       <div
-        className="fixed inset-0 flex items-center justify-center z-0"
+        className="fixed inset-0 flex items-center justify-center z-20"
       >
         <motion.div
           initial={{

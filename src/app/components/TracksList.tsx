@@ -6,7 +6,7 @@ import Tile from "./Tile";
 interface Props {
   title: string;
   data: any;
-  deleteTrack: (id: string) => void;
+  deleteTrack?: (id: string) => void;
   isLoading?: boolean;
   isError?: boolean;
   error?: any;
@@ -114,12 +114,14 @@ export default function TracksList({
                 art={track.art}
                 link={type + track._id}
               />
-              <p
-                className="text-remaster text-base cursor-pointer"
-                onClick={() => deleteTrack(track._id)}
-              >
-                delete
-              </p>
+              {deleteTrack && (
+                <p
+                  className="text-remaster text-base cursor-pointer"
+                  onClick={() => deleteTrack(track._id)}
+                >
+                  delete
+                </p>
+              )}
             </div>
           );
         })}

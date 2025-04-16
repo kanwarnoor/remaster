@@ -7,6 +7,9 @@ import Notification from "@/app/components/Notification";
 import InsideNavbar from "../components/InsideNavbar";
 import { parseBlob } from "music-metadata";
 import { useRouter } from "next/navigation";
+import mime from "mime";
+
+const uploadSize = 100 * 1024 * 1024; // 100MB
 
 export default function FileUpload() {
   const router = useRouter();
@@ -47,8 +50,10 @@ export default function FileUpload() {
         const formData = new FormData();
         formData.append("file", file);
 
+        const contentType = file.type || mime.getType(file.name) || 'application/octet-stream';
+
         const response = await axios.post("api/upload/init", {
-          type: file.type,
+          type: contentType,
         });
 
         if (response.status !== 200) {
@@ -62,9 +67,21 @@ export default function FileUpload() {
         }
 
         const { url, name } = response.data;
+        if (file.size > uploadSize) {
+          setPopup({
+            show: true,
+            message: "File size exceeds the limit of 100MB",
+            type: "error",
+          });
+          setLoading(false);
+          return;
+        }
+
+
+
         const upload = await axios.put(url, file, {
           headers: {
-            "Content-Type": file.type,
+            "Content-Type": contentType,
           },
         });
 
@@ -82,7 +99,7 @@ export default function FileUpload() {
 
         const save = await axios.post("api/upload/complete", {
           name,
-          type: file.type,
+          type: contentType,
           fileName: file.name,
           metadata,
           size: file.size,
@@ -169,6 +186,7 @@ export default function FileUpload() {
           <input
             type="file"
             accept="audio/*"
+            capture
             // onChange={handleFileChange}
             onDrop={handleFileDrop}
             className="absolute inset-16 opacity-0"

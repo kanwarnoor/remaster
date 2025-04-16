@@ -70,7 +70,6 @@ export default function Page() {
               data={publicTracks}
               isLoading={publicLoading}
               type="public"
-              deleteTrack={deleteTrack}
             />
           </section>
         )}

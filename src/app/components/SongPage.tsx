@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import ColorThief from "colorthief";
+import Options from "./Options";
 
 interface Props {
   data: {
@@ -25,7 +28,14 @@ interface Props {
   handleSong: (action: string) => void;
 }
 
+const list = [
+  {
+    name: "Delete",
+  },
+];
+
 export default function SongPage(props: Props) {
+  const [options, setOptions] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const date = new Date(props.data.createdAt);
   const createdAt = `${date.toLocaleString("default", {
@@ -71,7 +81,7 @@ export default function SongPage(props: Props) {
   }
 
   return (
-    <div className="w-screen h-fit pt-10 text-center select-none">
+    <div className="w-screen min-h-screen pt-10 text-center select-none">
       <div
         className="absolute top-0 w-screen -z-10  h-[500px]"
         style={
@@ -187,10 +197,22 @@ export default function SongPage(props: Props) {
                 <p className="flex">Play</p>
               </div>
             )}
-            <div className="justify-end ml-auto mr-10 flex cursor-pointer">
+            <div
+              className="justify-end ml-auto mr-10 flex cursor-pointer"
+              onClick={() => setOptions(!options)}
+            >
               Edit
             </div>
           </div>
+          {options && (
+            <>
+              <div
+                className="fixed inset-0 z-0 cursor-pointer"
+                onClick={() => setOptions(false)}
+              ></div>
+              <Options list={list} />
+            </>
+          )}
         </div>
       </div>
 

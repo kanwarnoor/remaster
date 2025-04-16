@@ -27,13 +27,13 @@ export async function POST(req: NextRequest) {
 
     const { type } = await req.json();
 
-    const name = `${user.username}-${crypto.randomBytes(8).toString("hex")}`;
+    const name = `${crypto.randomBytes(8).toString("hex")}`;
 
     const url = await getSignedUrl(
       s3Client,
       new PutObjectCommand({
         Bucket: bucketName,
-        Key: `audio/${name}`,
+        Key: `audio/${name}.${type.split("/")[1]}`,
         ContentType: type,
       }),
       { expiresIn: 3600 }

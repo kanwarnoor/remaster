@@ -48,11 +48,7 @@ export default function LoginPage() {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       setPopup({ show: true, type: "success", message: "Logged in!" });
 
-      const timer = setTimeout(() => {
-        router.push("/");
-      }, 1000);
-
-      return () => clearTimeout(timer);
+      router.push("/");
     },
     onError: (error: any) => {
       setError(error.response.data.error);
