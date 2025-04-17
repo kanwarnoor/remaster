@@ -4,6 +4,7 @@ import { color, motion } from "framer-motion";
 interface NotificationProps {
   message: string;
   type: "error" | "success" | "info" | "warning" | "";
+  progress?: number;
 }
 
 const notificationStyles = {

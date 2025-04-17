@@ -9,8 +9,6 @@ import { parseBlob } from "music-metadata";
 import { useRouter } from "next/navigation";
 import mime from "mime";
 
-const uploadSize = 100 * 1024 * 1024; // 100MB
-
 export default function FileUpload() {
   const router = useRouter();
   const [popup, setPopup] = useState<{
@@ -19,6 +17,7 @@ export default function FileUpload() {
     type: "error" | "success" | "info" | "warning" | "";
   }>({ show: false, message: "", type: "" });
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,10 +49,12 @@ export default function FileUpload() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const contentType = file.type || mime.getType(file.name) || 'application/octet-stream';
+        const contentType =
+          file.type || mime.getType(file.name) || "application/octet-stream";
 
         const response = await axios.post("api/upload/init", {
           type: contentType,
+          size: file.size,
         });
 
         if (response.status !== 200) {
@@ -66,54 +67,138 @@ export default function FileUpload() {
           return;
         }
 
-        const { url, name } = response.data;
-        if (file.size > uploadSize) {
+        const { urls, uploadId, key } = response.data;
+
+        const chunkSize = 5 * 1024 * 1024; // 5MB
+        const uploadPromises = [];
+        const uploadResult: { ETag: any; PartNumber: number }[] = [];
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        let chunksUploaded = 0;
+
+        for (let partNumber = 1; partNumber <= urls.length; partNumber++) {
+          const start = (partNumber - 1) * chunkSize;
+          const end = Math.min(partNumber * chunkSize, file.size);
+          const chunk = file.slice(start, end);
+
+          const presignedUrl = urls.find(
+            (u: any) => u.partNumber == partNumber
+          )?.url;
+
+          if (!presignedUrl) {
+            console.log("Missing presigned url for part " + partNumber);
+            return;
+          }
+
+          const uploadPromise = axios
+            .put(presignedUrl, chunk, {
+              headers: {
+                "Content-Type": file.type,
+              },
+              onUploadProgress: (progressEvent) => {
+                // calculate progress
+                if (progressEvent.progress === 1) {
+                  chunksUploaded += 1;
+                }
+                const percentage = Math.round(
+                  (chunksUploaded / totalChunks) * 100
+                );
+                // Update progress bar or UI element with the percentage
+                setProgress(percentage);
+              },
+            })
+            .then((response) => {
+              console.log("Response headers:", response.headers);
+              // extract ETag
+              let etag = null;
+
+              if (response.headers.etag) {
+                etag = response.headers.etag;
+              } else if (response.headers.ETag) {
+                etag = response.headers.ETag;
+              } else if (typeof response.headers.get === "function") {
+                etag = response.headers.get("etag");
+              } else {
+                Object.keys(response.headers).forEach((key) => {
+                  if (key.toLowerCase() === "etag") {
+                    etag = response.headers[key];
+                  }
+                });
+              }
+
+              console.log(`Part ${partNumber} ETag extracted:`, etag);
+              // make sure etag exists
+              const cleanEtag = etag ? etag.replace(/"/g, "") : null;
+
+              if (!cleanEtag) {
+                console.log(
+                  "Error uploading chunk (etag extraction error) " + partNumber
+                );
+                setLoading(false);
+                return;
+              }
+
+              uploadResult.push({
+                ETag: cleanEtag,
+                PartNumber: partNumber,
+              });
+
+              return response;
+            });
+
+          uploadPromises.push(uploadPromise);
+        }
+
+        try {
+          // upload in parallel
+          await Promise.all(uploadPromises);
+
+          uploadResult.sort((a, b) => a.PartNumber - b.PartNumber);
+
+          const metadata = await parseBlob(file);
+
+          const completeResponse = await axios.post("/api/upload/complete", {
+            uploadId,
+            key,
+            parts: uploadResult,
+            metadata,
+            fileName: file.name,
+            size: file.size,
+            type: contentType,
+          });
+
+          if (completeResponse.status === 200) {
+            setLoading(false);
+            setPopup({
+              show: true,
+              message: "File uploaded successfully!",
+              type: "success",
+            });
+            router.push("/");
+          } else {
+            throw new Error("Error completing upload");
+          }
+        } catch (error) {
+          console.log("Error uploading file", error);
           setPopup({
             show: true,
-            message: "File size exceeds the limit of 100MB",
+            message: "Error uploading file",
             type: "error",
           });
-          setLoading(false);
-          return;
+
+          try {
+            await axios.post("/api/upload/abort", {
+              uploadId,
+              key,
+            });
+          } catch (error) {
+            console.log("Error aborting upload", error);
+            setPopup({
+              show: true,
+              message: "Error aborting upload",
+              type: "error",
+            });
+          }
         }
-
-
-
-        const upload = await axios.put(url, file, {
-          headers: {
-            "Content-Type": contentType,
-          },
-        });
-
-        if (upload.status !== 200) {
-          setPopup({
-            show: true,
-            message: upload.data.error,
-            type: "error",
-          });
-          setLoading(false);
-          return;
-        }
-
-        const metadata = await parseBlob(file);
-
-        const save = await axios.post("api/upload/complete", {
-          name,
-          type: contentType,
-          fileName: file.name,
-          metadata,
-          size: file.size,
-        });
-
-        if (save.status === 200) {
-          setPopup({
-            show: true,
-            message: "File uploaded successfully!",
-            type: "success",
-          });
-        }
-        setLoading(false);
-        router.push("/");
       } catch (err) {
         console.log(err);
         setPopup({
@@ -175,7 +260,9 @@ export default function FileUpload() {
           {loading ? (
             <div className="flex gap-2">
               <div className="w-10 h-10 remaster-spinner"></div>
-              <p className="font-bold remaster text-5xl">Loading...</p>
+              <p className="font-bold remaster text-5xl">
+                {progress}% Uploaded{" "}
+              </p>
             </div>
           ) : (
             <p className="font-bold remaster text-5xl">
