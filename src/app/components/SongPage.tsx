@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import ColorThief from "colorthief";
 import Options from "./Options";
+import axios from "axios";
 
 interface Props {
   data: {
+    _id: string;
     name: string;
     artist: string;
     duration: number;
@@ -28,12 +30,6 @@ interface Props {
   handleSong: (action: string) => void;
 }
 
-const list = [
-  {
-    name: "Delete",
-  },
-];
-
 export default function SongPage(props: Props) {
   const [options, setOptions] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -42,6 +38,27 @@ export default function SongPage(props: Props) {
     month: "long",
   })} ${date.getDate()}, ${date.getFullYear()}`;
   const [colors, setColors] = useState<[number, number, number][]>([]);
+
+  const handleOption = async (option: string) => {
+    if (option === "delete") {
+      const response = await axios.delete(`/api/tracks/delete_track`, {
+        data: { id: props.data._id },
+      });
+      if (response.status !== 200) {
+        console.error("Failed to delete track");
+      } else {
+        window.location.href = "/";
+      }
+    }
+  };
+
+  const list = [
+    {
+      name: "Delete",
+      icon: "delete",
+      handleOption: () => handleOption("delete"),
+    },
+  ];
 
   useEffect(() => {
     const img = imgRef.current;
