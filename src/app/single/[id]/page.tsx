@@ -32,7 +32,7 @@ export default function page() {
   }, []);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["track", id],
+    queryKey: ["single", id],
     queryFn: async () => {
       return (await axios.get(`/api/tracks/track_by_id?id=${id}`)).data;
     },
@@ -57,7 +57,7 @@ export default function page() {
         throw new Error("Failed to toggle visibility");
       }
 
-      queryClient.invalidateQueries({ queryKey: ["track", id] });
+      queryClient.invalidateQueries({ queryKey: ["single", id] });
     } catch (error) {
       console.error("Error toggling visibility:", error);
     }

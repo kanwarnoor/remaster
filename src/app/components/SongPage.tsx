@@ -6,6 +6,8 @@ import Image from "next/image";
 import ColorThief from "colorthief";
 import Options from "./Options";
 import axios from "axios";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { set } from "lodash";
 
 interface Props {
   data: {
@@ -31,16 +33,32 @@ interface Props {
 }
 
 export default function SongPage(props: Props) {
+  const queryClient = useQueryClient();
   const [options, setOptions] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const [editing, setEditing] = useState(false);
   const date = new Date(props.data.createdAt);
   const createdAt = `${date.toLocaleString("default", {
     month: "long",
   })} ${date.getDate()}, ${date.getFullYear()}`;
   const [colors, setColors] = useState<[number, number, number][]>([]);
 
+  const [formData, setFormData] = useState({
+    name: props.data.name,
+    artist: props.data.artist,
+    art: props.data.art,
+  });
+
   const handleOption = async (option: string) => {
+    setOptions(false);
+
+    // deleting track
     if (option === "delete") {
+      const confirmDelete = confirm(
+        "Are you sure you want to delete this track?"
+      );
+      if (!confirmDelete) return;
+
       const response = await axios.delete(`/api/tracks/delete_track`, {
         data: { id: props.data._id },
       });
@@ -50,12 +68,40 @@ export default function SongPage(props: Props) {
         window.location.href = "/";
       }
     }
+
+    // toggling edit mode
+    if (option === "toggleEdit") {
+      setEditing(true);
+      setOptions(false);
+      return;
+    }
+
+    // saving edited track
+    if (option === "edit") {
+      setEditing(false);
+
+      const response = await axios.patch(`/api/tracks/edit_track`, {
+        id: props.data._id,
+        name: formData.name,
+        artist: formData.artist,
+        art: formData.art,
+      });
+
+      if (response.status !== 200) {
+        console.error("Failed to edit track");
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["single", props.data._id] });
+      }
+    }
   };
 
   const list = [
     {
+      name: "Edit",
+      handleOption: () => handleOption("toggleEdit"),
+    },
+    {
       name: "Delete",
-      icon: "delete",
       handleOption: () => handleOption("delete"),
     },
   ];
@@ -98,7 +144,7 @@ export default function SongPage(props: Props) {
   }
 
   return (
-    <div className="w-screen min-h-screen pt-10 text-center select-none">
+    <div className="w-screen min-h-screen pt-10 text-center select-none ">
       <div
         className="absolute top-0 w-screen -z-10  h-[500px]"
         style={
@@ -111,7 +157,77 @@ export default function SongPage(props: Props) {
             : {}
         }
       ></div>
-      <div className="h-80 rounded mx-20 mt-10 flex justify-left text-left">
+
+      {editing && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-10"
+            onClick={() => setEditing(false)}
+          ></div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute w-fit h-[20rem] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex justify-start items-center px-10"
+          >
+            <div className=" w-56 h-56 flex justify-center items-center rounded-lg overflow-hidden group">
+              <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/50 transition-all cursor-pointer justify-center items-center flex">
+                <p className="text-xl font-bold text-white hidden group-hover:flex transition-all">
+                  Edit
+                </p>
+              </div>
+              <Image
+                src={props.data.art || "/music.jpg"}
+                height={0}
+                width={0}
+                sizes="100% 100%"
+                alt=""
+                priority
+                className="w-56 h-56 flex transition rounded"
+              />
+            </div>
+
+            <form className="mx-5 flex h-full flex-col text-left pt-16 pb-12" onSubmit={() => handleOption("edit")}>
+              <label htmlFor="title" className="text-sm">
+                Name
+              </label>
+              <input
+                type="text"
+                name="title"
+                id="title"
+                className="bg-white/0 border-2 select-none rounded-lg h-[2.5rem] text-white px-3  focus:ring-0 focus:outline-none"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+              />
+              <label htmlFor="title" className="text-sm mt-1">
+                Artist
+              </label>
+              <input
+                type="text"
+                id="artist"
+                className="bg-white/0 border-2 select-none rounded-lg h-[2.5rem] text-white px-[0.5rem] focus:ring-0 focus:outline-none"
+                value={formData.artist}
+                onChange={(e) =>
+                  setFormData({ ...formData, artist: e.target.value })
+                }
+              />
+
+              <div className="flex text-left mt-auto ">
+                <button
+                  type="submit"
+                  className="text-left flex mt-auto px-7 py-2 bg-black/70 backdrop-blur-xl rounded-full text-base"
+                  onClick={() => handleOption("edit")}
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </>
+      )}
+
+      <div className="h-80 rounded mx-20 mt-10 flex justify-left text-left ">
         <motion.div
           initial={{ opacity: 0, filter: "blur(20px)" }}
           animate={{
@@ -119,7 +235,7 @@ export default function SongPage(props: Props) {
             filter: "blur(0px)",
           }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="min-w-80 h-80"
+          className="min-w-80 h-80 -z-10"
         >
           <Image
             src={props.data.art || "/music.jpg"}
@@ -224,7 +340,7 @@ export default function SongPage(props: Props) {
           {options && (
             <>
               <div
-                className="fixed inset-0 z-0 cursor-pointer"
+                className="fixed inset-0 z-0"
                 onClick={() => setOptions(false)}
               ></div>
               <Options list={list} />
