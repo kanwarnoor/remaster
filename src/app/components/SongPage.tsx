@@ -6,8 +6,8 @@ import Image from "next/image";
 import ColorThief from "colorthief";
 import Options from "./Options";
 import axios from "axios";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import { set } from "lodash";
+import { useQueryClient } from "@tanstack/react-query";
+import ResizeImage from "@/libs/ResizeImage";
 
 interface Props {
   data: {
@@ -46,7 +46,9 @@ export default function SongPage(props: Props) {
   const [formData, setFormData] = useState({
     name: props.data.name,
     artist: props.data.artist,
-    art: props.data.art,
+    previewArt: props.data.art || null,
+    // art is a file from fromdata
+    art: null as File | null,
   });
 
   const handleOption = async (option: string) => {
@@ -80,16 +82,60 @@ export default function SongPage(props: Props) {
     if (option === "edit") {
       setEditing(false);
 
+      const fromData = new FormData();
+      fromData.append("id", props.data._id);
+      fromData.append("name", formData.name);
+      fromData.append("artist", formData.artist);
+      if (formData.art instanceof File) {
+        fromData.append("art", formData.art);
+      }
+
       const response = await axios.patch(`/api/tracks/edit_track`, {
         id: props.data._id,
         name: formData.name,
         artist: formData.artist,
-        art: formData.art,
+        fileType: formData.art && formData.art.type,
+        fileSize: formData.art && formData.art.size,
       });
 
       if (response.status !== 200) {
         console.error("Failed to edit track");
       } else {
+        const { url } = response.data;
+
+        console.log(url);
+
+        const file = formData.art;
+
+        // nigga
+        if (!file) {
+          return;
+        }
+
+        const imageResponse = await axios.put(url, file, {
+          headers: {
+            "Content-Type": file.type,
+          },
+        });
+
+        if (imageResponse.status !== 200 && imageResponse.status !== 201) {
+          console.log("Image failed to upload");
+          return;
+        }
+
+        const imageUploadSaveResponse = await axios.patch(
+          "/api/tracks/edit_track",
+          {
+            id: props.data._id,
+            uploaded: true,
+          }
+        );
+
+        if (imageUploadSaveResponse.status !== 200) {
+          console.log("Failed to upload");
+          return;
+        }
+
         queryClient.invalidateQueries({ queryKey: ["single", props.data._id] });
       }
     }
@@ -170,13 +216,34 @@ export default function SongPage(props: Props) {
             className="absolute w-fit h-[20rem] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex justify-start items-center px-10"
           >
             <div className=" w-56 h-56 flex justify-center items-center rounded-lg overflow-hidden group">
-              <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/50 transition-all cursor-pointer justify-center items-center flex">
+              <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
                 <p className="text-xl font-bold text-white hidden group-hover:flex transition-all">
                   Edit
                 </p>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  name=""
+                  id=""
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const resizedFile = await ResizeImage(file, 800);
+
+                      const url = URL.createObjectURL(resizedFile);
+                      setFormData({
+                        ...formData,
+                        previewArt: url,
+                        art: resizedFile,
+                      });
+                    }
+                  }}
+                  className="absolute w-full h-full left-0 bottom-0 cursor-pointer opacity-0"
+                />
               </div>
               <Image
-                src={props.data.art || "/music.jpg"}
+                src={formData.previewArt || "/music.jpg"}
                 height={0}
                 width={0}
                 sizes="100% 100%"
@@ -186,7 +253,10 @@ export default function SongPage(props: Props) {
               />
             </div>
 
-            <form className="mx-5 flex h-full flex-col text-left pt-16 pb-12" onSubmit={() => handleOption("edit")}>
+            <form
+              className="mx-5 flex h-full flex-col text-left pt-16 pb-12"
+              onSubmit={() => handleOption("edit")}
+            >
               <label htmlFor="title" className="text-sm">
                 Name
               </label>
@@ -216,7 +286,7 @@ export default function SongPage(props: Props) {
               <div className="flex text-left mt-auto ">
                 <button
                   type="submit"
-                  className="text-left flex mt-auto px-7 py-2 bg-black/70 backdrop-blur-xl rounded-full text-base"
+                  className="text-left flex mt-auto px-7 py-2 bg-black backdrop-blur-xl rounded-full text-base"
                   onClick={() => handleOption("edit")}
                 >
                   Save
@@ -238,7 +308,11 @@ export default function SongPage(props: Props) {
           className="min-w-80 h-80 -z-10"
         >
           <Image
-            src={props.data.art || "/music.jpg"}
+            src={
+              props.data.art
+                ? `${props.data.art}?t=${Date.now()}`
+                : "/music.jpg"
+            }
             height={0}
             width={0}
             sizes="100% 100%"
@@ -248,7 +322,11 @@ export default function SongPage(props: Props) {
           />
           <img
             ref={imgRef}
-            src={props.data.art || "/music.jpg"}
+            src={
+              props.data.art
+                ? `${props.data.art}?t=${Date.now()}`
+                : "/music.jpg"
+            }
             crossOrigin="anonymous"
             style={{ display: "none" }}
             alt="color-thief-img"
@@ -330,12 +408,14 @@ export default function SongPage(props: Props) {
                 <p className="flex">Play</p>
               </div>
             )}
-            <div
-              className="justify-end ml-auto mr-10 flex cursor-pointer"
-              onClick={() => setOptions(!options)}
-            >
-              Edit
-            </div>
+            {props.user && props.user._id === props.data.user && (
+              <div
+                className="justify-end ml-auto mr-10 flex cursor-pointer"
+                onClick={() => setOptions(!options)}
+              >
+                Edit
+              </div>
+            )}
           </div>
           {options && (
             <>
