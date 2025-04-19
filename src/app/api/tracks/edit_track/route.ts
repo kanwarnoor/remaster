@@ -59,27 +59,24 @@ export async function PATCH(req: NextRequest) {
       if (artist) track.artist = artist;
 
       // Handle art upload if present
-      if (!fileType && !fileSize) {
-        return NextResponse.json(
-          { error: "Filetye and fileSize is not present" },
-          { status: 400 }
-        );
-      }
 
-      const command = new PutObjectCommand({
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `images/track/${track.s3Key}`,
-        ContentType: fileType,
-      });
-
-      const url = await getSignedUrl(s3Client, command, {
-        expiresIn: 3600,
-      });
-      if (!url) {
-        return NextResponse.json(
-          { error: "image url not generated" },
-          { status: 500 }
-        );
+      let url = null;
+      if (fileType && fileSize) {
+        const command = new PutObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: `images/track/${track.s3Key}`,
+          ContentType: fileType,
+        });
+  
+         url = await getSignedUrl(s3Client, command, {
+          expiresIn: 3600,
+        });
+        if (!url) {
+          return NextResponse.json(
+            { error: "image url not generated" },
+            { status: 500 }
+          );
+        }
       }
 
       await track.save();

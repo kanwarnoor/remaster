@@ -8,7 +8,6 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import crypto from "crypto";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
 
@@ -74,8 +73,6 @@ export async function POST(req: Request) {
               ACL: "private",
             })
           );
-
-          coverUrl = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/images/track/${key}`;
         }
       } catch (error) {
         console.error("Error uploading cover art:", error);
@@ -90,7 +87,6 @@ export async function POST(req: Request) {
       size: size,
       duration: format.duration || 0,
       s3Key: key,
-      art: coverUrl,
     });
 
     await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });

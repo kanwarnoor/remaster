@@ -29,10 +29,10 @@ const trackModel = new Schema(
       type: String,
       required: false,
     },
-    art: {
-      type: String,
-      required: false,
-    },
+    // art: {
+    //   type: String,
+    //   required: false,
+    // },
     duration: {
       type: Number,
       required: true,

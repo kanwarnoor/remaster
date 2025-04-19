@@ -11,15 +11,18 @@ import ResizeImage from "@/libs/ResizeImage";
 
 interface Props {
   data: {
-    _id: string;
-    name: string;
-    artist: string;
-    duration: number;
-    art: string;
-    timestamps: string[];
-    visibility: string;
-    user: string;
-    createdAt: string;
+    track: {
+      _id: string;
+      name: string;
+      artist: string;
+      duration: number;
+      art: string;
+      timestamps: string[];
+      visibility: string;
+      user: string;
+      createdAt: string;
+    };
+    artUrl: string;
   };
   audio: {
     url: string;
@@ -37,16 +40,16 @@ export default function SongPage(props: Props) {
   const [options, setOptions] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [editing, setEditing] = useState(false);
-  const date = new Date(props.data.createdAt);
+  const date = new Date(props.data.track.createdAt);
   const createdAt = `${date.toLocaleString("default", {
     month: "long",
   })} ${date.getDate()}, ${date.getFullYear()}`;
   const [colors, setColors] = useState<[number, number, number][]>([]);
 
   const [formData, setFormData] = useState({
-    name: props.data.name,
-    artist: props.data.artist,
-    previewArt: props.data.art || null,
+    name: props.data.track.name,
+    artist: props.data.track.artist,
+    previewArt: props.data.artUrl || null,
     // art is a file from fromdata
     art: null as File | null,
   });
@@ -62,7 +65,7 @@ export default function SongPage(props: Props) {
       if (!confirmDelete) return;
 
       const response = await axios.delete(`/api/tracks/delete_track`, {
-        data: { id: props.data._id },
+        data: { id: props.data.track._id },
       });
       if (response.status !== 200) {
         console.error("Failed to delete track");
@@ -83,7 +86,7 @@ export default function SongPage(props: Props) {
       setEditing(false);
 
       const fromData = new FormData();
-      fromData.append("id", props.data._id);
+      fromData.append("id", props.data.track._id);
       fromData.append("name", formData.name);
       fromData.append("artist", formData.artist);
       if (formData.art instanceof File) {
@@ -91,22 +94,27 @@ export default function SongPage(props: Props) {
       }
 
       const response = await axios.patch(`/api/tracks/edit_track`, {
-        id: props.data._id,
+        id: props.data.track._id,
         name: formData.name,
         artist: formData.artist,
         fileType: formData.art && formData.art.type,
         fileSize: formData.art && formData.art.size,
+        uploaded: false,
       });
 
       if (response.status !== 200) {
         console.error("Failed to edit track");
       } else {
+        queryClient.invalidateQueries({
+          queryKey: ["single", props.data.track._id],
+        });
         const { url } = response.data;
 
-        console.log(url);
+        if (!url) {
+          return;
+        }
 
         const file = formData.art;
-
         // nigga
         if (!file) {
           return;
@@ -126,7 +134,7 @@ export default function SongPage(props: Props) {
         const imageUploadSaveResponse = await axios.patch(
           "/api/tracks/edit_track",
           {
-            id: props.data._id,
+            id: props.data.track._id,
             uploaded: true,
           }
         );
@@ -136,7 +144,9 @@ export default function SongPage(props: Props) {
           return;
         }
 
-        queryClient.invalidateQueries({ queryKey: ["single", props.data._id] });
+        queryClient.invalidateQueries({
+          queryKey: ["single", props.data.track._id],
+        });
       }
     }
   };
@@ -171,7 +181,7 @@ export default function SongPage(props: Props) {
         console.error("Color Thief error:", err);
       }
     }
-  }, [props.data?.art]);
+  }, [props.data?.artUrl]);
 
   function formatTime(seconds: number) {
     seconds = Math.floor(seconds);
@@ -305,28 +315,23 @@ export default function SongPage(props: Props) {
             filter: "blur(0px)",
           }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="min-w-80 h-80 -z-10"
+          className="min-w-80 h-80 -z-10 flex w-80"
         >
           <Image
-            src={
-              props.data.art
-                ? `${props.data.art}?t=${Date.now()}`
-                : "/music.jpg"
-            }
+            src={formData.previewArt || "/music.jpg"}
             height={0}
             width={0}
             sizes="100% 100%"
             alt=""
+            onError={(e) => {
+              e.currentTarget.src = "/music.jpg";
+            }}
             priority
-            className="w-80  h-full transition rounded"
+            className="w-80 h-full transition rounded"
           />
           <img
             ref={imgRef}
-            src={
-              props.data.art
-                ? `${props.data.art}?t=${Date.now()}`
-                : "/music.jpg"
-            }
+            src={formData.previewArt || "/music.jpg"}
             crossOrigin="anonymous"
             style={{ display: "none" }}
             alt="color-thief-img"
@@ -334,18 +339,18 @@ export default function SongPage(props: Props) {
         </motion.div>
         <div className="w-full">
           <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
-            {props.user && props.user._id === props.data.user ? (
+            {props.user && props.user._id === props.data.track.user ? (
               <>
-                {props.data.visibility === "private" ? (
+                {props.data.track.visibility === "private" ? (
                   <p
-                    className="text-sm font-bold cursor-pointer"
+                    className="text-sm font-bold cursor-pointer opacity-60"
                     onClick={() => props.toggleVisibility()}
                   >
                     Private
                   </p>
                 ) : (
                   <p
-                    className="text-sm font-bold cursor-pointer"
+                    className="text-sm font-bold cursor-pointer  opacity-60"
                     onClick={() => props.toggleVisibility()}
                   >
                     Public
@@ -356,10 +361,10 @@ export default function SongPage(props: Props) {
               <p className="text-sm h-5 font-bold cursor-pointer "></p>
             )}
 
-            <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2  pb-1">
-              {props.data.name}
+            <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
+              {props.data.track.name}
             </p>
-            <p className="text-lg font-bold ">{props.data.artist}</p>
+            <p className="text-xl font-bold ">{props.data.track.artist}</p>
           </div>
           <div className="w-[100%] ml-10 h-[35%] flex items-end">
             {props.playing ? (
@@ -408,7 +413,7 @@ export default function SongPage(props: Props) {
                 <p className="flex">Play</p>
               </div>
             )}
-            {props.user && props.user._id === props.data.user && (
+            {props.user && props.user._id === props.data.track.user && (
               <div
                 className="justify-end ml-auto mr-10 flex cursor-pointer"
                 onClick={() => setOptions(!options)}
@@ -460,13 +465,13 @@ export default function SongPage(props: Props) {
             </svg>
           </div>
           <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-xl font-bold">
-            {props.data.name}
+            {props.data.track.name}
           </div>
           <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold">
-            {props.data.artist}
+            {props.data.track.artist}
           </div>
           <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold justify-end select-all pr-3">
-            {formatTime(props.data.duration)}
+            {formatTime(props.data.track.duration)}
           </div>
         </div>
 

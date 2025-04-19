@@ -5,7 +5,10 @@ import Tile from "./Tile";
 
 interface Props {
   title: string;
-  data: any;
+  data: {
+    tracks: any;
+    imageUrls: string[];
+  };
   deleteTrack?: (id: string) => void;
   isLoading?: boolean;
   isError?: boolean;
@@ -53,7 +56,7 @@ export default function TracksList({
     );
   }
 
-  if (data == null || data?.data.length === 0) {
+  if (data.tracks == null || data?.tracks.length === 0) {
     return (
       <>
         <p className="text-3xl font-bold mb-5">{title}</p>
@@ -70,9 +73,9 @@ export default function TracksList({
     <>
       <p className="text-3xl font-bold mb-5">{title}</p>
 
-      <div className="relative flex-row flex gap-5 pr-20 overflow-x-hidden ">
-        {data.data.length > 5 && (
-          <div className="absolute top-0 right-0 h-full mr-1  w-[300px] bg-gradient-to-l from-black to-transparent group flex duration-300 z-10">
+      <div className="relative flex-row flex gap-5 pr-20 overflow-x-hidden">
+        {data.tracks.length > 5 && (
+          <div className="absolute top-0 right-0 h-full  w-[300px] bg-gradient-to-l from-black to-transparent group flex duration-300 z-10">
             <svg
               version="1.1"
               id="XMLID_287_"
@@ -104,14 +107,14 @@ export default function TracksList({
           </div>
         )}
 
-        {data?.data.map((track: any) => {
+        {data.tracks.map((track: any, index: number) => {
           const type = track.album == null ? "single/" : "album/";
           return (
             <div key={track._id}>
               <Tile
                 title={track.name}
                 artist={track.artist}
-                art={track.art}
+                art={data.imageUrls[index]}
                 link={type + track._id}
               />
               {deleteTrack && (

@@ -26,13 +26,16 @@ export default function Page() {
     error,
   } = useQuery({
     queryKey: ["userTracks"],
-    queryFn: () => axios.get("/api/tracks/user_tracks"),
+    queryFn: async () => {
+      const response = await axios.get("/api/tracks/user_tracks");
+      return response.data;
+    },
     retry: false,
   });
 
   const { data: publicTracks, isLoading: publicLoading } = useQuery({
     queryKey: ["publicTracks"],
-    queryFn: () => axios.get("/api/tracks/public_tracks"),
+    queryFn: async () => (await axios.get("/api/tracks/public_tracks")).data,
     retry: false,
   });
 
@@ -52,11 +55,12 @@ export default function Page() {
       <Navbar />
       <div className="w-screen h-screen flex flex-col pt-16">
         {(userLoading || userTracks) && (
-          <section className="w-screen h-fit flex flex-col px-20 pt-12">
+          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
               title="Your Tracks"
               data={userTracks}
               isLoading={userLoading}
+
               type="user"
               deleteTrack={deleteTrack}
             />

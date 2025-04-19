@@ -37,7 +37,6 @@ export default function page() {
       return (await axios.get(`/api/tracks/track_by_id?id=${id}`)).data;
     },
     enabled: !!id,
-    refetchOnWindowFocus: false,
     retry: (failureCount, error) => {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 403) return false; // No retry on 403
@@ -47,7 +46,8 @@ export default function page() {
   });
 
   const toggleVisibility = async () => {
-    const visibility = data.visibility == "private" ? "public" : "private";
+    const visibility =
+      data.track.visibility == "private" ? "public" : "private";
     try {
       const res = await axios.put(
         `/api/tracks/toggle_visibility?id=${id}&visibility=${visibility}`
@@ -63,15 +63,17 @@ export default function page() {
     }
   };
 
-  const s3key = data?.s3Key;
+
 
   const { data: audio } = useQuery({
-    queryKey: ["audio", s3key],
+    queryKey: ["audio", data?.track.s3Key],
     queryFn: async () => {
-      const response = await axios.get(`/api/tracks/play?s3key=${s3key}`);
+      const response = await axios.get(
+        `/api/tracks/play?s3key=${data?.track.s3Key}`
+      );
       return response.data;
     },
-    enabled: !!id && !!s3key,
+    enabled: !!id && !!data?.track.s3Key,
     refetchOnWindowFocus: false,
   });
 
