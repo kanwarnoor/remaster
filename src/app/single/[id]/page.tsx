@@ -17,6 +17,7 @@ export default function page() {
   const [playing, setPlaying] = React.useState(false);
   const [player, setPlayer] = useState(false);
   const [track, setTrack] = useState<any>(null);
+  const [volume, setVolume] = useState(1);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -63,8 +64,6 @@ export default function page() {
     }
   };
 
-
-
   const { data: audio } = useQuery({
     queryKey: ["audio", data?.track.s3Key],
     queryFn: async () => {
@@ -80,6 +79,7 @@ export default function page() {
   useEffect(() => {
     if (audio?.url) {
       const newAudio = new Audio(audio.url);
+      newAudio.volume = volume;
 
       const onPlay = () => {
         setPlaying(true);
@@ -91,11 +91,24 @@ export default function page() {
         newAudio.currentTime = 0;
         newAudio.play();
       };
+      const onTimeUpdate = () => {
+        const progressBar = document.querySelector(
+          ".progress-bar"
+        ) as HTMLElement;
+        if (progressBar) {
+          const progress = (newAudio.currentTime / newAudio.duration) * 100;
+          const progressFill = progressBar.querySelector("div") as HTMLElement;
+          if (progressFill) {
+            progressFill.style.width = `${progress}%`;
+          }
+        }
+      };
 
       newAudio.addEventListener("playing", onPlay);
       newAudio.addEventListener("pause", onPause);
       newAudio.addEventListener("ended", onEnded);
       newAudio.addEventListener("reset", onReset);
+      newAudio.addEventListener("timeupdate", onTimeUpdate);
 
       setTrack(newAudio);
 
@@ -105,11 +118,19 @@ export default function page() {
         newAudio.removeEventListener("pause", onPause);
         newAudio.removeEventListener("ended", onEnded);
         newAudio.removeEventListener("reset", onReset);
+        newAudio.removeEventListener("timeupdate", onTimeUpdate);
       };
     }
   }, [audio?.url]);
 
-  const handleSong = (action: string) => {
+  // Separate effect for volume changes
+  useEffect(() => {
+    if (track) {
+      track.volume = volume;
+    }
+  }, [volume, track]);
+
+  const handleSong = (action: string, event?: React.MouseEvent) => {
     if (!audio?.url) {
       return;
     }
@@ -124,7 +145,7 @@ export default function page() {
       return;
     }
 
-    if (action == "previous") {
+    if (action === "previous") {
       if (track.currentTime < 5) {
         track.currentTime = 0;
         return;
@@ -134,10 +155,26 @@ export default function page() {
       return;
     }
 
-    if (action == "reset") {
+    if (action === "reset") {
       const resetEvent = new Event("reset");
       track.dispatchEvent(resetEvent);
     }
+
+    if (action === "seek" && event) {
+      const progressBar = document.querySelector(
+        ".progress-bar"
+      ) as HTMLElement;
+      if (progressBar) {
+        const rect = progressBar.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const percentageClicked = clickX / rect.width;
+        track.currentTime = percentageClicked * track.duration;
+      }
+    }
+  };
+
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume);
   };
 
   if (isLoading) {
@@ -174,7 +211,13 @@ export default function page() {
       <AnimatePresence>
         {player && (
           <div className="fixed bottom-0 w-full h-20 px-20 mb-10">
-            <Player handleSong={handleSong} playing={playing} />
+            <Player
+              handleSong={handleSong}
+              playing={playing}
+              data={data}
+              volume={volume}
+              onVolumeChange={handleVolumeChange}
+            />
           </div>
         )}
       </AnimatePresence>
