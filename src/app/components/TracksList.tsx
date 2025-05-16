@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import Tile from "./Tile";
 
 interface Props {
   title: string;
   data: {
     tracks: any;
-    imageUrls: string[];
   };
   deleteTrack?: (id: string) => void;
   isLoading?: boolean;
@@ -26,6 +26,21 @@ export default function TracksList({
   isError,
   deleteTrack,
 }: Props) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: "start",
+    loop: false,
+    skipSnaps: false,
+    dragFree: true,
+  });
+
+  const scrollNext = () => {
+    if (emblaApi) emblaApi.scrollNext();
+  };
+
+  const scrollPrev = () => {
+    if (emblaApi) emblaApi.scrollPrev();
+  };
+
   if (isLoading) {
     return (
       <>
@@ -72,62 +87,71 @@ export default function TracksList({
   return (
     <>
       <p className="text-3xl font-bold mb-5">{title}</p>
-
-      <div className="relative flex-row flex gap-5 pr-20 overflow-x-hidden">
-        {data.tracks.length > 5 && (
-          <div className="absolute top-0 right-0 h-full  w-[300px] bg-gradient-to-l from-black to-transparent group flex duration-300 z-10">
-            <svg
-              version="1.1"
-              id="XMLID_287_"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              viewBox="-2.4 -2.4 28.80 28.80"
-              xmlSpace="preserve"
-              stroke="#000000"
-              strokeWidth="2.4"
-              transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)"
-              className="fill-white group-hover:opacity-100  opacity-0 size-12 cursor-pointer bg-white rounded-full pt-3 pl-3 pb-3 pr-2  my-auto ml-auto text-right shadow-xl transotion-all duration-100 hover:scale-105"
-            >
-              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-              <g
-                id="SVGRepo_tracerCarrier"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                stroke="#CCCCCC"
-                strokeWidth="0.048"
-              ></g>
-              <g id="SVGRepo_iconCarrier">
-                <g id="next">
-                  <g>
-                    <polygon points="6.8,23.7 5.4,22.3 15.7,12 5.4,1.7 6.8,0.3 18.5,12 "></polygon>{" "}
-                  </g>
-                </g>
-              </g>
-            </svg>
+      <div className="relative">
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex gap-5">
+            {data.tracks.map((track: any, index: number) => {
+              const type = track.album == null ? "single/" : "album/";
+              return (
+                <div key={track._id} className="flex-[0_0_200px]">
+                  <Tile
+                    title={track.name}
+                    artist={track.artist}
+                    art={
+                      track.image
+                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.s3Key}`
+                        : "/music.jpg"
+                    }
+                    link={type + track._id}
+                  />
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
 
-        {data.tracks.map((track: any, index: number) => {
-          const type = track.album == null ? "single/" : "album/";
-          return (
-            <div key={track._id}>
-              <Tile
-                title={track.name}
-                artist={track.artist}
-                art={data.imageUrls[index]}
-                link={type + track._id}
-              />
-              {deleteTrack && (
-                <p
-                  className="text-remaster text-base cursor-pointer"
-                  onClick={() => deleteTrack(track._id)}
+        {data.tracks.length > 5 && (
+          <>
+            <div className="absolute top-0 -right-5 h-full w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
+              <button
+                onClick={scrollNext}
+                className="fill-white opacity-0 group-hover:opacity-100 size-12 cursor-pointer bg-white rounded-full p-3 shadow-xl transition-all duration-100 hover:scale-105"
+              >
+                <svg
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="-2.4 -2.4 28.80 28.80"
+                  stroke="#000000"
+                  strokeWidth="2.4"
+                  className="pl-1"
                 >
-                  delete
-                </p>
-              )}
+                  <g>
+                    <polygon points="6.8,23.7 5.4,22.3 15.7,12 5.4,1.7 6.8,0.3 18.5,12"></polygon>
+                  </g>
+                </svg>
+              </button>
             </div>
-          );
-        })}
+            <div className="absolute top-0 -left-5 h-full w-[100px] bg-gradient-to-r from-black to-transparent z-10 flex items-center justify-start group">
+              <button
+                onClick={scrollPrev}
+                className="fill-white opacity-0 group-hover:opacity-100 size-12 cursor-pointer bg-white rounded-full p-3 shadow-xl transition-all duration-100 hover:scale-105 rotate-180"
+              >
+                <svg
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="-2.4 -2.4 28.80 28.80"
+                  stroke="#000000"
+                  strokeWidth="2.4"
+                  className="pl-1"
+                >
+                  <g>
+                    <polygon points="6.8,23.7 5.4,22.3 15.7,12 5.4,1.7 6.8,0.3 18.5,12"></polygon>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

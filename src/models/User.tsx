@@ -33,6 +33,10 @@ const userModel = new Schema(
       type: Boolean,
       default: false,
     },
+    albums: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Albums",
+    }],
     tracks: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Tracks",

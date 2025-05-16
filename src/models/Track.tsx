@@ -25,14 +25,6 @@ const trackModel = new Schema(
       required: false,
       default: "undefined",
     },
-    album: {
-      type: String,
-      required: false,
-    },
-    // art: {
-    //   type: String,
-    //   required: false,
-    // },
     duration: {
       type: Number,
       required: true,
@@ -42,6 +34,16 @@ const trackModel = new Schema(
       type: String,
       enum: ["public", "private"],
       default: "private",
+    },
+    image: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    album: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Album",
+      required: false,
     },
   },
   {

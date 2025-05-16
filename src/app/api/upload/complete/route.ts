@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     const { common, format } = metadata;
     const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
 
-    let coverUrl = null;
+    let cover = common.picture && common.picture[0] ? true : false;
     if (common.picture && common.picture[0]) {
       const art = common.picture[0];
       try {
@@ -87,6 +87,7 @@ export async function POST(req: Request) {
       size: size,
       duration: format.duration || 0,
       s3Key: key,
+      image: cover ? true : false,
     });
 
     await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });

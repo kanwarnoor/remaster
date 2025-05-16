@@ -20,9 +20,10 @@ interface Props {
       timestamps: string[];
       visibility: string;
       user: string;
+      s3Key: string;
       createdAt: string;
+      image: boolean;
     };
-    artUrl: string;
   };
   audio: {
     url: string;
@@ -49,7 +50,10 @@ export default function SongPage(props: Props) {
   const [formData, setFormData] = useState({
     name: props.data.track.name,
     artist: props.data.track.artist,
-    previewArt: props.data.artUrl || null,
+    previewArt:
+      props.data.track.image
+        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}`
+        : null,
     // art is a file from fromdata
     art: null as File | null,
   });
@@ -164,24 +168,35 @@ export default function SongPage(props: Props) {
 
   useEffect(() => {
     const img = imgRef.current;
-    if (img && img.complete) {
-      getColor();
-    } else {
-      if (img) {
+
+    function getColor() {
+      try {
+        if (!img) return;
+        const colorThief = new ColorThief();
+        const palette = colorThief.getPalette(img);
+        if (palette && palette.length > 0) {
+          setColors(palette.slice(0, 5));
+        }
+      } catch (err) {
+        console.error("Color Thief error:", err);
+        setColors([]);
+      }
+    }
+
+    if (img) {
+      if (img.complete) {
+        getColor();
+      } else {
         img.onload = getColor;
       }
     }
 
-    function getColor() {
-      try {
-        const colorThief = new ColorThief();
-        const palette = colorThief.getPalette(img).slice(0, 5);
-        setColors(palette);
-      } catch (err) {
-        console.error("Color Thief error:", err);
+    return () => {
+      if (img) {
+        img.onload = null;
       }
-    }
-  }, [props.data?.artUrl]);
+    };
+  }, [props.data?.track.s3Key]);
 
   function formatTime(seconds: number) {
     seconds = Math.floor(seconds);
@@ -318,23 +333,33 @@ export default function SongPage(props: Props) {
           className="min-w-80 h-80 -z-10 flex w-80"
         >
           <Image
-            src={formData.previewArt || "/music.jpg"}
+            src={
+              props.data.track.image
+                ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}`
+                : "/music.jpg"
+            }
             height={0}
             width={0}
             sizes="100% 100%"
-            alt=""
+            alt="Album Art"
+            priority
             onError={(e) => {
               e.currentTarget.src = "/music.jpg";
             }}
-            priority
             className="w-80 h-full transition rounded"
           />
           <img
             ref={imgRef}
-            src={formData.previewArt || "/music.jpg"}
+            src={
+              `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}` ||
+              "/music.jpg"
+            }
             crossOrigin="anonymous"
             style={{ display: "none" }}
             alt="color-thief-img"
+            onError={(e) => {
+              e.currentTarget.src = "/music.jpg";
+            }}
           />
         </motion.div>
         <div className="w-full">

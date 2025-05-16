@@ -30,30 +30,30 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No tracks found" }, { status: 404 });
     }
 
-    let imageUrls: string[] = [];
+    // let imageUrls: string[] = [];
 
-    try {
-      const urls = await Promise.all(
-        tracks.map(async (track) => {
-          const command = new GetObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: `images/track/${track.s3Key}`,
-          });
+    // try {
+    //   const urls = await Promise.all(
+    //     tracks.map(async (track) => {
+    //       const command = new GetObjectCommand({
+    //         Bucket: process.env.AWS_BUCKET_NAME,
+    //         Key: `images/track/${track.s3Key}`,
+    //       });
     
-          const url = await getSignedUrl(s3Client, command, {
-            expiresIn: 3600,
-          });
+    //       const url = await getSignedUrl(s3Client, command, {
+    //         expiresIn: 3600,
+    //       });
     
-          return url;
-        })
-      );
+    //       return url;
+    //     })
+    //   );
     
-      imageUrls = urls;
-    } catch (error) {
-      console.error("Error generating signed URLs: ", error);
-    }
+    //   imageUrls = urls;
+    // } catch (error) {
+    //   console.error("Error generating signed URLs: ", error);
+    // }
 
-    return NextResponse.json({ tracks, imageUrls }, { status: 200 });
+    return NextResponse.json({ tracks }, { status: 200 });
   } catch (error) {
     console.error("Error fetching tracks: ", error);
     return NextResponse.json({ error: error }, { status: 500 });

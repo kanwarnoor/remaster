@@ -40,16 +40,16 @@ export async function GET(req: Request) {
     }
 
     // get the signed URL for the track image
-    const command = new GetObjectCommand({
-      Bucket: AWS_BUCKET_NAME,
-      Key: `images/track/${track.s3Key}`,
-    });
+    // const command = new GetObjectCommand({
+    //   Bucket: AWS_BUCKET_NAME,
+    //   Key: `images/track/${track.s3Key}`,
+    // });
 
-    const artUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: 3600,
-    });
+    // const artUrl = await getSignedUrl(s3Client, command, {
+    //   expiresIn: 3600,
+    // });
 
-    return NextResponse.json({ track, artUrl }, { status: 200 });
+    return NextResponse.json({ track }, { status: 200 });
   } catch (error) {
     console.error("Error loading track:", error);
     return new Response("Internal Server Error", { status: 500 });

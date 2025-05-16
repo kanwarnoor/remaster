@@ -6,9 +6,8 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'remaster-storage.s3.ap-south-1.amazonaws.com',
-        pathname: '**', // allow only cover art
+        pathname: '/images/**', // allow only cover art
       },
-      
     ],
   },
 };
