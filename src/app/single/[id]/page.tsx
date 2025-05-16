@@ -1,7 +1,11 @@
+import SingleTrackClient from "./SingleTrackClient";
+
+export default function Page({ params }: { params: { id: string } }) {
+  return <SingleTrackClient id={params.id} />;
+}
+
 import { Metadata } from "next";
-import SingleTrackClient from "@/app/single/[id]/SingleTrackClient";
-import { cookies } from "next/headers";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 export async function generateMetadata({
   params,
@@ -9,21 +13,21 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   try {
-    const { id } = params;
-    const cookieStore = await cookies();
+    const cookieStore = await cookies(); // ✅ No await
     const token = cookieStore.get("token")?.value;
-    const headersList = await headers();
-    const host = headersList.get("host") || "remaster.com";
+
+    const headerList = await headers(); // ✅ No await
+    const host = headerList.get("host") || "remaster.com";
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL}/api/tracks/track_by_id?id=${id}`,
+      `${process.env.NEXT_PUBLIC_URL}/api/tracks/track_by_id?id=${params.id}`,
       {
         headers: {
           Cookie: `token=${token}`,
         },
         next: {
           revalidate: 3600,
-          tags: [`track-${id}`],
+          tags: [`track-${params.id}`],
         },
       }
     );
@@ -31,28 +35,24 @@ export async function generateMetadata({
     const data = await response.json();
     const { name, artist, s3Key } = data.track || {};
 
-    const metadata: Metadata = {
+    return {
       title: name || "Remaster",
       description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
       openGraph: {
         title: name || "Remaster",
-        description: `Listen to ${name || "this track"} by ${
-          artist || "artist"
-        }`,
+        description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
         images: s3Key
           ? [
               `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`,
             ]
           : [],
-        url: `https://${host}/single/${id}`,
+        url: `https://${host}/single/${params.id}`,
         type: "music.song",
       },
       twitter: {
         card: "summary_large_image",
         title: name || "Remaster",
-        description: `Listen to ${name || "this track"} by ${
-          artist || "artist"
-        }`,
+        description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
         images: s3Key
           ? [
               `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`,
@@ -60,13 +60,11 @@ export async function generateMetadata({
           : [],
       },
       alternates: {
-        canonical: `https://${host}/single/${id}`,
+        canonical: `https://${host}/single/${params.id}`,
       },
     };
-
-    return metadata;
-  } catch (error) {
-    console.error("Error generating metadata:", error);
+  } catch (err) {
+    console.error("Metadata error:", err);
     return {
       title: "Remaster",
       description: "Listen to this track",
@@ -76,8 +74,4 @@ export async function generateMetadata({
       },
     };
   }
-}
-
-export default async function Page({ params }: { params: { id: string } }) {
-  return <SingleTrackClient id={params.id} />;
 }
