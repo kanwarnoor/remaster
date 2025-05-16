@@ -82,6 +82,10 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ url, imageKey: imageKey }, { status: 200 });
       }
 
+      if (name) track.name = name;
+      if (artist) track.artist = artist;
+      await track.save();
+
       return NextResponse.json(
         { message: "Successfully updated" },
         { status: 200 }
