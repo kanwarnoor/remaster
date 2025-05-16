@@ -3,22 +3,13 @@ import SingleTrackClient from "@/app/single/[id]/SingleTrackClient";
 import { cookies } from "next/headers";
 import { headers } from "next/headers";
 
-type GenerateMetadataProps = {
-  params: Promise<{ id: string }>;
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
-type PageProps = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
 export async function generateMetadata({
   params,
-}: GenerateMetadataProps): Promise<Metadata> {
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
   try {
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = params;
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
     const headersList = await headers();
@@ -87,6 +78,6 @@ export async function generateMetadata({
   }
 }
 
-export default function Page({ params }: PageProps) {
+export default async function Page({ params }: { params: { id: string } }) {
   return <SingleTrackClient id={params.id} />;
 }
