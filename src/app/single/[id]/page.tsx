@@ -3,14 +3,22 @@ import SingleTrackClient from "@/app/single/[id]/SingleTrackClient";
 import { cookies } from "next/headers";
 import { headers } from "next/headers";
 
-type Props = {
+type GenerateMetadataProps = {
+  params: Promise<{ id: string }>;
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+type PageProps = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: GenerateMetadataProps): Promise<Metadata> {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
     const headersList = await headers();
@@ -23,8 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           Cookie: `token=${token}`,
         },
         next: {
-          revalidate: 3600, // Cache for 1 hour
-          tags: [`track-${id}`], // Add cache tag for this specific track
+          revalidate: 3600,
+          tags: [`track-${id}`],
         },
       }
     );
@@ -79,7 +87,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function Page({ params }: Props) {
-  const { id } = params;
-  return <SingleTrackClient id={id} />;
+export default function Page({ params }: PageProps) {
+  return <SingleTrackClient id={params.id} />;
 }
