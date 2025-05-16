@@ -9,14 +9,17 @@ import { AnimatePresence } from "framer-motion";
 import InsideNavbar from "@/app/components/InsideNavbar";
 import SongPage from "@/app/components/SongPage";
 import Player from "@/app/components/Player";
+import { useParams } from "next/navigation";
 
-export default function SingleTrackClient({ id }: { id: string }) {
+export default function SingleTrackClient() {
   const [user, setUser] = useState<any>(null);
   const [playing, setPlaying] = React.useState(false);
   const [player, setPlayer] = useState(false);
   const [track, setTrack] = useState<any>(null);
   const [volume, setVolume] = useState(1);
   const queryClient = useQueryClient();
+  const params = useParams();
+  const id = params.id as string;
 
   useEffect(() => {
     const getUser = async () => {

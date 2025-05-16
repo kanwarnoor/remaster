@@ -76,6 +76,6 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
-  return <SingleTrackClient id={params.id} />;
+export default function Page() {
+  return <SingleTrackClient/>;
 }
