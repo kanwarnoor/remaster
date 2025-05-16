@@ -3,17 +3,11 @@ import SingleTrackClient from "@/app/single/[id]/SingleTrackClient";
 import { cookies } from "next/headers";
 import { headers } from "next/headers";
 
-type Props = {
+export async function generateMetadata(props: {
   params: Promise<{ id: string }>;
-};
-
-export async function generateMetadata({
-  params,
-}: {
-  params: { id: string };
 }): Promise<Metadata> {
   try {
-    const { id } = params;
+    const { id } = await props.params;
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
     const headersList = await headers();
