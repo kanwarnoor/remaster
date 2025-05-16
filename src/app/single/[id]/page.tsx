@@ -1,11 +1,11 @@
-import SingleTrackClient from "./SingleTrackClient";
-
-export default function Page({ params }: { params: { id: string } }) {
-  return <SingleTrackClient id={params.id} />;
-}
-
 import { Metadata } from "next";
-import { cookies, headers } from "next/headers";
+import SingleTrackClient from "@/app/single/[id]/SingleTrackClient";
+import { cookies } from "next/headers";
+import { headers } from "next/headers";
+
+type Props = {
+  params: Promise<{ id: string }>;
+};
 
 export async function generateMetadata({
   params,
@@ -13,58 +13,64 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   try {
-    const cookieStore = await cookies(); // ✅ No await
+    const { id } = params;
+    const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
-
-    const headerList = await headers(); // ✅ No await
-    const host = headerList.get("host") || "remaster.com";
+    const headersList = await headers();
+    const host = headersList.get("host") || "remaster.com";
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL}/api/tracks/track_by_id?id=${params.id}`,
+      `${process.env.NEXT_PUBLIC_URL}/api/tracks/track_by_id?id=${id}`,
       {
         headers: {
           Cookie: `token=${token}`,
         },
         next: {
           revalidate: 3600,
-          tags: [`track-${params.id}`],
+          tags: [`track-${id}`],
         },
       }
     );
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch track data: ${response.statusText}`);
+    }
+
     const data = await response.json();
     const { name, artist, s3Key } = data.track || {};
 
-    return {
+    const imageUrl = s3Key
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`
+      : undefined;
+
+    const metadata: Metadata = {
       title: name || "Remaster",
       description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
       openGraph: {
         title: name || "Remaster",
-        description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
-        images: s3Key
-          ? [
-              `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`,
-            ]
-          : [],
-        url: `https://${host}/single/${params.id}`,
+        description: `Listen to ${name || "this track"} by ${
+          artist || "artist"
+        }`,
+        images: imageUrl ? [imageUrl] : [],
+        url: `https://${host}/single/${id}`,
         type: "music.song",
       },
       twitter: {
         card: "summary_large_image",
         title: name || "Remaster",
-        description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
-        images: s3Key
-          ? [
-              `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`,
-            ]
-          : [],
+        description: `Listen to ${name || "this track"} by ${
+          artist || "artist"
+        }`,
+        images: imageUrl ? [imageUrl] : [],
       },
       alternates: {
-        canonical: `https://${host}/single/${params.id}`,
+        canonical: `https://${host}/single/${id}`,
       },
     };
-  } catch (err) {
-    console.error("Metadata error:", err);
+
+    return metadata;
+  } catch (error) {
+    console.error("Error generating metadata:", error);
     return {
       title: "Remaster",
       description: "Listen to this track",
@@ -74,4 +80,8 @@ export async function generateMetadata({
       },
     };
   }
+}
+
+export default async function Page({ params }: { params: { id: string } }) {
+  return <SingleTrackClient id={params.id} />;
 }

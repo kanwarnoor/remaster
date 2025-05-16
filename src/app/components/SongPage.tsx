@@ -50,10 +50,9 @@ export default function SongPage(props: Props) {
   const [formData, setFormData] = useState({
     name: props.data.track.name,
     artist: props.data.track.artist,
-    previewArt:
-      props.data.track.image
-        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}`
-        : null,
+    previewArt: props.data.track.image
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}`
+      : null,
     // art is a file from fromdata
     art: null as File | null,
   });
