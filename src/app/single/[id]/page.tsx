@@ -28,7 +28,9 @@ export async function generateMetadata(props: {
 
     const data = await response.json();
     const { name, artist, image } = data.track || {};
-    const imageUrl = `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${image}`;
+    const imageUrl = image
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${image}`
+      : `${process.env.NEXT_PUBLIC_URL}/music.jpg`;
 
     return {
       title: name || "Track",
@@ -38,14 +40,21 @@ export async function generateMetadata(props: {
         description: `Listen to ${name || "this track"} by ${
           artist || "artist"
         }`,
-        images: [imageUrl],
+        images: [
+          {
+            url: imageUrl,
+            width: 800,
+            height: 800,
+            alt: `${name || "Track"} by ${artist || "artist"}`,
+          },
+        ],
         type: "music.song",
       },
     };
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Track",
+      title: "Loading...",
       description: "Loading track details",
     };
   }
