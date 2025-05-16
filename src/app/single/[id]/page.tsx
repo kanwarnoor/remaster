@@ -1,5 +1,6 @@
 import SingleTrackClient from "./SingleTrackClient";
 
 export default async function Page({ params }: { params: { id: string } }) {
-  return <SingleTrackClient id={params.id} />;
+  const { id } = await params;
+  return <SingleTrackClient id={id} />;
 }
