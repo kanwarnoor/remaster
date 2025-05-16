@@ -8,74 +8,53 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   try {
     const { id } = await props.params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    const headersList = await headers();
-    const host = headersList.get("host") || "remaster.com";
-
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL}/api/tracks/track_by_id?id=${id}`,
+      `${process.env.NEXT_PUBLIC_URL}/api/tracks/metadata?id=${id}`,
       {
+        cache: "no-store",
         headers: {
-          Cookie: `token=${token}`,
-        },
-        next: {
-          revalidate: 3600,
-          tags: [`track-${id}`],
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
         },
       }
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch track data: ${response.statusText}`);
+      return {
+        title: "Track",
+        description: "Loading track details",
+      };
     }
 
     const data = await response.json();
     const { name, artist, s3Key } = data.track || {};
+    const image = `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`;
 
-    const imageUrl = s3Key
-      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`
-      : undefined;
-
-    const metadata: Metadata = {
-      title: name || "Remaster",
+    return {
+      title: name || "Track",
       description: `Listen to ${name || "this track"} by ${artist || "artist"}`,
       openGraph: {
-        title: name || "Remaster",
+        title: name || "Track",
         description: `Listen to ${name || "this track"} by ${
           artist || "artist"
         }`,
-        images: imageUrl ? [imageUrl] : [],
-        url: `https://${host}/single/${id}`,
+        images: [image],
         type: "music.song",
       },
-      twitter: {
-        card: "summary_large_image",
-        title: name || "Remaster",
-        description: `Listen to ${name || "this track"} by ${
-          artist || "artist"
-        }`,
-        images: imageUrl ? [imageUrl] : [],
-      },
-      alternates: {
-        canonical: `https://${host}/single/${id}`,
-      },
     };
-
-    return metadata;
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Remaster",
-      description: "Listen to this track",
-      openGraph: {
-        title: "Remaster",
-        description: "Listen to this track",
-      },
+      title: "Track",
+      description: "Loading track details",
     };
   }
 }
 
+// Force dynamic rendering for this page
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function Page() {
-  return <SingleTrackClient/>;
+  return <SingleTrackClient />;
 }
