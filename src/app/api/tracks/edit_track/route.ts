@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { User as Decoded } from "@/libs/Auth";
 import connectDb from "@/libs/connectDb";
 import Track from "@/models/Track";
+import crypto from "crypto";
 import {
+  DeleteObjectCommand,
   PutObjectAclCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import TracksList from "@/app/components/TracksList";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 
@@ -23,7 +24,8 @@ const s3Client = new S3Client({
 export async function PATCH(req: NextRequest) {
   try {
     // Parse form data using Next.js 14's native formData()
-    const { id, name, artist, fileType, fileSize, uploaded } = await req.json();
+    const { id, name, artist, fileType, fileSize, uploaded, newKey, oldKey } =
+      await req.json();
 
     if (!id) {
       return NextResponse.json(
@@ -59,31 +61,43 @@ export async function PATCH(req: NextRequest) {
       if (artist) track.artist = artist;
 
       // Handle art upload if present
-
-      let url = null;
+      const imageKey = crypto.randomBytes(8).toString("hex");
       if (fileType && fileSize) {
         const command = new PutObjectCommand({
           Bucket: process.env.AWS_BUCKET_NAME,
-          Key: `images/track/${track.s3Key}`,
+          Key: `images/track/${imageKey}`,
           ContentType: fileType,
         });
-  
-         url = await getSignedUrl(s3Client, command, {
+
+        const url = await getSignedUrl(s3Client, command, {
           expiresIn: 3600,
         });
+
         if (!url) {
           return NextResponse.json(
             { error: "image url not generated" },
             { status: 500 }
           );
         }
+        return NextResponse.json({ url, imageKey: imageKey }, { status: 200 });
       }
 
-      await track.save();
-
-      return NextResponse.json({ url }, { status: 200 });
+      return NextResponse.json(
+        { message: "Successfully updated" },
+        { status: 200 }
+      );
     } else {
-      track.art = `https://${AWS_BUCKET_NAME}.s3.amazonaws.com/images/track/${track.s3Key}`;
+      if (oldKey) {
+        const command = new DeleteObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: `images/track/${oldKey}`,
+        });
+        await s3Client.send(command);
+      }
+      // Update track metadata even when uploaded is true
+      if (name) track.name = name;
+      if (artist) track.artist = artist;
+      track.image = newKey;
       await track.save();
     }
 

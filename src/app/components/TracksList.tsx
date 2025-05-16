@@ -99,7 +99,7 @@ export default function TracksList({
                     artist={track.artist}
                     art={
                       track.image
-                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.s3Key}`
+                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.image}`
                         : "/music.jpg"
                     }
                     link={type + track._id}

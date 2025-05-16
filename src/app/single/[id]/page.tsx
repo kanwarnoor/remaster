@@ -27,8 +27,8 @@ export async function generateMetadata(props: {
     }
 
     const data = await response.json();
-    const { name, artist, s3Key } = data.track || {};
-    const image = `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${s3Key}`;
+    const { name, artist, image } = data.track || {};
+    const imageUrl = `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${image}`;
 
     return {
       title: name || "Track",
@@ -38,7 +38,7 @@ export async function generateMetadata(props: {
         description: `Listen to ${name || "this track"} by ${
           artist || "artist"
         }`,
-        images: [image],
+        images: [imageUrl],
         type: "music.song",
       },
     };

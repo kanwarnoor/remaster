@@ -3,6 +3,7 @@ import { User as Decoded } from "@/libs/Auth";
 import User from "@/models/User";
 import Track from "@/models/Track";
 import connectDb from "@/libs/connectDb";
+import crypto from "crypto";
 import {
   CompleteMultipartUploadCommand,
   PutObjectCommand,
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     const { common, format } = metadata;
     const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
 
-    let cover = common.picture && common.picture[0] ? true : false;
+    let artKey = null;
     if (common.picture && common.picture[0]) {
       const art = common.picture[0];
       try {
@@ -63,10 +64,12 @@ export async function POST(req: Request) {
               : Buffer.from(
                   new Uint8Array(Object.values(art.data) as number[])
                 );
+
+          artKey = `${crypto.randomBytes(8).toString("hex")}`;
           await s3Client.send(
             new PutObjectCommand({
               Bucket: AWS_BUCKET_NAME,
-              Key: `images/track/${key}`,
+              Key: `images/track/${artKey}`,
               Body: artBuffer,
               ContentType: art.format,
               CacheControl: "public, max-age=31536000",
@@ -86,8 +89,8 @@ export async function POST(req: Request) {
       artist: common.artist || user.username,
       size: size,
       duration: format.duration || 0,
-      s3Key: key,
-      image: cover ? true : false,
+      audio: key,
+      image: artKey,
     });
 
     await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });

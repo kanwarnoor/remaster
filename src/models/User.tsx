@@ -37,14 +37,6 @@ const userModel = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Albums",
     }],
-    tracks: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Tracks",
-      liked: {
-        type: Boolean,
-        default: false,
-      }
-    }],
   },
   {
     timestamps: true,

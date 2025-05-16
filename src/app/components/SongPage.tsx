@@ -20,9 +20,8 @@ interface Props {
       timestamps: string[];
       visibility: string;
       user: string;
-      s3Key: string;
       createdAt: string;
-      image: boolean;
+      image: string;
     };
   };
   audio: {
@@ -51,7 +50,7 @@ export default function SongPage(props: Props) {
     name: props.data.track.name,
     artist: props.data.track.artist,
     previewArt: props.data.track.image
-      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}`
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.image}`
       : null,
     // art is a file from fromdata
     art: null as File | null,
@@ -111,7 +110,7 @@ export default function SongPage(props: Props) {
         queryClient.invalidateQueries({
           queryKey: ["single", props.data.track._id],
         });
-        const { url } = response.data;
+        const { url, imageKey } = response.data;
 
         if (!url) {
           return;
@@ -137,8 +136,10 @@ export default function SongPage(props: Props) {
         const imageUploadSaveResponse = await axios.patch(
           "/api/tracks/edit_track",
           {
-            id: props.data.track._id,
             uploaded: true,
+            id: props.data.track._id,
+            newKey: imageKey,
+            oldKey: props.data.track.image || null,
           }
         );
 
@@ -195,7 +196,7 @@ export default function SongPage(props: Props) {
         img.onload = null;
       }
     };
-  }, [props.data?.track.s3Key]);
+  }, [props.data?.track.image]);
 
   function formatTime(seconds: number) {
     seconds = Math.floor(seconds);
@@ -334,7 +335,7 @@ export default function SongPage(props: Props) {
           <Image
             src={
               props.data.track.image
-                ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}`
+                ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.image}`
                 : "/music.jpg"
             }
             height={0}
@@ -350,7 +351,7 @@ export default function SongPage(props: Props) {
           <img
             ref={imgRef}
             src={
-              `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.s3Key}` ||
+              `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${props.data.track.image}` ||
               "/music.jpg"
             }
             crossOrigin="anonymous"

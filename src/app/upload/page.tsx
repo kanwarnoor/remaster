@@ -274,7 +274,18 @@ export default function FileUpload() {
             type="file"
             accept="audio/*"
             capture
-            // onChange={handleFileChange}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const dummyEvent = {
+                  preventDefault: () => {},
+                  dataTransfer: {
+                    files: e.target.files,
+                  },
+                } as React.DragEvent<HTMLDivElement>;
+                handleFileDrop(dummyEvent);
+              }
+            }}
             onDrop={handleFileDrop}
             className="absolute inset-16 opacity-0"
           />

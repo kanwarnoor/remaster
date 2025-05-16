@@ -16,9 +16,13 @@ const trackModel = new Schema(
       type: Number,
       required: true,
     },
-    s3Key: {
+    audio: {
       type: String,
       required: true,
+    },
+    image: {
+      type: String,
+      required: false,
     },
     artist: {
       type: String,
@@ -35,11 +39,7 @@ const trackModel = new Schema(
       enum: ["public", "private"],
       default: "private",
     },
-    image: {
-      type: Boolean,
-      default: false,
-      required: true,
-    },
+
     album: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Album",

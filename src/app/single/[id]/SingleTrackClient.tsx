@@ -39,6 +39,7 @@ export default function SingleTrackClient() {
       return (await axios.get(`/api/tracks/track_by_id?id=${id}`)).data;
     },
     enabled: !!id,
+    
     retry: (failureCount, error) => {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 403) return false;
@@ -66,14 +67,14 @@ export default function SingleTrackClient() {
   };
 
   const { data: audio } = useQuery({
-    queryKey: ["audio", data?.track.s3Key],
+    queryKey: ["audio", data?.track.audio],
     queryFn: async () => {
       const response = await axios.get(
-        `/api/tracks/play?s3key=${data?.track.s3Key}`
+        `/api/tracks/play?s3key=${data?.track.audio}`
       );
       return response.data;
     },
-    enabled: !!id && !!data?.track.s3Key,
+    enabled: !!id && !!data?.track.audio,
     refetchOnWindowFocus: false,
   });
 

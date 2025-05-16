@@ -9,7 +9,7 @@ interface Props {
     track: {
       name: string;
       artist: string;
-      s3Key: string;
+      image: string;
     };
     artUrl: string;
   };
@@ -47,7 +47,10 @@ export default function Player({
       <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full">
         <div className="flex items-center gap-2">
           <Image
-            src={`https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${data.track.s3Key}` || "/music.jpg"}
+            src={
+              `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${data.track.image}` ||
+              "/music.jpg"
+            }
             alt={data.track.name}
             width={100}
             height={100}
