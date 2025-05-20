@@ -8,6 +8,7 @@ import Options from "./Options";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
+import Switch from "./Switch";
 
 interface Props {
   data: {
@@ -22,6 +23,7 @@ interface Props {
       user: string;
       createdAt: string;
       image: string;
+      album: string;
     };
   };
   audio: {
@@ -308,6 +310,17 @@ export default function SongPage(props: Props) {
                 }
               />
 
+              {/* public private */}
+              <div className="flex mt-2 items-center ">
+                <p className="text-sm capitalize">Public</p>
+                <div>
+                  <Switch
+                    checked={props.data.track.visibility === "public"}
+                    handleChange={() => props.toggleVisibility()}
+                  />
+                </div>
+              </div>
+
               <div className="flex text-left mt-auto ">
                 <button
                   type="submit"
@@ -318,6 +331,7 @@ export default function SongPage(props: Props) {
                 </button>
               </div>
             </form>
+            {/* public or private toggle */}
           </motion.div>
         </>
       )}
@@ -364,27 +378,9 @@ export default function SongPage(props: Props) {
         </motion.div>
         <div className="w-full">
           <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
-            {props.user && props.user._id === props.data.track.user ? (
-              <>
-                {props.data.track.visibility === "private" ? (
-                  <p
-                    className="text-sm font-bold cursor-pointer opacity-60"
-                    onClick={() => props.toggleVisibility()}
-                  >
-                    Private
-                  </p>
-                ) : (
-                  <p
-                    className="text-sm font-bold cursor-pointer  opacity-60"
-                    onClick={() => props.toggleVisibility()}
-                  >
-                    Public
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm h-5 font-bold cursor-pointer "></p>
-            )}
+            <p className="text-sm font-bold opacity-60">
+              {props.data.track.album != null ? "Album" : "Single"}
+            </p>
 
             <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
               {props.data.track.name}
@@ -462,7 +458,7 @@ export default function SongPage(props: Props) {
       {/* tracklist */}
       <div className="w-full h-fit justify-start flex flex-col ">
         <div
-          className="flex  mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 cursor-pointer "
+          className="flex mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 cursor-pointer "
           onDoubleClick={() => props.handleSong("reset")}
         >
           <div className="w-[5%] justify-left items-center flex ml-5 ">

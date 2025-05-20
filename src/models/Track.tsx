@@ -39,10 +39,10 @@ const trackModel = new Schema(
       enum: ["public", "private"],
       default: "private",
     },
-
     album: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Album",
+      default: null,
       required: false,
     },
   },
