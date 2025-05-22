@@ -45,27 +45,18 @@ export default function TracksList({
     return (
       <>
         <p className="text-3xl font-bold mb-5">{title}</p>
-        <div className="relative flex-row flex gap-5 pr-20 overflow-x-hidden mb-[2.9rem]">
-          <div className="flex flex-col w-[200px] animate-pulse">
-            <div className="">
-              <div className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"></div>
-            </div>
-          </div>
-          <div className="flex flex-col w-[200px] animate-pulse delay-75">
-            <div className="">
-              <div className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"></div>
-            </div>
-          </div>
-          <div className="flex flex-col w-[200px] animate-pulse delay-100">
-            <div className="">
-              <div className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"></div>
-            </div>
-          </div>
-          <div className="flex flex-col w-[200px] animate-pulse delay-150">
-            <div className="">
-              <div className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"></div>
-            </div>
-          </div>
+        <div className="relative flex-row flex gap-5 pr-20 overflow-x-hidden ">
+          {[50, 100, 150, 200].map((delay, index) => {
+            return (
+              <div className="flex flex-col w-[200px] " key={index}>
+                <div className="">
+                  <div className="w-[200px] h-[200px] bg-[#3d3d3d] rounded justify-center items-center flex cursor-pointer animate-pulse"></div>
+                  <div className="w-[70%] h-[15px] bg-[#3d3d3d] mt-2 animate-pulse"></div>
+                  <div className="w-1/2 h-[15px] bg-[#3d3d3d] mt-2 animate-pulse"></div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </>
     );

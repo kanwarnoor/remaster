@@ -125,7 +125,6 @@ export default function Player({
             >
               <svg
                 viewBox="0 0 16 16"
-               
                 xmlns="http://www.w3.org/2000/svg"
                 className="size-5 flex fill-black"
               >
@@ -175,7 +174,6 @@ export default function Player({
                 stroke-linejoin="round"
               />
             </svg>
-        
           </div>
         </div>
         {/* progress bar */}
