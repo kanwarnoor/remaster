@@ -1,29 +1,30 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { usePlayer } from "@/context/PlayerContext";
 
-interface Props {
-  handleSong: (action: string, event?: React.MouseEvent) => void;
-  playing: boolean;
-  data: {
-    track: {
-      name: string;
-      artist: string;
-      image: string;
-    };
-    artUrl: string;
-  };
-  volume: number;
-  onVolumeChange: (volume: number) => void;
-}
+export default function Player() {
+  const { data: playerData, setPlaying, playing } = usePlayer();
+  const [player, setPlayer] = useState(false);
+  const [track, setTrack] = useState<any>(null);
+  const [volume, setVolume] = useState(1);
 
-export default function Player({
-  handleSong,
-  playing,
-  data,
-  volume,
-  onVolumeChange,
-}: Props) {
+  const { data: audio } = useQuery({
+    queryKey: ["audio", playerData?.track.audio],
+    queryFn: async () => {
+      const response = await axios.get(
+        `/api/tracks/play?s3key=${playerData?.track.audio}`
+      );
+      return response.data;
+    },
+    enabled: !!playerData?.track.audio,
+    refetchOnWindowFocus: false,
+  });
+
   return (
     <motion.div
       initial={{
@@ -42,24 +43,24 @@ export default function Player({
         duration: 0.5,
         ease: "easeInOut",
       }}
-      className="w-[800px] justify-center m-auto items-center h-16 bg-white/80 backdrop-blur-xl text-black rounded-full flex"
+      className="absolute bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 bg-white/80 backdrop-blur-xl text-black rounded-full flex"
     >
       <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full">
         <div className="flex items-center gap-2">
           <Image
             src={
-              data.track.image
-                ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${data.track.image}`
+              playerData?.track.image
+                ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.track.image}`
                 : "/music.jpg"
             }
-            alt={data.track.name}
+            alt={playerData?.track.name}
             width={100}
             height={100}
             className="w-12 h-12 rounded-full"
           />
           <div>
-            <h3 className="font-medium">{data.track.name}</h3>
-            <p className="text-xs text-gray-600">{data.track.artist}</p>
+            <h3 className="font-medium">{playerData?.track.name}</h3>
+            <p className="text-xs text-gray-600">{playerData?.track.artist}</p>
           </div>
         </div>
       </div>
@@ -68,7 +69,7 @@ export default function Player({
           {/* previous */}
           <div
             className="cursor-pointer"
-            onClick={() => handleSong("previous")}
+            // onClick={() => handleSong("previous")}
           >
             <svg
               viewBox="0 0 24 24"
@@ -78,9 +79,9 @@ export default function Player({
               <path
                 d="M5 18L5 6M19 6V18L9 12L19 6Z"
                 stroke="#000000"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
             {/* <svg
@@ -121,7 +122,7 @@ export default function Player({
           {playing ? (
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-[3px] border-black"
-              onClick={() => handleSong("pause")}
+              onClick={() => setPlaying(playerData?.track.id, false)}
             >
               <svg
                 viewBox="0 0 16 16"
@@ -143,7 +144,7 @@ export default function Player({
           ) : (
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer border-[3px] border-black"
-              onClick={() => handleSong("play")}
+              onClick={() => setPlaying(playerData?.track._id, true)}
             >
               <svg
                 fill="white"
@@ -160,7 +161,7 @@ export default function Player({
         </div>
         <div>
           {/* next */}
-          <div className="cursor-pointer" onClick={() => handleSong("next")}>
+          <div className="cursor-pointer">
             <svg
               viewBox="0 0 24 24"
               className="size-9 fill-black rotate-180"
@@ -169,9 +170,9 @@ export default function Player({
               <path
                 d="M5 18L5 6M19 6V18L9 12L19 6Z"
                 stroke="#000000"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
           </div>
@@ -180,7 +181,7 @@ export default function Player({
         <div className="absolute w-full bottom-0 left-0 transition-all">
           <div
             className="bg-black/50 h-1 flex justify-end relative cursor-pointer group progress-bar"
-            onClick={(e) => handleSong("seek", e)}
+            // onClick={(e) => handleSong("seek", e)}
             onMouseDown={(e) => {
               const progressBar = e.currentTarget;
               const rect = progressBar.getBoundingClientRect();
@@ -264,7 +265,7 @@ export default function Player({
                 Math.min(e.clientX - rect.left, rect.width)
               );
               const newVolume = x / rect.width;
-              onVolumeChange(newVolume);
+              // handleVolumeChange(newVolume);
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -277,7 +278,7 @@ export default function Player({
                   Math.min(moveEvent.clientX - rect.left, rect.width)
                 );
                 const newVolume = x / rect.width;
-                onVolumeChange(newVolume);
+                // handleVolumeChange(newVolume);
               };
 
               const handleMouseUp = () => {

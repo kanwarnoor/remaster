@@ -26,15 +26,13 @@ interface Props {
       album: string;
     };
   };
-  audio: {
-    url: string;
-  };
   user: {
     _id: string;
   };
-  playing?: boolean | false;
+  playing: boolean;
+  setPlaying: (id: string, playing: boolean) => void;
+  setData: (data: any) => void;
   toggleVisibility: () => void;
-  handleSong: (action: string) => void;
 }
 
 export default function SongPage(props: Props) {
@@ -392,7 +390,7 @@ export default function SongPage(props: Props) {
               <div
                 className="flex w-28 h-9 justify-center items-center cursor-pointer bg-white/20 rounded hover:bg-white/30"
                 onClick={() => {
-                  props.handleSong("pause");
+                  props.setPlaying(props.data.track._id, false);
                 }}
               >
                 <svg
@@ -418,7 +416,8 @@ export default function SongPage(props: Props) {
               <div
                 className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
                 onClick={() => {
-                  props.handleSong("play");
+                  props.setPlaying(props.data.track._id, true);
+                  props.setData(props.data);
                 }}
               >
                 <svg
@@ -459,7 +458,7 @@ export default function SongPage(props: Props) {
       <div className="w-full h-fit justify-start flex flex-col ">
         <div
           className="flex mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 cursor-pointer "
-          onDoubleClick={() => props.handleSong("reset")}
+          // onDoubleClick={() => props.handleSong("reset")}
         >
           <div className="w-[5%] justify-left items-center flex ml-5 ">
             <svg

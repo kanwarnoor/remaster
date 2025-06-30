@@ -4,14 +4,33 @@ import { createContext, useContext, useState } from "react";
 
 export const PlayerContext = createContext<{
   playing: boolean;
-  setPlaying: (playing: boolean) => void;
+  setPlaying: (id: string, playing: boolean) => void;
+
+  data: any;
+  setData: (data: any) => void;
 } | null>(null);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState<{
+    id: string | null;
+    playing: boolean;
+  }>({
+    id: null,
+    playing: false,
+  });
+  const [data, setData] = useState<any>(null);
 
   return (
-    <PlayerContext.Provider value={{ playing, setPlaying }}>
+    <PlayerContext.Provider
+      value={{
+        playing: playing?.playing ?? false,
+        setPlaying: (id: string, playing: boolean) => {
+          setPlaying({ id, playing });
+        },
+        data,
+        setData,
+      }}
+    >
       {children}
     </PlayerContext.Provider>
   );
