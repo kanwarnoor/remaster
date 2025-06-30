@@ -43,7 +43,7 @@ export default function Player() {
         duration: 0.5,
         ease: "easeInOut",
       }}
-      className="absolute bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 bg-white/80 backdrop-blur-xl text-black rounded-full flex"
+      className="fixed bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 bg-white/50 backdrop-blur-lg text-black rounded-full flex"
     >
       <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full">
         <div className="flex items-center gap-2">
