@@ -4,11 +4,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import ColorThief from "colorthief";
-import Options from "./Options";
+import Options from "@/components/Options";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
-import Switch from "./Switch";
+import Switch from "@/components/Switch";
 
 interface Props {
   data: {

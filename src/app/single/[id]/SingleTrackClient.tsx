@@ -6,9 +6,9 @@ import axios from "axios";
 import Image from "next/image";
 import { User } from "@/libs/Auth";
 import { AnimatePresence } from "framer-motion";
-import InsideNavbar from "@/app/components/InsideNavbar";
-import SongPage from "@/app/components/SongPage";
-import Player from "@/app/components/Player";
+import InsideNavbar from "@/components/InsideNavbar";
+import SongPage from "@/components/SongPage";
+import Player from "@/components/Player";
 import { useParams } from "next/navigation";
 
 export default function SingleTrackClient() {
@@ -39,7 +39,7 @@ export default function SingleTrackClient() {
       return (await axios.get(`/api/tracks/track_by_id?id=${id}`)).data;
     },
     enabled: !!id,
-    
+
     retry: (failureCount, error) => {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 403) return false;

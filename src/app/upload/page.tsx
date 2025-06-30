@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import Notification from "@/app/components/Notification";
-import InsideNavbar from "../components/InsideNavbar";
+import Notification from "@/components/Notification";
+import InsideNavbar from "@/components/InsideNavbar";
 import { parseBlob } from "music-metadata";
 import { useRouter } from "next/navigation";
 import mime from "mime";
