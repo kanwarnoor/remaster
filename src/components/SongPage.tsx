@@ -386,53 +386,26 @@ export default function SongPage(props: Props) {
             <p className="text-xl font-bold ">{props.data.track.artist}</p>
           </div>
           <div className="w-[100%] ml-10 h-[35%] flex items-end">
-            {props.playing ? (
-              <div
-                className="flex w-28 h-9 justify-center items-center cursor-pointer bg-white/20 rounded hover:bg-white/30"
-                onClick={() => {
-                  props.setPlaying(props.data.track._id, false);
-                }}
+            <div
+              className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
+              onClick={() => {
+                props.setPlaying(props.data.track._id, true);
+                props.setData(props.data);
+              }}
+            >
+              <svg
+                fill="white"
+                viewBox="0 0 32 32"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                className="size-7 cursor-pointer flex"
               >
-                <svg
-                  viewBox="0 0 16 16"
-                  fill="white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 flex"
-                >
-                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                  <g
-                    id="SVGRepo_tracerCarrier"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path d="M7 1H2V15H7V1Z"></path>
-                    <path d="M14 1H9V15H14V1Z"></path>
-                  </g>
-                </svg>
-                <p className="flex pl-1">Stop</p>
-              </div>
-            ) : (
-              <div
-                className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
-                onClick={() => {
-                  props.setPlaying(props.data.track._id, true);
-                  props.setData(props.data);
-                }}
-              >
-                <svg
-                  fill="white"
-                  viewBox="0 0 32 32"
-                  version="1.1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-7 cursor-pointer flex"
-                >
-                  <title>play</title>
-                  <path d="M5.92 24.096q0 1.088 0.928 1.728 0.512 0.288 1.088 0.288 0.448 0 0.896-0.224l16.16-8.064q0.48-0.256 0.8-0.736t0.288-1.088-0.288-1.056-0.8-0.736l-16.16-8.064q-0.448-0.224-0.896-0.224-0.544 0-1.088 0.288-0.928 0.608-0.928 1.728v16.16z"></path>
-                </svg>
-                <p className="flex">Play</p>
-              </div>
-            )}
+                <title>play</title>
+                <path d="M5.92 24.096q0 1.088 0.928 1.728 0.512 0.288 1.088 0.288 0.448 0 0.896-0.224l16.16-8.064q0.48-0.256 0.8-0.736t0.288-1.088-0.288-1.056-0.8-0.736l-16.16-8.064q-0.448-0.224-0.896-0.224-0.544 0-1.088 0.288-0.928 0.608-0.928 1.728v16.16z"></path>
+              </svg>
+              <p className="flex">Play</p>
+            </div>
+
             {props.user && props.user._id === props.data.track.user && (
               <div
                 className="justify-end ml-auto mr-10 flex cursor-pointer"
