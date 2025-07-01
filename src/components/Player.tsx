@@ -236,7 +236,7 @@ export default function Player() {
             </div>
           </div>
         </div>
-        <div className="w-[30%] h-full flex items-center justify-end gap-2 px-6 rounded-r-full transition-all duration-100">
+        <div className="w-[30%] h-full flex items-center justify-end gap-2 px-6 rounded-r-full transition-all duration-100 z-10">
           <button
             className={`p-2  rounded-full transition-all duration-100 ${
               shuffle ? "bg-black/10" : ""
