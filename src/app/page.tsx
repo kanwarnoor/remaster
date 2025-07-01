@@ -11,6 +11,7 @@ import { User } from "@/libs/Auth";
 import Navbar from "@/components/Navbar";
 import TracksList from "@/components/TracksList";
 import Player from "@/components/Player";
+import Lander from "@/components/Lander";
 
 export default function Page() {
   const queryClient = useQueryClient();
@@ -54,6 +55,7 @@ export default function Page() {
   return (
     <>
       <Navbar />
+      {/* <Lander /> */}
       <div className="w-screen h-screen flex flex-col pt-16">
         {(userLoading || userTracks) && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
@@ -62,6 +64,7 @@ export default function Page() {
               data={userTracks}
               isLoading={userLoading}
               type="user"
+              upload={true}
               deleteTrack={deleteTrack}
             />
           </section>

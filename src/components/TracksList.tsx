@@ -16,6 +16,7 @@ interface Props {
   currentUser?: any;
   type?: string;
   setCurrentUser?: (user: any) => void;
+  upload?: boolean;
 }
 
 export default function TracksList({
@@ -24,6 +25,7 @@ export default function TracksList({
   isLoading,
   type,
   isError,
+  upload,
   deleteTrack,
 }: Props) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -98,6 +100,16 @@ export default function TracksList({
                 </div>
               );
             })}
+            {upload && (
+              <div className="flex-[0_0_200px]">
+                <Tile
+                  title="sample"
+                  artist="sample"
+                  link="/upload"
+                  upload={upload}
+                />
+              </div>
+            )}
           </div>
         </div>
 

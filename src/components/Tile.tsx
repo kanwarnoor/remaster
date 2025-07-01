@@ -10,16 +10,17 @@ interface Props {
   artist: string;
   art?: string;
   link?: string;
+  upload?: boolean;
 }
 
-export default function Tile({ title, artist, art, link }: Props) {
+export default function Tile({ title, artist, art, link, upload }: Props) {
   const router = useRouter();
   const handleClick = () => {
     if (link) {
       router.push(link);
     }
   };
-  return (
+  return !upload ? (
     <div className="flex flex-col rounded">
       <div className="" onClick={handleClick}>
         <motion.div
@@ -60,6 +61,39 @@ export default function Tile({ title, artist, art, link }: Props) {
             {artist}
           </p>
         </motion.div>
+      </div>
+    </div>
+  ) : (
+    <div className="flex flex-col rounded">
+      <div className="" onClick={handleClick}>
+        <div
+
+          className="w-[200px] h-[200px] bg-[#141414] rounded justify-center hover:bg-white/80 transition-all duration-100 group items-center flex cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="size-10 group-hover:stroke-black transition-all duration-300"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 4.5v15m7.5-7.5h-15"
+            />
+          </svg>
+
+          {/* <Image
+            src={art || "/music.jpg"}
+            alt={"art"}
+            height={0}
+            width={0}
+            sizes="100% 100%"
+            className="w-full h-full rounded"
+          /> */}
+        </div>
       </div>
     </div>
   );
