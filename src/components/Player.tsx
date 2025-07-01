@@ -51,14 +51,16 @@ export default function Player() {
 
   return (
     <>
-      <ReactPlayerComponent
-        ref={playerRef as unknown as React.RefObject<HTMLVideoElement>}
-        src={audio?.url}
-        playing={playing}
-        volume={volume.value}
-        controls={false}
-        loop={repeat !== 0}
-      />
+      <div className="hidden ">
+        <ReactPlayerComponent
+          ref={playerRef as unknown as React.RefObject<HTMLVideoElement>}
+          src={audio?.url}
+          playing={playing}
+          volume={volume.value}
+          controls={false}
+          loop={repeat !== 0}
+        />
+      </div>
       <motion.div
         initial={{
           opacity: 0,

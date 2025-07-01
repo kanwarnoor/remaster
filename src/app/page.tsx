@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { User } from "@/libs/Auth";
 import Navbar from "@/components/Navbar";
 import TracksList from "@/components/TracksList";
+import Player from "@/components/Player";
 
 export default function Page() {
   const queryClient = useQueryClient();
@@ -77,6 +78,7 @@ export default function Page() {
           </section>
         )}
       </div>
+
     </>
   );
 }
