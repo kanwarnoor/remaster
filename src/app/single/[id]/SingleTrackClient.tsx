@@ -11,6 +11,7 @@ import SongPage from "@/components/SongPage";
 import Player from "@/components/Player";
 import { useParams } from "next/navigation";
 import { usePlayer } from "@/context/PlayerContext";
+import SongPageLoading from "@/components/SongPageLoading";
 
 export default function SingleTrackClient() {
   const [user, setUser] = useState<any>(null);
@@ -71,9 +72,13 @@ export default function SingleTrackClient() {
 
   if (isLoading) {
     return (
-      <div className="w-screen h-screen flex justify-center items-center">
-        <div className="remaster-spinner w-10 h-10"></div>
-      </div>
+      // <div className="w-screen h-screen flex justify-center items-center">
+      //   <div className="remaster-spinner w-10 h-10"></div>
+      // </div>
+      <>
+        <InsideNavbar link="/" /> 
+        <SongPageLoading />
+      </>
     );
   }
 
