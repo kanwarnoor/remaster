@@ -31,10 +31,10 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="navbar h-auto p-2 text-center fixed left-0 right-0 justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-10">
+      <div className="navbar h-auto p-2 text-center fixed left-0 right-0 justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50">
         <Link href="/">REMASTER</Link>
       </div>
-      <div className="navbar h-16 pr-5 text-center fixed right-0 justify-center items-center m-auto flex font-black text-2xl select-none text-remaster z-10">
+      <div className="navbar h-16 pr-5 text-center fixed right-0 justify-center items-center m-auto flex font-black text-2xl select-none text-remaster z-50">
         {currentUser ? (
           <>
             <button
