@@ -11,7 +11,7 @@ import type ReactPlayer from "react-player";
 import ReactPlayerComponent from "react-player";
 
 export default function Player() {
-  const { data: playerData, setPlaying, playing } = usePlayer();
+  const { data: playerData, setPlaying, playing, color} = usePlayer();
   const [volume, setVolume] = useState({ value: 1, preValue: 1 });
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(0);
@@ -78,7 +78,8 @@ export default function Player() {
           duration: 0.5,
           ease: "easeInOut",
         }}
-        className="fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 bg-white/50 backdrop-blur-md text-black rounded-full flex"
+        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 bg-white/50 backdrop-blur-md text-black rounded-full flex`}
+   
       >
         <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full">
           <div className="flex items-center gap-2">

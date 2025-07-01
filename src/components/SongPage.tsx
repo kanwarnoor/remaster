@@ -9,6 +9,7 @@ import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
+import { usePlayer } from "@/context/PlayerContext";
 
 interface Props {
   data: {
@@ -45,6 +46,8 @@ export default function SongPage(props: Props) {
     month: "long",
   })} ${date.getDate()}, ${date.getFullYear()}`;
   const [colors, setColors] = useState<[number, number, number][]>([]);
+
+  const { setColor, color } = usePlayer();
 
   const [formData, setFormData] = useState({
     name: props.data.track.name,
@@ -176,6 +179,7 @@ export default function SongPage(props: Props) {
         const palette = colorThief.getPalette(img);
         if (palette && palette.length > 0) {
           setColors(palette.slice(0, 5));
+          setColor(palette[0]);
         }
       } catch (err) {
         console.error("Color Thief error:", err);

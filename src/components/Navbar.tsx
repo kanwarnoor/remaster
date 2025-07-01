@@ -38,7 +38,7 @@ export default function Navbar() {
         {currentUser ? (
           <>
             <button
-              className="ml-2 text-white cursor-pointer flex items-center gap-1 bg-neutral-800/50 rounded-full px-2 py-1 mr-2 hover:bg-neutral-800/70 transition-all duration-100"
+              className="ml-2 text-white cursor-pointer flex items-center gap-1 bg-neutral-800/50 rounded-full px-2 py-1 mr-2 hover:bg-white/80 hover:text-black transition-all duration-100"
               onClick={() => router.push("/upload")}
             >
               <svg

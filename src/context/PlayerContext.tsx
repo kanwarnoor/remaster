@@ -8,6 +8,9 @@ export const PlayerContext = createContext<{
 
   data: any;
   setData: (data: any) => void;
+
+  color: [number, number, number];
+  setColor: (color: [number, number, number]) => void;
 } | null>(null);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
@@ -19,6 +22,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     playing: false,
   });
   const [data, setData] = useState<any>(null);
+  const [color, setColor] = useState<string>("#000000");
 
   return (
     <PlayerContext.Provider
@@ -27,6 +31,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setPlaying: (id: string, playing: boolean) => {
           setPlaying({ id, playing });
         },
+
+        color: color.split(",").map(Number) as [number, number, number],
+        setColor: (color: [number, number, number]) => {
+          setColor(color.join(","));
+        },
+
         data,
         setData,
       }}

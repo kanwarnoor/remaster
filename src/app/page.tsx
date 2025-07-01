@@ -55,7 +55,7 @@ export default function Page() {
   return (
     <>
       <Navbar />
-      {/* <Lander /> */}
+      <Lander />
       <div className="w-screen h-screen flex flex-col pt-16">
         {(userLoading || userTracks) && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">

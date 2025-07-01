@@ -51,13 +51,13 @@ export default function Tile({ title, artist, art, link, upload }: Props) {
           transition={{
             duration: 1,
             delay: 0.3,
-          }}
+}}
           className="w-fit max-w-full cursor-pointer"
         >
-          <p className="font-bold text-lg leading-none mt-2 text-ellipsis overflow-hidden">
+          <p className="font-bold text-lg leading-none mt-2 text-ellipsis overflow-hidden line-clamp-2">
             {title}
           </p>
-          <p className="font-bold text-base leading-tight text-white/50 text-ellipsis overflow-hidden">
+          <p className="font-bold text-base leading-tight text-white/50 text-ellipsis overflow-hidden line-clamp-2">
             {artist}
           </p>
         </motion.div>
