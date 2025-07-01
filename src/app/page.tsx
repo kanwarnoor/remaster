@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import TracksList from "@/components/TracksList";
 import Player from "@/components/Player";
 import Lander from "@/components/Lander";
+import Notification from "@/components/Notification";
 
 export default function Page() {
   const queryClient = useQueryClient();
@@ -56,6 +57,7 @@ export default function Page() {
     <>
       <Navbar />
       <Lander />
+     
       <div className="w-screen h-screen flex flex-col pt-16">
         {(userLoading || userTracks) && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">

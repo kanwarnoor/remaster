@@ -167,6 +167,10 @@ export default function SongPage(props: Props) {
       name: "Delete",
       handleOption: () => handleOption("delete"),
     },
+    {
+      name: "Album",
+      handleOption: () => handleOption("addAlbum"),
+    },
   ];
 
   useEffect(() => {

@@ -34,7 +34,7 @@ export default function Notification({ message, type }: NotificationProps) {
       transition={{
         duration: 0.3,
       }}
-      className={`absolute w-fit h-fit left-0 right-0 bottom-0 m-auto flex mb-10 rounded-full text-black px-5 py-3 overflow-hidden font-bold ${typeStyle}}`}
+      className={`fixed shadow-2xl w-fit h-fit right-0 bottom-0 flex m-12 rounded-full text-black px-5 py-3 z-20 overflow-hidden font-bold ${typeStyle}}`}
     >
       {message}
     </motion.div>
