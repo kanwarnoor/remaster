@@ -34,7 +34,8 @@
     "next": "^15.2.3",
     "parse-ms": "^4.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-player": "^3.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
