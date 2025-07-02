@@ -6,7 +6,7 @@ import Image from "next/image";
 import ColorThief from "colorthief";
 import Options from "@/components/Options";
 import axios from "axios";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
 import { usePlayer } from "@/context/PlayerContext";
@@ -41,6 +41,7 @@ export default function SongPage(props: Props) {
   const [options, setOptions] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [editing, setEditing] = useState(false);
+  const [addAlbum, setAddAlbum] = useState(false);
   const date = new Date(props.data.track.createdAt);
   const createdAt = `${date.toLocaleString("default", {
     month: "long",
@@ -58,6 +59,14 @@ export default function SongPage(props: Props) {
     // art is a file from fromdata
     art: null as File | null,
   });
+
+  const {data: albums, isLoading, error} = useQuery({
+    queryKey: ["albums"],
+    queryFn: () => {
+      return 
+    }
+    
+  })
 
   const handleOption = async (option: string) => {
     setOptions(false);
@@ -120,7 +129,6 @@ export default function SongPage(props: Props) {
         }
 
         const file = formData.art;
-        // nigga
         if (!file) {
           return;
         }
@@ -156,6 +164,10 @@ export default function SongPage(props: Props) {
         });
       }
     }
+
+    if (option === "album") {
+      setAddAlbum(true);
+    }
   };
 
   const list = [
@@ -164,12 +176,13 @@ export default function SongPage(props: Props) {
       handleOption: () => handleOption("toggleEdit"),
     },
     {
-      name: "Delete",
-      handleOption: () => handleOption("delete"),
+      name: "Album",
+      handleOption: () => handleOption("album"),
     },
     {
-      name: "Album",
-      handleOption: () => handleOption("addAlbum"),
+      name: "Delete",
+      danger: true,
+      handleOption: () => handleOption("delete"),
     },
   ];
 
@@ -338,6 +351,26 @@ export default function SongPage(props: Props) {
               </div>
             </form>
             {/* public or private toggle */}
+          </motion.div>
+        </>
+      )}
+
+      {addAlbum && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-10"
+            onClick={() => setAddAlbum(false)}
+          ></div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute w-fit h-[20rem] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col justify-center px-10"
+          >
+            <p className="text-2xl font-bold text-left top-0">Add to Album</p>
+            <div className="flex gap-5">
+              <p className="text-xl">Album 1</p>
+              
+            </div>
           </motion.div>
         </>
       )}

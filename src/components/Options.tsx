@@ -5,6 +5,7 @@ interface Props {
   list: {
     name: string;
     icon?: string;
+    extends?: boolean;
     handleOption?: () => void;
   }[];
 }
