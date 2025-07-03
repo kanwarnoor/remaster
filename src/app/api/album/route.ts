@@ -5,7 +5,7 @@ import { toInteger } from "lodash";
 import { NextRequest, NextResponse } from "next/server";
 import { User as Auth } from "@/libs/Auth";
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest) {
   try {
     const limit = toInteger(req.nextUrl.searchParams.get("limit"));
 
