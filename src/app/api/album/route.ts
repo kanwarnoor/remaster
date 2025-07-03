@@ -9,11 +9,17 @@ export async function GET(req: NextRequest, res: NextResponse) {
   try {
     const limit = toInteger(req.nextUrl.searchParams.get("limit"));
 
+    const user = await Auth();
+
+    if (!user) {
+      return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
+    }
+
     await connectDb();
 
-    const album = await Album.find();
+    const album = await Album.find({ user: user._id });
 
-    return NextResponse.json({ album }, { status: 200 });
+    return NextResponse.json(album, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -21,7 +27,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
 
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
-    const { name, description, track } = await req.json();
+    const { name, description, tracks, image } = await req.json();
 
     const decoded = await Auth();
 
@@ -40,7 +46,8 @@ export async function POST(req: NextRequest, res: NextResponse) {
       name,
       user: user._id,
       description: description || null,
-      tracks: track,
+      tracks: tracks,
+      image: image || null,
     });
 
     return NextResponse.json({ message: "Success" }, { status: 200 });

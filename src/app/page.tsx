@@ -42,6 +42,12 @@ export default function Page() {
     retry: false,
   });
 
+  const { data: albums, isLoading: albumsLoading } = useQuery({
+    queryKey: ["albums"],
+    queryFn: async () => (await axios.get("/api/album")),
+    enabled: !!currentUser,
+  });
+
   const deleteTrack = async (id: string) => {
     const res = await axios.delete("/api/tracks/delete_track", {
       data: { id },
@@ -57,8 +63,19 @@ export default function Page() {
     <>
       <Navbar />
       <Lander />
-     
+
       <div className="w-screen h-screen flex flex-col pt-16">
+        {(userLoading || albums) && (
+          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <TracksList
+              title="Your Albums"
+              data={albums}
+              isLoading={albumsLoading}
+              type="album"
+              upload={false}
+            />
+          </section>
+        )}
         {(userLoading || userTracks) && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
@@ -83,7 +100,6 @@ export default function Page() {
           </section>
         )}
       </div>
-
     </>
   );
 }

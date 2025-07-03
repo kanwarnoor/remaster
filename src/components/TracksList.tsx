@@ -6,9 +6,7 @@ import Tile from "./Tile";
 
 interface Props {
   title: string;
-  data: {
-    tracks: any;
-  };
+  data: any;
   deleteTrack?: (id: string) => void;
   isLoading?: boolean;
   isError?: boolean;
@@ -36,11 +34,11 @@ export default function TracksList({
   });
 
   const scrollNext = () => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (emblaApi) emblaApi.scrollTo(4);
   };
 
   const scrollPrev = () => {
-    if (emblaApi) emblaApi.scrollPrev();
+    if (emblaApi) emblaApi.scrollTo(-4);
   };
 
   if (isLoading) {
@@ -64,7 +62,7 @@ export default function TracksList({
     );
   }
 
-  if (data.tracks == null || data?.tracks.length === 0) {
+  if (data == null || data.length === 0) {
     return (
       <>
         <p className="text-3xl font-bold mb-5">{title}</p>

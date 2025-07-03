@@ -60,13 +60,17 @@ export default function SongPage(props: Props) {
     art: null as File | null,
   });
 
-  const {data: albums, isLoading, error} = useQuery({
+  const {
+    data: albums,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["albums"],
     queryFn: () => {
-      return 
-    }
-    
-  })
+      return axios.get("/api/album").then((res) => res.data.album);
+    },
+    enabled: !!props.user && addAlbum,
+  });
 
   const handleOption = async (option: string) => {
     setOptions(false);
@@ -364,12 +368,72 @@ export default function SongPage(props: Props) {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute w-fit h-[20rem] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col justify-center px-10"
+            className="absolute w-[20%] h-fit max-h-[60%] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 text-black"
           >
-            <p className="text-2xl font-bold text-left top-0">Add to Album</p>
-            <div className="flex gap-5">
-              <p className="text-xl">Album 1</p>
-              
+            <div className="flex justify-between items-center">
+              <p className="text-3xl font-bold text-left top-0">Add to Album</p>
+              <div className="flex hover:bg-white/20 rounded-full translate-x-2 p-2 cursor-pointer transition-all duration-100">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
+              </div>
+            </div>
+            <div className="flex flex-col gap-5 mt-3 ">
+              {albums?.map((album: any) => {
+                return (
+                  <div
+                    key={album._id}
+                    className="flex hover:bg-white/20 rounded-md p-2 transition-all duration-100"
+                 
+                  >
+                    <Image
+                      src={album.image || "/music.jpg"}
+                      alt={album.name}
+                      width={50}
+                      height={50}
+                      className="rounded-md"
+                    />
+                    <div className="flex flex-col items-start justify-center  ml-3 ">
+                      <p className="text-xl font-bold leading-tight">
+                        {album.name}
+                      </p>
+                      <p className="text-xs">
+                        {album.artist || "Unknown Artist"}
+                      </p>
+                    </div>
+
+                    {/*  */}
+                    <div className="ml-auto justify-center items-center flex cursor-pointer">
+               
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill={album.tracks.includes(props.data.track._id) ? "black" : "none"}
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="size-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
         </>
