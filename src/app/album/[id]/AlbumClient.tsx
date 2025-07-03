@@ -1,3 +1,3 @@
-export default function AlbumClient({ id }: { id: string }) {
+export default function AlbumClient() {
   return <div>hello</div>;
 }

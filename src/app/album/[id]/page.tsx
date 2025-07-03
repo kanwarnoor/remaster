@@ -20,6 +20,6 @@ export const generateMetadata = async ({
   };
 };
 
-export default function Page({ id }: { id: string }) {
-  return <AlbumClient id={id} />;
+export default function Page() {
+  return <AlbumClient/>;
 }
