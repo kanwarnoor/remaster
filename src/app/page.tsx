@@ -42,9 +42,12 @@ export default function Page() {
     retry: false,
   });
 
-  const { data: albums, isLoading: albumsLoading } = useQuery({
+  const { data: albums = [], isLoading: albumsLoading } = useQuery({
     queryKey: ["albums"],
-    queryFn: async () => (await axios.get("/api/album")),
+    queryFn: async () => {
+      const album = await axios.get("/api/album");
+      return album.data.album || [];
+    },
     enabled: !!currentUser,
   });
 
@@ -65,7 +68,7 @@ export default function Page() {
       <Lander />
 
       <div className="w-screen h-screen flex flex-col pt-16">
-        {(userLoading || albums) && (
+        {(albumsLoading || albums) && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
               title="Your Albums"

@@ -61,13 +61,14 @@ export default function SongPage(props: Props) {
   });
 
   const {
-    data: albums,
+    data: albums = [],
     isLoading,
     error,
   } = useQuery({
     queryKey: ["albums"],
-    queryFn: () => {
-      return axios.get("/api/album").then((res) => res.data.album);
+    queryFn: async () => {
+      const album = await axios.get("/api/album");
+      return album.data.album || [];
     },
     enabled: !!props.user && addAlbum,
   });
@@ -390,12 +391,12 @@ export default function SongPage(props: Props) {
               </div>
             </div>
             <div className="flex flex-col gap-5 mt-3 ">
+              {isLoading && <p>Loading...</p>}
               {albums?.map((album: any) => {
                 return (
                   <div
                     key={album._id}
                     className="flex hover:bg-white/20 rounded-md p-2 transition-all duration-100"
-                 
                   >
                     <Image
                       src={album.image || "/music.jpg"}
@@ -415,10 +416,13 @@ export default function SongPage(props: Props) {
 
                     {/*  */}
                     <div className="ml-auto justify-center items-center flex cursor-pointer">
-               
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        fill={album.tracks.includes(props.data.track._id) ? "black" : "none"}
+                        fill={
+                          album.tracks.includes(props.data.track._id)
+                            ? "black"
+                            : "none"
+                        }
                         viewBox="0 0 24 24"
                         strokeWidth="1.5"
                         stroke="currentColor"

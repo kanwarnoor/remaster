@@ -11,15 +11,13 @@ export const generateMetadata = async ({
 }: Props): Promise<Metadata> => {
   const { id } = await params;
 
-  const album = Album.findById(id);
-
-  console.log(album);
+  const album = await Album.findById(id);
 
   return {
-    title: "hello",
+    title: album?.name,
   };
 };
 
 export default function Page() {
-  return <AlbumClient/>;
+  return <AlbumClient />;
 }

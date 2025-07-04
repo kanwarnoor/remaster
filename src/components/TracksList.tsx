@@ -62,7 +62,7 @@ export default function TracksList({
     );
   }
 
-  if (data == null || data.length === 0) {
+  if (data == null) {
     return (
       <>
         <p className="text-3xl font-bold mb-5">{title}</p>
@@ -75,28 +75,51 @@ export default function TracksList({
     );
   }
 
+  // Determine the items to render based on data structure
+  const items = data.tracks ? data.tracks : data;
+  const isAlbum = type === "album";
+
   return (
     <>
       <p className="text-3xl font-bold mb-5">{title}</p>
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-5">
-            {data.tracks.map((track: any, index: number) => {
-              const type = track.album == null ? "single/" : "album/";
-              return (
-                <div key={track._id} className="flex-[0_0_200px]">
-                  <Tile
-                    title={track.name}
-                    artist={track.artist}
-                    art={
-                      track.image
-                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.image}`
-                        : "/music.jpg"
-                    }
-                    link={type + track._id}
-                  />
-                </div>
-              );
+            {items.map((item: any, index: number) => {
+              if (isAlbum) {
+                // Handle album items
+                return (
+                  <div key={item._id} className="flex-[0_0_200px]">
+                    <Tile
+                      title={item.name}
+                      artist={item.artist || "Unknown Artist"}
+                      art={
+                        item.image
+                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/album/${item.image}`
+                          : "/music.jpg"
+                      }
+                      link={`album/${item._id}`}
+                    />
+                  </div>
+                );
+              } else {
+                // Handle track items
+                const trackType = item.album == null ? "single/" : "album/";
+                return (
+                  <div key={item._id} className="flex-[0_0_200px]">
+                    <Tile
+                      title={item.name}
+                      artist={item.artist}
+                      art={
+                        item.image
+                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${item.image}`
+                          : "/music.jpg"
+                      }
+                      link={trackType + item._id}
+                    />
+                  </div>
+                );
+              }
             })}
             {upload && (
               <div className="flex-[0_0_200px]">
@@ -111,7 +134,7 @@ export default function TracksList({
           </div>
         </div>
 
-        {data.tracks.length > 5 && (
+        {items.length > 5 && (
           <>
             <div className="absolute top-0 -right-5 h-full w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
               <button
