@@ -3,7 +3,7 @@ import AlbumClient from "./AlbumClient";
 import Album from "@/models/Album";
 
 type Props = {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 };
 
 export const generateMetadata = async ({
@@ -14,7 +14,7 @@ export const generateMetadata = async ({
   const album = await Album.findById(id);
 
   return {
-    title: album?.name,
+    title: album?.name || "Remaster",
   };
 };
 

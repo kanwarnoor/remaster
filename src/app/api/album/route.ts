@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
     await connectDb();
 
-    const album = await Album.find({ user: user._id }).populate("tracks");
+    const album = await Album.find({ user: user._id });
 
     return NextResponse.json({ album }, { status: 200 });
   } catch (error: any) {
