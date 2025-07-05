@@ -452,7 +452,7 @@ export default function SongPage(props: Props) {
             <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
               {props.data.album.name}
             </p>
-            <p className="text-xl font-bold ">{props.data.album.artist}</p>
+            <p className="text-xl font-bold ">{props.data.album.artist || "Unknown Artist"}</p>
           </div>
           <div className="w-[100%] ml-10 h-[35%] flex items-end">
             <div

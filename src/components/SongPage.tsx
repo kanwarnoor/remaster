@@ -392,6 +392,7 @@ export default function SongPage(props: Props) {
             </div>
             <div className="flex flex-col gap-5 mt-3 ">
               {isLoading && <p>Loading...</p>}
+              {albums.length === 0 && <p>No albums found!</p>}
               {albums?.map((album: any) => {
                 return (
                   <div

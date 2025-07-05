@@ -5,10 +5,22 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import InsideNavbar from "@/components/InsideNavbar";
 import AlbumPage from "@/components/AlbumPage";
+import SongPageLoading from "@/components/SongPageLoading";
+import { User as Auth } from "@/libs/Auth";
+import { useEffect, useState } from "react";
 
 export default function AlbumClient() {
   const params = useParams();
   const id = params.id as string;
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const user = await Auth();
+      setUser(user);
+    };
+    getUser();
+  }, []);
 
   const { data: album, isLoading: albumLoading } = useQuery({
     queryKey: ["album", id],
@@ -19,7 +31,7 @@ export default function AlbumClient() {
   });
 
   if (albumLoading) {
-    return <div>Loading...</div>;
+    return <SongPageLoading />;
   }
 
   return (
@@ -28,7 +40,7 @@ export default function AlbumClient() {
       <AlbumPage
         data={album}
         // setData={() => {}}
-        user={null as any}
+        user={user}
         // playing={false}
         // setPlaying={() => {}}
         // toggleVisibility={() => {}}
