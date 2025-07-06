@@ -3,11 +3,14 @@ import AlbumClient from "./AlbumClient";
 import Album from "@/models/Album";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
-export const generateMetadata = async ({ params }: Props) => {
-  console.log(params);
+export const generateMetadata = async ({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> => {
   const { id } = await params;
 
   const album = await Album.findById(id);
@@ -17,6 +20,7 @@ export const generateMetadata = async ({ params }: Props) => {
   };
 };
 
-export default function Page() {
+export default async function Page({ params }: Props) {
+  await params; // Await params to satisfy Next.js 15 requirement
   return <AlbumClient />;
 }
