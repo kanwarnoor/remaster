@@ -6,9 +6,8 @@ type Props = {
   params: { id: string };
 };
 
-export const generateMetadata = async ({
-  params,
-}: Props): Promise<Metadata> => {
+export const generateMetadata = async ({ params }: Props) => {
+  console.log(params);
   const { id } = await params;
 
   const album = await Album.findById(id);
