@@ -68,7 +68,7 @@ export default function Page() {
       <Lander />
 
       <div className="w-screen h-screen flex flex-col pt-16">
-        {(currentUser && (albumsLoading || albums)) && albums.length > 0 && (
+        {currentUser && (albumsLoading || albums) && albums.length > 0 && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
               title="Your Albums"

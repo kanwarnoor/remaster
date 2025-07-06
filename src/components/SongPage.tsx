@@ -10,6 +10,7 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
 import { usePlayer } from "@/context/PlayerContext";
+import { useRouter } from "next/navigation";
 
 interface Props {
   data: {
@@ -37,6 +38,7 @@ interface Props {
 }
 
 export default function SongPage(props: Props) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [options, setOptions] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -172,6 +174,31 @@ export default function SongPage(props: Props) {
 
     if (option === "album") {
       setAddAlbum(true);
+    }
+  };
+
+  const handleAlbum = async () => {
+    setAddAlbum(false);
+
+    try {
+      const response = await axios.post("/api/album", {
+        track_ids: props.data.track._id,
+        name: props.data.track.name,
+        image: props.data.track.image,
+        artist: props.data.track.artist,
+      });
+
+      if (response.status !== 200) {
+        console.error("Failed to add track to album");
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: ["albums"],
+        });
+        setAddAlbum(false);
+        router.push(`/album/${response.data.album._id}`);
+      }
+    } catch (error) {
+      console.error("Failed to add track to album");
     }
   };
 
@@ -373,7 +400,10 @@ export default function SongPage(props: Props) {
           >
             <div className="flex justify-between items-center">
               <p className="text-3xl font-bold text-left top-0">Add to Album</p>
-              <div className="flex hover:bg-white/20 rounded-full translate-x-2 p-2 cursor-pointer transition-all duration-100">
+              <div
+                className="flex hover:bg-white/20 rounded-full translate-x-2 p-2 cursor-pointer transition-all duration-100"
+                onClick={() => handleAlbum()}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -400,18 +430,22 @@ export default function SongPage(props: Props) {
                     className="flex hover:bg-white/20 rounded-md p-2 transition-all duration-100"
                   >
                     <Image
-                      src={album.image || "/music.jpg"}
+                      src={
+                        album.image
+                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${album.image}`
+                          : "/music.jpg"
+                      }
                       alt={album.name}
                       width={50}
                       height={50}
                       className="rounded-md"
                     />
                     <div className="flex flex-col items-start justify-center  ml-3 ">
-                      <p className="text-xl font-bold leading-tight">
+                      <p className="text-xl font-bold leading-tight text-ellipsis overflow-hidden line-clamp-1">
                         {album.name}
                       </p>
-                      <p className="text-xs">
-                        {album.artist || "Unknown Artist"}
+                      <p className="text-xs text-ellipsis overflow-hidden line-clamp-1">
+                      {album.artist || "Unknown Artist"}
                       </p>
                     </div>
 
@@ -493,7 +527,9 @@ export default function SongPage(props: Props) {
             <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
               {props.data.track.name}
             </p>
-            <p className="text-xl font-bold ">{props.data.track.artist}</p>
+            <p className="text-xl font-bold text-ellipsis overflow-hidden line-clamp-1">
+              {props.data.track.artist}
+            </p>
           </div>
           <div className="w-[100%] ml-10 h-[35%] flex items-end">
             <div

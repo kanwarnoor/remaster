@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     await Track.updateMany({ _id: { $in: track_ids } }, { album: album._id });
 
-    return NextResponse.json({ message: "Success" }, { status: 200 });
+    return NextResponse.json({ album }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

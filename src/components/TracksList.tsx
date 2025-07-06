@@ -75,9 +75,7 @@ export default function TracksList({
     );
   }
 
-  // Determine the items to render based on data structure
   const items = data.tracks ? data.tracks : data;
-  const isAlbum = type === "album";
 
   return (
     <>
@@ -85,41 +83,23 @@ export default function TracksList({
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-5">
-            {items.map((item: any, index: number) => {
-              if (isAlbum) {
-                // Handle album items
-                return (
-                  <div key={item._id} className="flex-[0_0_200px]">
-                    <Tile
-                      title={item.name}
-                      artist={item.artist || "Unknown Artist"}
-                      art={
-                        item.image
-                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/album/${item.image}`
-                          : "/music.jpg"
-                      }
-                      link={`album/${item._id}`}
-                    />
-                  </div>
-                );
-              } else {
-                // Handle track items
-                const trackType = item.album == null ? "single/" : "album/";
-                return (
-                  <div key={item._id} className="flex-[0_0_200px]">
-                    <Tile
-                      title={item.name}
-                      artist={item.artist}
-                      art={
-                        item.image
-                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${item.image}`
-                          : "/music.jpg"
-                      }
-                      link={trackType + item._id}
-                    />
-                  </div>
-                );
-              }
+            {items.map((item: any) => {
+              const trackType = type === "album" ? "album/" : "single/";
+
+              return (
+                <div key={item._id} className="flex-[0_0_200px]">
+                  <Tile
+                    title={item.name}
+                    artist={item.artist}
+                    art={
+                      item.image
+                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${item.image}`
+                        : "/music.jpg"
+                    }
+                    link={trackType + item._id}
+                  />
+                </div>
+              );
             })}
             {upload && (
               <div className="flex-[0_0_200px]">
