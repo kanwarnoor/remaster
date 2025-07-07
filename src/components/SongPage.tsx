@@ -50,7 +50,7 @@ export default function SongPage(props: Props) {
   })} ${date.getDate()}, ${date.getFullYear()}`;
   const [colors, setColors] = useState<[number, number, number][]>([]);
 
-  const { setColor, color } = usePlayer();
+  const { setColor, color, data } = usePlayer();
 
   const [formData, setFormData] = useState({
     name: props.data.track.name,
@@ -228,7 +228,10 @@ export default function SongPage(props: Props) {
         const palette = colorThief.getPalette(img);
         if (palette && palette.length > 0) {
           setColors(palette.slice(0, 5));
-          setColor(palette[0]);
+
+          setColor(
+            data && data.track._id === props.data.track._id ? palette[0] : color
+          );
         }
       } catch (err) {
         console.error("Color Thief error:", err);
@@ -249,7 +252,7 @@ export default function SongPage(props: Props) {
         img.onload = null;
       }
     };
-  }, [props.data?.track.image]);
+  }, [props.data?.track.image, data]);
 
   function formatTime(seconds: number) {
     seconds = Math.floor(seconds);
@@ -445,7 +448,7 @@ export default function SongPage(props: Props) {
                         {album.name}
                       </p>
                       <p className="text-xs text-ellipsis overflow-hidden line-clamp-1">
-                      {album.artist || "Unknown Artist"}
+                        {album.artist || "Unknown Artist"}
                       </p>
                     </div>
 
