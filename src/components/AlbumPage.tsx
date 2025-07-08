@@ -163,7 +163,10 @@ export default function SongPage(props: Props) {
         const palette = colorThief.getPalette(img);
         if (palette && palette.length > 0) {
           setColors(palette.slice(0, 5));
-          setColor(palette[0]);
+
+          setColor(
+            props.data && props.data.album._id === props.data.album._id ? palette : color
+          );
         }
       } catch (err) {
         console.error("Color Thief error:", err);
