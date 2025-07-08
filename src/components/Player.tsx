@@ -61,6 +61,37 @@ export default function Player() {
     return null;
   }
 
+  function getLuminance(color: [number, number, number]) {
+    const [r, g, b] = color;
+    // Normalize the RGB values by dividing them by 255
+    const normalizedR = r / 255;
+    const normalizedG = g / 255;
+    const normalizedB = b / 255;
+
+    // Calculate luminance
+    return 0.2126 * normalizedR + 0.7152 * normalizedG + 0.0722 * normalizedB;
+  }
+
+  const safeColor =
+    Array.isArray(color) && color.length >= 5
+      ? color
+      : [
+          [249, 84, 108],
+          [249, 84, 108],
+          [247, 109, 124],
+          [251, 36, 60],
+          [250, 229, 230],
+        ];
+
+  const dark = safeColor.slice().sort((a, b) => {
+    return (
+      getLuminance(a as [number, number, number]) -
+      getLuminance(b as [number, number, number])
+    );
+  });
+
+  console.log(`rgb(${dark[1].join(",")})`);
+
   return (
     <>
       <div className="hidden ">
@@ -347,7 +378,7 @@ export default function Player() {
           <motion.div
             initial={{
               y: "100%",
-              backgroundColor: `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`,
+              // backgroundColor: `rgba(${dark[0].join(",")}, 1)`,
             }}
             animate={{
               y: 0,
@@ -361,6 +392,42 @@ export default function Player() {
             }}
             className="fixed top-0 left-0 w-full h-full z-50 flex justify-center items-center"
           >
+            <div className="backbacktainer -z-10 w-full h-full fixed top-0 left-0">
+              <div id="body" className="backcontainer">
+                <div
+                  id="1st"
+                  style={{
+                    backgroundColor: `rgb(${dark[1].join(",")})`,
+                  }}
+                ></div>
+                <div
+                  id="2nd"
+                  style={{
+                    backgroundColor: `rgb(${dark[4].join(",")})`,
+                  }}
+                ></div>
+                <div
+                  id="3rd"
+                  style={{
+                    backgroundColor: `rgb(${dark[2].join(",")})`,
+                  }}
+                ></div>
+                <div
+                  id="4th"
+                  style={{
+                    backgroundColor: `rgb(${dark[0].join(",")})`,
+                  }}
+                ></div>
+                <div
+                  id="5th"
+                  style={{
+                    backgroundColor: `rgb(${
+                      dark[4].join(",") || "222, 222, 222"
+                    })`,
+                  }}
+                ></div>
+              </div>
+            </div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -378,45 +445,52 @@ export default function Player() {
             </svg>
 
             <div className="w-full h-fit flex flex-col justify-center items-center">
-              <Image
-                src={
-                  playerData?.track.image
-                    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.track.image}`
-                    : "/music.jpg"
-                }
-                alt={playerData?.track.name || "track image"}
-                width={0}
-                height={0}
-                sizes="100vw"
-                className="w-[31.3%] h-auto object-cover shadow-2xl rounded-xl"
-              />
-              <div className="flex flex-row w-[31.3%] mt-2 text-left justify-start items-center ">
-                {" "}
-                <div className="flex w-[80%] flex-col justify-start items-start ">
-                  <p className="text-2xl text-white font-bold leading-tight">
-                    {playerData?.track.name || "LOCKED"}
-                  </p>
+              {playerData ? (
+                <div className="flex flex-col justify-center items-center w-full h-full">
+                <Image
+                  src={
+                    playerData?.track.image
+                      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.track.image}`
+                      : "/music.jpg"
+                  }
+                  alt={playerData?.track.name || "track image"}
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className="w-[31.3%] h-auto object-cover shadow-2xl rounded-xl"
+                />
+                <div className="flex flex-row w-[31.3%] mt-2 text-left justify-start items-center ">
+                  {" "}
+                  <div className="flex w-[80%] flex-col justify-start items-start ">
+                    <p className="text-2xl text-white font-bold leading-tight">
+                      {playerData?.track.name || "LOCKED"}
+                    </p>
 
-                  <p className="text-xl text-white leading-tight">
-                    {playerData?.track.artist || "Sabu"}
-                  </p>
-                </div>
-                <div className="flex w-[20%] flex-col items-end">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    className="size-7 stroke-white cursor-pointer"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
-                    />
-                  </svg>
+                    <p className="text-xl text-white leading-tight">
+                      {playerData?.track.artist || "Sabu"}
+                    </p>
+                  </div>
+                  <div className="flex w-[20%] flex-col items-end">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      className="size-7 stroke-white cursor-pointer"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                      />
+                    </svg>
+                  </div>
                 </div>
               </div>
+              ) : (
+                <p className="text-white text-3xl font-bold">nothing is playing!</p>
+              )}
+              
             </div>
           </motion.div>
         )}

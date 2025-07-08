@@ -230,7 +230,7 @@ export default function SongPage(props: Props) {
           setColors(palette.slice(0, 5));
 
           setColor(
-            data && data.track._id === props.data.track._id ? palette[0] : color
+            data && data.track._id === props.data.track._id ? palette : color
           );
         }
       } catch (err) {
