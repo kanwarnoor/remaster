@@ -500,10 +500,10 @@ export default function SongPage(props: Props) {
       </div>
 
       {/* tracklist */}
-      <div className="w-full h-fit justify-start flex flex-col ">
+      <div className="w-full h-fit justify-start flex flex-col gap-2">
         {props.data.tracks.map((track: any) => (
           <div
-          className="flex mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 cursor-pointer "
+          className="flex first:mt-10 mx-20 h-14 rounded-lg odd:bg-neutral-800 even:bg-neutral-900 hover:bg-neutral-700 cursor-pointer "
           // onDoubleClick={() => props.handleSong("reset")}
         >
           <div className="w-[5%] justify-left items-center flex ml-5 ">
