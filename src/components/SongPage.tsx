@@ -389,7 +389,7 @@ export default function SongPage(props: Props) {
           </motion.div>
         </>
       )}
-
+      {/* edit here */}
       {addAlbum && (
         <>
           <div
@@ -399,7 +399,7 @@ export default function SongPage(props: Props) {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute w-[20%] h-fit max-h-[60%] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 text-black"
+            className="absolute w-[30%] h-fit max-h-[60%] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 text-black"
           >
             <div className="flex justify-between items-center">
               <p className="text-3xl font-bold text-left top-0">Add to Album</p>
@@ -423,7 +423,7 @@ export default function SongPage(props: Props) {
                 </svg>
               </div>
             </div>
-            <div className="flex flex-col gap-5 mt-3 ">
+            <div className="flex flex-col gap-0 mt-3 ">
               {isLoading && <p>Loading...</p>}
               {albums.length === 0 && <p>No albums found!</p>}
               {albums?.map((album: any) => {
