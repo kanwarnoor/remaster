@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import Notification from "../../components/Notification";
+import Navbar from "../../components/Navbar";
+import Image from "next/image";
+import Link from "next/link";
 
 const loginUser = async ({
   username,
@@ -34,20 +36,10 @@ export default function LoginPage() {
     type: "error" | "success" | "info" | "warning" | "";
   }>({ show: false, message: "", type: "" });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPopup({ show: false, message: "", type: "" });
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [popup]);
-
   const { mutate, isPending } = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
-      setPopup({ show: true, type: "success", message: "Logged in!" });
-
       router.push("/");
     },
     onError: (error: any) => {
@@ -63,30 +55,42 @@ export default function LoginPage() {
 
   return (
     <>
-      {popup.show && <Notification message={popup.message} type={popup.type} />}
-      <div className="flex items-center justify-center h-screen bg-gray-100 text-black">
+      <Navbar />
+      <div className="grid grid-cols-2 items-center justify-center h-screen bg-black text-black">
+        <div className="flex flex-col h-full items-center bg-gradient-to-r from-remaster to-remaster/50 justify-center p-16 z-10">
+          <Image
+            src="/remaster.png"
+            alt="logo"
+            width={0}
+            height={0}
+            sizes="100% 100%"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
         <form
           onSubmit={handleSubmit}
-          className="p-6 bg-white rounded-lg shadow-md w-96"
+          className="p-6 w-96 gap-5 flex flex-col justify-center m-auto"
         >
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Login</h1>
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          <div className="mb-4">
-            <label className="block text-gray-700">Username or Email</label>
+          <h1 className="text-5xl text-center font-bold text-white mb-5">
+            Login
+          </h1>
+          <div className="">
+            <label className="block text-white/90">username</label>
             <input
               type="text"
-              className="w-full p-2 border rounded-lg"
+              className="w-full p-2 border-2 border-remaster bg-remaster/50 text-white rounded-lg"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Password</label>
+          <div className="">
+            <label className="block text-white/90">secret</label>
             <input
               type="password"
-              className="w-full p-2 border rounded-lg"
+              className="w-full p-2 border-2 border-remaster bg-remaster/50 text-black rounded-lg"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -97,18 +101,26 @@ export default function LoginPage() {
           {isPending ? (
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white py-2 rounded-lg flex items-center justify-center"
+              className="w-full bg-remaster text-white py-2 rounded-lg flex items-center justify-center"
             >
               <div className="w-6 h-6 white-spinner"></div>
             </button>
           ) : (
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white py-2 rounded-lg"
+              className="w-full bg-remaster text-white py-2 rounded-lg"
             >
-              Login
+              Let's go!
             </button>
           )}
+
+          {error && <p className="text-red-500">{error}</p>}
+          <p className="text-center text-gray-500 ">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-remaster">
+              Sign up
+            </Link>
+          </p>
         </form>
       </div>
     </>

@@ -165,7 +165,9 @@ export default function SongPage(props: Props) {
           setColors(palette.slice(0, 5));
 
           setColor(
-            props.data && props.data.album._id === props.data.album._id ? palette : color
+            props.data && props.data.album._id === props.data.album._id
+              ? palette
+              : color
           );
         }
       } catch (err) {
@@ -455,7 +457,9 @@ export default function SongPage(props: Props) {
             <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
               {props.data.album.name}
             </p>
-            <p className="text-xl font-bold ">{props.data.album.artist || "Unknown Artist"}</p>
+            <p className="text-xl font-bold ">
+              {props.data.album.artist || "Unknown Artist"}
+            </p>
           </div>
           <div className="w-[100%] ml-10 h-[35%] flex items-end">
             <div
@@ -503,41 +507,41 @@ export default function SongPage(props: Props) {
       <div className="w-full h-fit justify-start flex flex-col gap-2">
         {props.data.tracks.map((track: any) => (
           <div
-          className="flex first:mt-10 mx-20 h-14 rounded-lg odd:bg-neutral-800 even:bg-neutral-900 hover:bg-neutral-700 cursor-pointer "
-          // onDoubleClick={() => props.handleSong("reset")}
-        >
-          <div className="w-[5%] justify-left items-center flex ml-5 ">
-            <svg
-              viewBox="0 0 24.00 24.00"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="stroke-white size-6"
-            >
-              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-              <g
-                id="SVGRepo_tracerCarrier"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              ></g>
-              <g id="SVGRepo_iconCarrier">
-                {" "}
-                <path
-                  d="M12 3L14.0357 8.16153C14.2236 8.63799 14.3175 8.87622 14.4614 9.0771C14.5889 9.25516 14.7448 9.41106 14.9229 9.53859C15.1238 9.68245 15.362 9.77641 15.8385 9.96432L21 12L15.8385 14.0357C15.362 14.2236 15.1238 14.3175 14.9229 14.4614C14.7448 14.5889 14.5889 14.7448 14.4614 14.9229C14.3175 15.1238 14.2236 15.362 14.0357 15.8385L12 21L9.96432 15.8385C9.77641 15.362 9.68245 15.1238 9.53859 14.9229C9.41106 14.7448 9.25516 14.5889 9.0771 14.4614C8.87622 14.3175 8.63799 14.2236 8.16153 14.0357L3 12L8.16153 9.96432C8.63799 9.77641 8.87622 9.68245 9.0771 9.53859C9.25516 9.41106 9.41106 9.25516 9.53859 9.0771C9.68245 8.87622 9.77641 8.63799 9.96432 8.16153L12 3Z"
-                  strokeWidth="0.9600000000000002"
+            className="flex first:mt-10 mx-20 h-14 rounded-lg odd:bg-neutral-800 even:bg-neutral-900 hover:bg-neutral-700 cursor-pointer "
+            // onDoubleClick={() => props.handleSong("reset")}
+          >
+            <div className="w-[5%] justify-left items-center flex ml-5 ">
+              <svg
+                viewBox="0 0 24.00 24.00"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-white size-6"
+              >
+                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                <g
+                  id="SVGRepo_tracerCarrier"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                ></path>{" "}
-              </g>
-            </svg>
-          </div>
-          <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-xl font-bold">
-            {track.name}
-          </div>
-          <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold">
-            {track.artist}
-          </div>
-          <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold justify-end select-all pr-3">
-                {formatTime(track.duration)}
+                ></g>
+                <g id="SVGRepo_iconCarrier">
+                  {" "}
+                  <path
+                    d="M12 3L14.0357 8.16153C14.2236 8.63799 14.3175 8.87622 14.4614 9.0771C14.5889 9.25516 14.7448 9.41106 14.9229 9.53859C15.1238 9.68245 15.362 9.77641 15.8385 9.96432L21 12L15.8385 14.0357C15.362 14.2236 15.1238 14.3175 14.9229 14.4614C14.7448 14.5889 14.5889 14.7448 14.4614 14.9229C14.3175 15.1238 14.2236 15.362 14.0357 15.8385L12 21L9.96432 15.8385C9.77641 15.362 9.68245 15.1238 9.53859 14.9229C9.41106 14.7448 9.25516 14.5889 9.0771 14.4614C8.87622 14.3175 8.63799 14.2236 8.16153 14.0357L3 12L8.16153 9.96432C8.63799 9.77641 8.87622 9.68245 9.0771 9.53859C9.25516 9.41106 9.41106 9.25516 9.53859 9.0771C9.68245 8.87622 9.77641 8.63799 9.96432 8.16153L12 3Z"
+                    strokeWidth="0.9600000000000002"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  ></path>{" "}
+                </g>
+              </svg>
+            </div>
+            <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-xl font-bold">
+              {track.name}
+            </div>
+            <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold">
+              {track.artist}
+            </div>
+            <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold justify-end select-all pr-3">
+              {formatTime(track.duration)}
             </div>
           </div>
         ))}
