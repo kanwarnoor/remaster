@@ -60,12 +60,12 @@ export default function Search() {
       <div className="w-[25rem] h-10 rounded-full bg-white/50 backdrop-blur-sm flex justify-center items-center relative z-20 text-left">
         <form
           onSubmit={(e) => e.preventDefault()}
-          className="w-full h-full flex justify-center items-center"
+          className="w-full h-full flex justify-center items-center border-2 rounded-full border-black"
         >
           <input
             name="remaster-search"
             type="text"
-            className="w-full h-full rounded-full p-3 select-none outline-none focus:outline-none text-white text-base font-normal "
+            className="w-full h-full rounded-full p-3 select-none outline-none focus:outline-none text-black text-base font-normal "
             value={search}
             autoComplete="off"
             onChange={(e) => setSearch(e.target.value)}
@@ -76,7 +76,7 @@ export default function Search() {
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
-              stroke="white"
+              stroke="black"
               className="size-6"
             >
               <path

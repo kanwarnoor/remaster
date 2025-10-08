@@ -11,7 +11,7 @@ export default function Lander() {
           width={0}
           height={0}
           sizes="100% 100%"
-          className="w-full py-16 px-5 h-full  object-cover object-[10%_15%]"
+          className="w-full h-full  object-cover object-[10%_15%]"
         />
         <div className="absolute left-0 pt-3 bottom-0 right-0 top-0 justify-center items-center flex flex-col">
           <p className="font-bold text-black remaster text-9xl -tracking-wide  ">
