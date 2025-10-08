@@ -1,8 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme{
+  --color-remaster: #fd1b00;
+}
 
 body {
   background-color: black;
@@ -32,8 +34,6 @@ body {
   animation: spinner 1s infinite linear;
 }
 
-
-
 @keyframes spinner {
   100% {
     transform: rotate(1turn);
@@ -46,69 +46,81 @@ body {
   animation: upload 2000ms linear infinite;
 }
 
-
 @keyframes upload {
   0% {
-    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.1)
+      rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
   }
   6.25% {
-    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4)
+      rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0);
   }
   12.5% {
-    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8)
+      rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
   }
   18.75% {
-    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 1)
+      rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4);
   }
   25% {
-    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.8)
+      rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8);
   }
   31.25% {
-    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1);
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.4)
+      rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1);
   }
   37.5% {
-    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1)
+      rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8);
   }
   43.75% {
-    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0)
+      rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4);
   }
   50% {
-    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0)
+      rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1);
   }
   56.25% {
-    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.1)
+      rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
   }
   62.5% {
-    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.4)
+      rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0);
   }
   68.75% {
-    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.8)
+      rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
   }
   75% {
-    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 1)
+      rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 0.4);
   }
   81.25% {
-    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.8)
+      rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.8);
   }
   87.5% {
-    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1);
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.4)
+      rgba(255, 255, 255, 0.8) rgba(255, 255, 255, 1);
   }
   93.75% {
-    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0) rgba(255, 255, 255, 0.1)
+      rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.8);
   }
   100% {
-    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
+    border-color: rgba(255, 255, 255, 1) rgba(255, 255, 255, 0.1)
+      rgba(255, 255, 255, 0) rgba(255, 255, 255, 0);
   }
 }
 
-
-
-
-
 /* fullscreen */
 
-.backcontainer{
-  height:100%;
+.backcontainer {
+  height: 100%;
   width: 100%;
   position: absolute;
   margin: auto;
@@ -119,17 +131,17 @@ body {
   overflow: hidden;
   border-style: 10px;
 }
-.backcontainer div{
+.backcontainer div {
   position: absolute;
   border-radius: 100%;
   animation: gradient 15s infinite;
 }
-@keyframes gradient{ 
-  70%{
-      transform: scale(1.5) translate(-50px);
+@keyframes gradient {
+  70% {
+    transform: scale(1.5) translate(-50px);
   }
 }
-.backcontainer div:nth-child(1){
+.backcontainer div:nth-child(1) {
   height: 100%;
   width: 100%;
   /* left: -29%;
@@ -139,7 +151,7 @@ body {
   z-index: -2;
   animation-delay: 2s;
 }
-.backcontainer div:nth-child(2){
+.backcontainer div:nth-child(2) {
   height: 60%;
   width: 70%;
   right: -12%;
@@ -147,16 +159,16 @@ body {
 
   animation-delay: 7s;
 }
-.backcontainer div:nth-child(3){
+.backcontainer div:nth-child(3) {
   height: 60%;
   width: 80%;
   left: -15%;
   top: -23%;
-  
+
   animation-delay: 0.3s;
 }
 /* left bottom  */
-.backcontainer div:nth-child(4){
+.backcontainer div:nth-child(4) {
   height: 50%;
   width: 75%;
   top: 65%;
@@ -165,20 +177,19 @@ body {
   animation-delay: 1.2s;
 }
 /* left middle */
-.backcontainer div:nth-child(5){
+.backcontainer div:nth-child(5) {
   height: 70%;
   width: 60%;
-  top:27%;
+  top: 27%;
   left: -10%;
   animation-delay: 2s;
   z-index: -2;
 }
-.backcontainer::after{
+.backcontainer::after {
   position: absolute;
   content: "";
   height: 100%;
   width: 100%;
   backdrop-filter: blur(8.705114254624592vh);
   /* filter: blur(8.7vh); */
-
 }

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import React from "react";
+import Search from "./Search";
 
 export default function InsideNavbar({ link }: { link: string }) {
   return (
-    <div className="h-auto  text-center fixed left-0 right-0 top-0 justify-left items-center  flex font-black text-5xl select-none text-remaster z-10 p-3">
+    <div className="h-auto fixed left-0 right-0 top-0 justify-left items-center  flex font-black text-5xl select-none text-remaster z-10 p-3">
       <Link href={link} className="hover:bg-white/25 rounded-full p-2">
         <svg
           viewBox="0 0 24 24"
@@ -23,6 +24,13 @@ export default function InsideNavbar({ link }: { link: string }) {
           </g>
         </svg>
       </Link>
+
+
+      <div className="fixed left-0 right-0 flex justify-center items-center p-2 h-16 w-fit justify-self-center">
+          <div className="w-fit h-fit ">
+            <Search />
+          </div>
+        </div>
     </div>
   );
 }
