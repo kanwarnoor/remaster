@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -11,7 +11,7 @@ export default function Search() {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["search", search],
     queryFn: async () => {
       const response = await axios.get(`/api/search?q=${search}`);
@@ -27,8 +27,36 @@ export default function Search() {
     }
   }, [search]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setSearch("");
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSearch("");
+      }
+    };
+
+    if (search) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [search]);
+
   return (
-    <>
+    <div ref={containerRef} className="relative">
       <div className="w-[25rem] h-10 rounded-full bg-white/50 backdrop-blur-sm flex justify-center items-center relative z-20 text-left">
         <form
           onSubmit={(e) => e.preventDefault()}
@@ -39,6 +67,7 @@ export default function Search() {
             type="text"
             className="w-full h-full rounded-full p-3 select-none outline-none focus:outline-none text-white text-base font-normal "
             value={search}
+            autoComplete="off"
             onChange={(e) => setSearch(e.target.value)}
           />
           <button className="w-10 h-10 rounded-full " type="submit">
@@ -63,9 +92,9 @@ export default function Search() {
         <div className="absolute mt-1 rounded-xl p-5 w-[25rem] h-fit flex flex-col bg-neutral-800 gap-3 text-base font-normal text-white justify-start items-start">
           {isLoading && <div className="w-5 h-5 white-spinner "></div>}
           {data &&
-            (data.tracks.length == 0 &&
-              data.albums.length == 0 &&
-              data.users.length == 0) && <div>No results found!</div>}
+            data.tracks.length == 0 &&
+            data.albums.length == 0 &&
+            data.users.length == 0 && <div>No results found!</div>}
 
           {data && data.tracks && data.tracks.length > 0 && (
             <>
@@ -95,7 +124,7 @@ export default function Search() {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -104,7 +133,10 @@ const SearchResult = ({ data, type }: { data: any; type: string }) => {
 
   const map = type == "track" ? "single" : type == "album" ? "album" : "user";
   return (
-    <div className="flex gap-3 group text-base font-normal text-white justify-start items-start" onClick={() => router.push(`/${map}/${data._id}`)}>
+    <div
+      className="flex gap-3 group text-base font-normal text-white justify-start items-start"
+      onClick={() => router.push(`/${map}/${data._id}`)}
+    >
       <motion.div
         initial={{ opacity: 0, filter: "blur(20px)" }}
         animate={{

@@ -4,8 +4,8 @@ import Search from "./Search";
 
 export default function InsideNavbar({ link }: { link: string }) {
   return (
-    <div className="h-auto fixed left-0 right-0 top-0 justify-left items-center  flex font-black text-5xl select-none text-remaster z-10 p-3">
-      <Link href={link} className="hover:bg-white/25 rounded-full p-2">
+    <div className="h-16 fixed left-0 right-0 top-0 justify-left items-center  flex font-black text-5xl select-none text-remaster z-10 p-3">
+      <Link href={link} className="rounded-full p-2">
         <svg
           viewBox="0 0 24 24"
           fill="none"

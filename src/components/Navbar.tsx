@@ -33,8 +33,8 @@ export default function Navbar() {
   return (
     <>
       <div className="fixed bg-blue-200 z-20">
-        <div className="navbar h-auto p-2 pl-5 text-center fixed left-0  justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50">
-          <Link href="/">REMASTER</Link>
+        <div className="navbar h-16 pl-5 text-center fixed left-0  justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50">
+          <Link href="/" className="mt-1">REMASTER</Link>
         </div>
 
         <div className="fixed left-0 right-0 flex justify-center items-center p-2 h-16">
