@@ -87,7 +87,7 @@ export default function SingleTrackClient() {
       <>
         <InsideNavbar link="/" />
         <div className="w-screen h-screen flex flex-col justify-center items-center ">
-          <Image src={"/dead.png"} height={500} width={500} alt={""} priority />
+          <Image src={"/dead.webp"} height={500} width={500} alt={"dead mouse"} priority />
           <p className="text-3xl font-bold mt-5">Track does not exist!</p>
         </div>
       </>
