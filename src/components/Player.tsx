@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useEffectEvent, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import axios from "axios";
@@ -55,6 +55,25 @@ export default function Player() {
       }
     }, 1000);
   }, []);
+
+  // Handle spacebar key press for play/pause
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.code === "Space" && playerData?.track) {
+        event.preventDefault();
+        console.log("Spacebar pressed, toggling play/pause", {
+          currentPlaying: playing,
+          trackId: playerData.track.id,
+        });
+        setPlaying(playerData.track.id, !playing);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [playing, playerData?.track, setPlaying]);
 
   // Don't render anything until mounted on client
   if (!mounted) {
@@ -236,7 +255,7 @@ export default function Player() {
             ) : (
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer  border-black"
-                onClick={() => setPlaying(playerData?.track._id, true)}
+                onClick={() => setPlaying(playerData?.track.id, true)}
               >
                 <svg
                   fill="white"
