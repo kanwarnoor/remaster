@@ -55,11 +55,20 @@ export default function Search() {
     };
   }, [search]);
 
+  const router = useRouter();
+
+  const handleSearch = (e : React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const map = data.tracks.length > 0 ? "single" : data.albums.length > 0 ? "album" : "user";
+    const id = data.tracks.length > 0 ? data.tracks[0]._id : data.albums.length > 0 ? data.albums[0]._id : data.users[0]._id;
+    router.push(`/${map}/${id}`)    
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <div className="w-[25rem] h-10 rounded-full bg-white/50 backdrop-blur-sm flex justify-center items-center relative z-20 text-left">
         <form
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => handleSearch(e)}
           className="w-full h-full flex justify-center items-center border-2 rounded-full border-black"
         >
           <input
