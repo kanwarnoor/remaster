@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+}
+
+model albums {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  v           Int      @map("__v")
+  artist      String
+  createdAt   DateTime @db.Date
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  description Json?
+  image       String
+  name        String
+  tracks      String[]
+  updatedAt   DateTime @db.Date
+  user        String   @db.ObjectId
+  visibility  String
+}
+
+model tracks {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  v          Int      @map("__v")
+  album      String?  @db.ObjectId
+  artist     String
+  audio      String
+  createdAt  DateTime @db.Date
+  /// Multiple data types found: Float: 94.4%, Int: 5.6% out of 18 sampled entries
+  duration   Json
+  image      String
+  name       String
+  size       Int
+  updatedAt  DateTime @db.Date
+  user       String   @db.ObjectId
+  visibility String
+}
+
+model users {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  v         Int?      @map("__v")
+  createdAt DateTime? @db.Date
+  email     String    @unique(map: "email_1")
+  password  String?
+  password_ String?   @map("password:")
+  /// Multiple data types found: String: 66.7%, Boolean: 33.3% out of 3 sampled entries
+  premium   Json
+  tracks    String[]
+  updatedAt DateTime? @db.Date
+  username  String    @unique(map: "username_1")
+}
