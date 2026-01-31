@@ -1,65 +1,108 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useEffect, useState } from "react";
+import Loader from "@/components/Loader";
+import Tile from "@/components/Tile";
+import Upload from "@/components/Upload";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { User } from "@/libs/Auth";
+import Navbar from "@/components/Navbar";
+import TracksList from "@/components/TracksList";
+import Player from "@/components/Player";
+import Lander from "@/components/Lander";
+import Notification from "@/components/Notification";
+
+export default function Page() {
+  const queryClient = useQueryClient();
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => await User(),
+  });
+
+  const {
+    data: userTracks,
+    isLoading: userLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["userTracks"],
+    queryFn: async () => {
+      const response = await axios.get("/api/tracks/user_tracks");
+      return response.data;
+    },
+    retry: false,
+  });
+
+  const { data: publicTracks, isLoading: publicLoading } = useQuery({
+    queryKey: ["publicTracks"],
+    queryFn: async () => (await axios.get("/api/tracks/public_tracks")).data,
+    retry: false,
+  });
+
+  const { data: albums = [], isLoading: albumsLoading } = useQuery({
+    queryKey: ["albums"],
+    queryFn: async () => {
+      const album = await axios.get("/api/album");
+      return album.data.album || [];
+    },
+    enabled: !!currentUser,
+  });
+
+  const deleteTrack = async (id: string) => {
+    const res = await axios.delete("/api/tracks/delete_track", {
+      data: { id },
+    });
+    if (res.status === 200) {
+      queryClient.invalidateQueries({ queryKey: ["userTracks"] });
+    } else {
+      console.log("Error deleting track");
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <>
+      <Navbar />
+      <Lander />
+
+      <div className="w-screen h-screen flex flex-col pt-16">
+        {currentUser && (albumsLoading || albums) && albums.length > 0 && (
+          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <TracksList
+              title="Your Albums"
+              data={albums}
+              isLoading={albumsLoading}
+              type="album"
+              upload={false}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          </section>
+        )}
+        {currentUser && (userLoading || userTracks) && (
+          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <TracksList
+              title="Your Tracks"
+              data={userTracks}
+              isLoading={userLoading}
+              type="user"
+              upload={true}
+              deleteTrack={deleteTrack}
+            />
+          </section>
+        )}
+
+        {(publicLoading || publicTracks) && (
+          <section className="w-screen h-fit flex flex-col px-20 pt-12 pb-20">
+            <TracksList
+              title="Public Tracks"
+              data={publicTracks}
+              isLoading={publicLoading}
+              type="public"
+            />
+          </section>
+        )}
+      </div>
+    </>
   );
 }

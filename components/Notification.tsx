@@ -1,0 +1,42 @@
+import React, { useEffect, useState } from "react";
+import { color, motion } from "framer-motion";
+
+interface NotificationProps {
+  message: string;
+  type: "error" | "success" | "info" | "warning" | "";
+  progress?: number;
+}
+
+const notificationStyles = {
+  error: "bg-remaster text-white",
+  success: "bg-green-500 text-white",
+  info: "bg-white text-black",
+  warning: "bg-yellow-500 text-black",
+  "" : "bg-white text-black"
+};
+
+export default function Notification({ message, type }: NotificationProps) {
+  const typeStyle = notificationStyles[type] || notificationStyles.info;
+
+  return (
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: 50,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      exit={{
+        opacity: 0,
+      }}
+      transition={{
+        duration: 0.3,
+      }}
+      className={`fixed shadow-2xl w-fit h-fit right-0 bottom-0 flex m-12 rounded-full text-black px-5 py-3 z-20 overflow-hidden font-bold ${typeStyle}}`}
+    >
+      {message}
+    </motion.div>
+  );
+}
