@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     await connectDb();
 
-    const album = await Album.find({ user: user._id });
+    const album = await Album.find({ user: user.id });
 
     return NextResponse.json({ album }, { status: 200 });
   } catch (error: any) {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
     await connectDb();
 
-    const user = await User.findById(decoded._id);
+    const user = await User.findById(decoded.id);
 
     if (!user) {
       return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       image: image || null,
     });
 
-    await Track.updateMany({ _id: { $in: track_ids } }, { album: album._id });
+    await Track.updateMany({ id: { $in: track_ids } }, { album: album.id });
 
     return NextResponse.json({ album }, { status: 200 });
   } catch (error: any) {
@@ -79,7 +79,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ message: "Album not found" }, { status: 404 });
     }
 
-    if (album.user.toString() !== decoded._id) {
+    if (album.user.toString() !== decoded.id) {
       return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
     }
 

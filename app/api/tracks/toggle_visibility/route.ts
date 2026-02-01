@@ -3,7 +3,7 @@ import { User } from "@/libs/Auth";
 import { Visibility } from "@/app/generated/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(req: NextRequest, res: NextResponse) {
+export async function PUT(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const visibility = searchParams.get("visibility");

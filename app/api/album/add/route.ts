@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // check if the album belongs to the user
     const user = await User();
 
-    if (!user || user._id != album.user) {
+    if (!user || user.id != album.userId) {
       return NextResponse.json({ message: "Not authorized!" }, { status: 401 });
     }
 
