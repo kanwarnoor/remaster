@@ -13,6 +13,7 @@ interface User {
   id: string;
 }
 
+
 export default function Admin({ token }: { token: string }) {
   const router = useRouter();
   const { data, isLoading, error } = useQuery({
