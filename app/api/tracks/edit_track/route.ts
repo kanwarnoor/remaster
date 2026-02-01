@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { User as Decoded } from "@/libs/Auth";
-import connectDb from "@/libs/connectDb";
-import Track from "@/models/Track";
+import prisma from "@/libs/prisma";
 import crypto from "crypto";
 import {
   DeleteObjectCommand,
@@ -40,15 +39,14 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDb();
 
     // Find track and validate ownership
-    const track = await Track.findById(id);
+    const track = await prisma.track.findUnique({ where: { id } });
     if (!track) {
       return NextResponse.json({ error: "Track not found" }, { status: 404 });
     }
 
-    if (track.user.toString() !== user._id.toString()) {
+    if (track.userId !== user.id) {
       return NextResponse.json(
         { error: "Unauthorized to edit this track" },
         { status: 403 }
@@ -84,7 +82,7 @@ export async function PATCH(req: NextRequest) {
 
       if (name) track.name = name;
       if (artist) track.artist = artist;
-      await track.save();
+      await prisma.track.update({ where: { id }, data: { name, artist } });
 
       return NextResponse.json(
         { message: "Successfully updated" },
@@ -101,8 +99,7 @@ export async function PATCH(req: NextRequest) {
       // Update track metadata even when uploaded is true
       if (name) track.name = name;
       if (artist) track.artist = artist;
-      track.image = newKey;
-      await track.save();
+      await prisma.track.update({ where: { id }, data: { name, artist, image: newKey } });
     }
 
     return NextResponse.json(

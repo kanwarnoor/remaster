@@ -15,21 +15,22 @@ import { useRouter } from "next/navigation";
 interface Props {
   data: {
     track: {
-      _id: string;
+      id: string;
       name: string;
       artist: string;
       duration: number;
       art: string;
       timestamps: string[];
       visibility: string;
-      user: string;
+      userId: string;
       createdAt: string;
       image: string;
       album: string;
     };
   };
   user: {
-    _id: string;
+    id: string;
+    username: string;
   };
   playing: boolean;
   setPlaying: (id: string, playing: boolean) => void;
@@ -86,7 +87,7 @@ export default function SongPage(props: Props) {
       if (!confirmDelete) return;
 
       const response = await axios.delete(`/api/tracks/delete_track`, {
-        data: { id: props.data.track._id },
+        data: { id: props.data.track.id },
       });
       if (response.status !== 200) {
         console.error("Failed to delete track");
@@ -107,7 +108,7 @@ export default function SongPage(props: Props) {
       setEditing(false);
 
       const fromData = new FormData();
-      fromData.append("id", props.data.track._id);
+      fromData.append("id", props.data.track.id);
       fromData.append("name", formData.name);
       fromData.append("artist", formData.artist);
       if (formData.art instanceof File) {
@@ -115,7 +116,7 @@ export default function SongPage(props: Props) {
       }
 
       const response = await axios.patch(`/api/tracks/edit_track`, {
-        id: props.data.track._id,
+        id: props.data.track.id,
         name: formData.name,
         artist: formData.artist,
         fileType: formData.art && formData.art.type,
@@ -127,7 +128,7 @@ export default function SongPage(props: Props) {
         console.error("Failed to edit track");
       } else {
         queryClient.invalidateQueries({
-          queryKey: ["single", props.data.track._id],
+          queryKey: ["single", props.data.track.id],
         });
         const { url, imageKey } = response.data;
 
@@ -155,7 +156,7 @@ export default function SongPage(props: Props) {
           "/api/tracks/edit_track",
           {
             uploaded: true,
-            id: props.data.track._id,
+            id: props.data.track.id,
             newKey: imageKey,
             oldKey: props.data.track.image || null,
           }
@@ -167,7 +168,7 @@ export default function SongPage(props: Props) {
         }
 
         queryClient.invalidateQueries({
-          queryKey: ["single", props.data.track._id],
+          queryKey: ["single", props.data.track.id],
         });
       }
     }
@@ -182,7 +183,7 @@ export default function SongPage(props: Props) {
 
     try {
       const response = await axios.post("/api/album", {
-        track_ids: props.data.track._id,
+        trackids: props.data.track.id,
         name: props.data.track.name,
         image: props.data.track.image,
         artist: props.data.track.artist,
@@ -195,7 +196,7 @@ export default function SongPage(props: Props) {
           queryKey: ["albums"],
         });
         setAddAlbum(false);
-        router.push(`/album/${response.data.album._id}`);
+        router.push(`/album/${response.data.album.id}`);
       }
     } catch (error) {
       console.error("Failed to add track to album");
@@ -230,7 +231,7 @@ export default function SongPage(props: Props) {
           setColors(palette.slice(0, 5));
 
           setColor(
-            data && data.track._id === props.data.track._id ? palette : color
+            data && data.track.id === props.data.track.id ? palette : color
           );
         }
       } catch (err) {
@@ -369,7 +370,7 @@ export default function SongPage(props: Props) {
                 <p className="text-sm capitalize">Public</p>
                 <div>
                   <Switch
-                    checked={props.data.track.visibility === "public"}
+                    checked={props.data.track.visibility === "PUBLIC"}
                     handleChange={() => props.toggleVisibility()}
                   />
                 </div>
@@ -429,7 +430,7 @@ export default function SongPage(props: Props) {
               {albums?.map((album: any) => {
                 return (
                   <div
-                    key={album._id}
+                    key={album.id}
                     className="flex hover:bg-white/20 rounded-md p-2 transition-all duration-100"
                   >
                     <Image
@@ -457,7 +458,7 @@ export default function SongPage(props: Props) {
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill={
-                          album.tracks.includes(props.data.track._id)
+                          album.tracks.includes(props.data.track.id)
                             ? "black"
                             : "none"
                         }
@@ -538,7 +539,7 @@ export default function SongPage(props: Props) {
             <div
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
               onClick={() => {
-                props.setPlaying(props.data.track._id, true);
+                props.setPlaying(props.data.track.id, true);
                 props.setData(props.data);
               }}
             >
@@ -555,7 +556,7 @@ export default function SongPage(props: Props) {
               <p className="flex">Play</p>
             </div>
 
-            {props.user && props.user._id === props.data.track.user && (
+            {props.user && props.user.id === props.data.track.userId && (
               <div
                 className="justify-end ml-auto mr-10 flex cursor-pointer"
                 onClick={() => setOptions(!options)}

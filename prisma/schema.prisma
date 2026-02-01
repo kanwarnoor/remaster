@@ -50,8 +50,8 @@ model Track {
   size       Int?
   user       User @relation(fields: [userId], references: [id])
   userId     String
-  album      Album  @relation(fields: [albumId], references: [id])
-  albumId    String
+  album      Album?  @relation(fields: [albumId], references: [id])
+  albumId    String?
   visibility Visibility @default(PRIVATE)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

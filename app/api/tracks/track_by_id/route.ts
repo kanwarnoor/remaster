@@ -1,7 +1,6 @@
-import Track from "@/models/Track";
 import { NextResponse } from "next/server";
 import { User } from "@/libs/Auth";
-import dbConnect from "@/libs/connectDb";
+import prisma from "@/libs/prisma";
 
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -20,8 +19,6 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
-  await dbConnect();
-
   if (!id) {
     return new Response("Track ID is required", { status: 400 }); // should be 400 for missing ID
   }
@@ -29,13 +26,13 @@ export async function GET(req: Request) {
   const user = await User();
 
   try {
-    const track = await Track.findById(id);
+    const track = await prisma.track.findUnique({ where: { id } });
     if (!track) {
-      return new Response("Track not found", { status: 404 });
+      return NextResponse.json({ error: "Track not found" }, { status: 404 });
     }
-    const isOwner = !!user && track.user.toString() === user._id.toString();
+    const isOwner = !!user && track.userId === user.id;
 
-    if (track.visibility === "private" && !isOwner) {
+    if (track.visibility === "PRIVATE" && !isOwner) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 

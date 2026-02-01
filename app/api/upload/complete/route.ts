@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { User as Decoded } from "@/libs/Auth";
-import User from "@/models/User";
-import Track from "@/models/Track";
-import connectDb from "@/libs/connectDb";
+import prisma from "@/libs/prisma";
 import crypto from "crypto";
 import {
   CompleteMultipartUploadCommand,
@@ -26,9 +24,10 @@ export async function POST(req: Request) {
 
   try {
     const user = await Decoded();
-    if (!user) {
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    console.log(user);
 
     if (!key || !uploadId || !parts || !Array.isArray(parts) || !type) {
       return NextResponse.json(
@@ -47,8 +46,6 @@ export async function POST(req: Request) {
     });
 
     await s3Client.send(completeCommand);
-
-    await connectDb();
 
     const { common, format } = metadata;
     const nameWithoutExtension = fileName.replace(/\.[^/.]+$/, "");
@@ -83,20 +80,22 @@ export async function POST(req: Request) {
       }
     }
 
-    const track = await Track.create({
-      user: user._id,
-      name: common.title || nameWithoutExtension,
-      artist: common.artist || user.username,
-      size: size,
-      duration: format.duration || 0,
-      audio: key,
-      image: artKey,
+    const track = await prisma.track.create({
+      data: {
+        userId: user.id,
+        name: common.title || nameWithoutExtension,
+        artist: common.artist || user.username,
+        size: size,
+        duration: format.duration || 0,
+        audio: key,
+        image: artKey,
+      },
     });
 
-    await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });
+    // await prisma.user.update({ where: { id: user.id }, data: { tracks: { connect: { id: track.id } } } });
 
     return NextResponse.json(
-      { message: "File uploaded successfully!", trackId: track._id },
+      { message: "File uploaded successfully!", trackId: track.id },
       { status: 200 }
     );
   } catch (error) {

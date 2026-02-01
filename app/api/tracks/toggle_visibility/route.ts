@@ -1,8 +1,9 @@
-import Track from "@/models/Track";
-import connectDb from "@/libs/connectDb";
+import prisma from "@/libs/prisma";
 import { User } from "@/libs/Auth";
+import { Visibility } from "@/app/generated/prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest, res: NextResponse) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const visibility = searchParams.get("visibility");
@@ -12,10 +13,8 @@ export async function PUT(req: Request) {
     });
   }
 
-  await connectDb();
-
   try {
-    const track = await Track.findById(id);
+    const track = await prisma.track.findUnique({ where: { id } });
     if (!track) {
       return new Response("Track not found", { status: 404 });
     }
@@ -24,16 +23,21 @@ export async function PUT(req: Request) {
     if (!user) {
       return new Response("User not found", { status: 404 });
     }
-    if (track.user.toString() !== user._id.toString()) {
+    if (track.userId !== user.id) {
       return new Response("Forbidden", { status: 403 });
     }
 
     if (track.visibility === visibility) {
-      return new Response("Track already has this visibility", { status: 200 });
+      return NextResponse.json({ message: "Track already has this visibility" }, { status: 200 });
     }
-    track.visibility = visibility;
-    await track.save();
-    return new Response("Track visibility updated", { status: 200 });
+    await prisma.track.update({
+      where: { id },
+      data: { visibility: visibility as Visibility },
+    });
+    return NextResponse.json(
+      { message: "Track visibility updated" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating track visibility:", error);
     return new Response("Internal Server Error", { status: 500 });

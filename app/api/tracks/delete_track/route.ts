@@ -1,9 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { User as Decoded } from "@/libs/Auth";
-import Track from "@/models/Track";
-import User from "@/models/User";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import connectDb from "@/libs/connectDb";
+import prisma from "@/libs/prisma";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "",
@@ -27,14 +25,13 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    await connectDb();
-    const track = await Track.findById(id);
+    const track = await prisma.track.findUnique({ where: { id } });
 
     if (!track) {
       return NextResponse.json({ message: "Track not found" }, { status: 404 });
     }
 
-    if (track.user.toString() !== user._id.toString()) {
+    if (track.userId !== user.id) {
       return NextResponse.json(
         { error: "You are not authorized to delete this track" },
         { status: 403 }
@@ -42,7 +39,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete the file from S3
-    if (track.s3Key) {
+    if (track.audio) {
       try {
         const deleteParams = {
           Bucket: process.env.AWS_BUCKET_NAME || "",
@@ -71,13 +68,11 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    const deletedTrack = await Track.deleteOne({ _id: id });
+    const deletedTrack = await prisma.track.delete({ where: { id } });
 
     if (!deletedTrack) {
       return NextResponse.json({ message: "Track not found" }, { status: 404 });
     }
-
-    await User.updateOne({ tracks: id }, { $pull: { tracks: id } });
 
     return NextResponse.json(
       { message: "Track deleted successfully" },

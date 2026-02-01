@@ -4,16 +4,34 @@ import React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Tile from "./Tile";
 
+interface Track {
+  id: string;
+  name: string;
+  artist: string;
+  image: string;
+  link: string;
+  size: number;
+  duration: number;
+  audio: string;
+}
+
+interface User {
+  id: string;
+  username: string;
+}
+
 interface Props {
   title: string;
-  data: any;
+  data: {
+    tracks: Track[];
+  };
   deleteTrack?: (id: string) => void;
   isLoading?: boolean;
   isError?: boolean;
-  error?: any;
-  currentUser?: any;
+  error?: string;
+  currentUser?: User;
   type?: string;
-  setCurrentUser?: (user: any) => void;
+  setCurrentUser?: (user: User) => void;
   upload?: boolean;
 }
 
@@ -83,11 +101,11 @@ export default function TracksList({
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-5">
-            {items.map((item: any) => {
+            {data.tracks.map((item: Track) => {
               const trackType = type === "album" ? "album/" : "single/";
 
               return (
-                <div key={item._id} className="flex-[0_0_200px]">
+                <div key={item.id} className="flex-[0_0_200px]">
                   <Tile
                     title={item.name}
                     artist={item.artist}
@@ -96,7 +114,7 @@ export default function TracksList({
                         ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${item.image}`
                         : "/music.jpg"
                     }
-                    link={trackType + item._id}
+                    link={trackType + item.id}
                   />
                 </div>
               );
@@ -114,7 +132,7 @@ export default function TracksList({
           </div>
         </div>
 
-        {items.length > 5 && (
+        {data.tracks.length > 5 && (
           <>
             <div className="absolute top-0 -right-5 h-full w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
               <button

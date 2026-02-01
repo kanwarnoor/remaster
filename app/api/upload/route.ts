@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { User as Decoded } from "@/libs/Auth";
-import User from "@/models/User";
-import Track from "@/models/Track";
+import prisma from "@/libs/prisma";
 import { Buffer } from "buffer";
 import { parseBuffer } from "music-metadata";
 import crypto from "crypto";
@@ -60,18 +59,6 @@ export async function POST(req: NextRequest) {
     const fileName = `${user.username}-${randomBytes}`;
     const s3Key = `audio/${fileName}`;
 
-    // create a singed URL from aws s3
-    // const signedUrl = await getSignedUrl(s3Client, new PutObjectCommand({
-    //   Bucket: AWS_BUCKET_NAME,
-    //   Key: s3Key,
-    //   Body: buffer,
-    //   ContentType: file.type,
-    //   CacheControl: "public, max-age=31536000", // encourage caching
-    //   ACL: "private", // or "public-read" depending on your use-case
-    // }));
-
-
-    // get and save the cover from image to s3.
     const art = common.picture?.[0];
     let coverUrl = null;
     if (art) {
@@ -97,18 +84,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Save metadata to DB
-    const track = await Track.create({
-      user: user._id,
-      name: common.title || nameWithoutExtension,
-      artist: user.username,
-      size: file.size,
-      duration: format.duration || 0,
-      album: null,
-      s3Key: s3Key,
-      art: coverUrl,
+    await prisma.track.create({
+      data: {
+        name: common.title || nameWithoutExtension,
+        artist: user.username,
+        size: file.size,
+        duration: format.duration || 0,
+        audio: s3Key,
+        image: coverUrl,
+        userId: user.id,
+      },
     });
-
-    await User.updateOne({ _id: user._id }, { $push: { tracks: track._id } });
 
     return NextResponse.json({
       success: true,

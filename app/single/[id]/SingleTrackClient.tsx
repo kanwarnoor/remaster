@@ -51,10 +51,11 @@ export default function SingleTrackClient() {
       return failureCount < 3;
     },
   });
+  console.log(trackData);
 
   const toggleVisibility = async () => {
     const visibility =
-      data.track.visibility == "private" ? "public" : "private";
+      trackData.track.visibility == "PRIVATE" ? "PUBLIC" : "PRIVATE";
     try {
       const res = await axios.put(
         `/api/tracks/toggle_visibility?id=${id}&visibility=${visibility}`
@@ -76,7 +77,7 @@ export default function SingleTrackClient() {
       //   <div className="remaster-spinner w-10 h-10"></div>
       // </div>
       <>
-        <InsideNavbar link="/" /> 
+        <InsideNavbar link="/" />
         <SongPageLoading />
       </>
     );
@@ -87,7 +88,13 @@ export default function SingleTrackClient() {
       <>
         <InsideNavbar link="/" />
         <div className="w-screen h-screen flex flex-col justify-center items-center ">
-          <Image src={"/dead.webp"} height={500} width={500} alt={"dead mouse"} priority />
+          <Image
+            src={"/dead.webp"}
+            height={500}
+            width={500}
+            alt={"dead mouse"}
+            priority
+          />
           <p className="text-3xl font-bold mt-5">Track does not exist!</p>
         </div>
       </>
@@ -103,7 +110,6 @@ export default function SingleTrackClient() {
         user={user}
         playing={playing}
         setPlaying={setPlaying}
-      
         toggleVisibility={toggleVisibility}
       />
     </>

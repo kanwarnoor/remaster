@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { User as Decoded } from "@/libs/Auth";
-import Track from "@/models/Track";
-import connectDb from "@/libs/connectDb";
+import prisma from "@/libs/prisma";
 
 export async function GET(req: NextRequest) {
   const user = await Decoded();
 
-  if (user == null) {
+  if (user == null || !user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    await connectDb();
-
-    const tracks = await Track.find({ user: user._id }).sort({ createdAt: -1 });
+    const tracks = await prisma.track.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
 
     if (!tracks) {
       return NextResponse.json({ error: "No tracks found" }, { status: 404 });
