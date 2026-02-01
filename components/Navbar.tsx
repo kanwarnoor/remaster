@@ -34,7 +34,9 @@ export default function Navbar() {
     <>
       <div className="fixed bg-blue-200 z-20">
         <div className="navbar h-16 pl-5 text-center fixed left-0  justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50">
-          <Link href="/" className="mt-1">REMASTER</Link>
+          <Link href="/" className="mt-1">
+            REMASTER
+          </Link>
         </div>
 
         <div className="fixed left-0 right-0 flex justify-center items-center p-2 h-16">
@@ -73,7 +75,13 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <Link href="/login">Login</Link>
+            <div className="flex items-center gap-2">
+              <Link href="/login">Login</Link>
+
+              <Link href="/signup" className="text-white">
+                Signup
+              </Link>
+            </div>
           )}
         </div>
 

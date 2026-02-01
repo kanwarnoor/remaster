@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Navbar from "../../components/Navbar";
 import Image from "next/image";
 import Link from "next/link";
@@ -42,8 +42,8 @@ export default function LoginPage() {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push("/");
     },
-    onError: (error: any) => {
-      setError(error.response.data.error);
+    onError: (error: AxiosError) => {
+      setError((error.response?.data as string) || "An unknown error occurred");
     },
   });
 
@@ -90,7 +90,7 @@ export default function LoginPage() {
             <label className="block text-white/90">secret</label>
             <input
               type="password"
-              className="w-full p-2 border-2 border-remaster bg-remaster/50 text-black rounded-lg"
+              className="w-full p-2 border-2 border-remaster bg-remaster/50 text-white rounded-lg"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -110,13 +110,13 @@ export default function LoginPage() {
               type="submit"
               className="w-full bg-remaster text-white py-2 rounded-lg"
             >
-              Let's go!
+              Let&apos;s go!
             </button>
           )}
 
           {error && <p className="text-red-500">{error}</p>}
           <p className="text-center text-gray-500 ">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-remaster">
               Sign up
             </Link>

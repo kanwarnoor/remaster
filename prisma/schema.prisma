@@ -4,51 +4,65 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgres"
 }
 
-model albums {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  v           Int      @map("__v")
-  artist      String
-  createdAt   DateTime @db.Date
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  description Json?
-  image       String
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique()
+  password  String    
+  premium   Boolean?  @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  username  String    @unique 
+  albums Album[]
+  tracks Track[]
+  invite Invite? @relation("InviteClaimedBy")
+}
+
+model Album {
+  id           String   @id @default(uuid())
   name        String
-  tracks      String[]
-  updatedAt   DateTime @db.Date
-  user        String   @db.ObjectId
-  visibility  String
+  artist      String?
+  description String?
+  image       String?
+  tracks      Track[]
+  user        User    @relation(fields: [userId], references: [id])
+  userId      String
+  visibility  Visibility @default(PRIVATE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model tracks {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  v          Int      @map("__v")
-  album      String?  @db.ObjectId
-  artist     String
+model Track {
+  id         String   @id @default(uuid())
+  artist     String?
   audio      String
-  createdAt  DateTime @db.Date
-  /// Multiple data types found: Float: 94.4%, Int: 5.6% out of 18 sampled entries
-  duration   Json
-  image      String
-  name       String
-  size       Int
-  updatedAt  DateTime @db.Date
-  user       String   @db.ObjectId
-  visibility String
+  duration   Float?
+  image      String?
+  name       String?
+  size       Int?
+  user       User @relation(fields: [userId], references: [id])
+  userId     String
+  album      Album  @relation(fields: [albumId], references: [id])
+  albumId    String
+  visibility Visibility @default(PRIVATE)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
-model users {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  v         Int?      @map("__v")
-  createdAt DateTime? @db.Date
-  email     String    @unique(map: "email_1")
-  password  String?
-  password_ String?   @map("password:")
-  /// Multiple data types found: String: 66.7%, Boolean: 33.3% out of 3 sampled entries
-  premium   Json
-  tracks    String[]
-  updatedAt DateTime? @db.Date
-  username  String    @unique(map: "username_1")
+model Invite{
+  id String @id @default(uuid())
+  code String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  claimed Boolean @default(false)
+  userId  String? @unique
+  user User? @relation("InviteClaimedBy" , fields: [userId], references: [id])
 }
