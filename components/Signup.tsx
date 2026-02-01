@@ -20,8 +20,4 @@ export default function Signup() {
 
     alert("form submit logic not written");
   };
-
-  return (
-   
-  );
 }
