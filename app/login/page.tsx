@@ -26,7 +26,6 @@ const loginUser = async ({
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -36,20 +35,21 @@ export default function LoginPage() {
     type: "error" | "success" | "info" | "warning" | "";
   }>({ show: false, message: "", type: "" });
 
-  const { mutate, isPending } = useMutation({
+  const {
+    mutate,
+    isPending,
+    error: loginError,
+    isError: isLoginError,
+  } = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push("/");
     },
-    onError: (error: AxiosError) => {
-      setError((error.response?.data as string) || "An unknown error occurred");
-    },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     mutate({ username, password });
   };
 
@@ -114,13 +114,15 @@ export default function LoginPage() {
             </button>
           )}
 
-          {error && <p className="text-red-500">{error}</p>}
+          
           <p className="text-center text-gray-500 ">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-remaster">
               Sign up
             </Link>
           </p>
+
+          {isLoginError && <p className="text-red-500 text-center">{(loginError as AxiosError<{ error: string }>)?.response?.data?.error ?? "An unknown error occurred"}</p>}
         </form>
       </div>
     </>

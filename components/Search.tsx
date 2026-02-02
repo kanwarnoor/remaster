@@ -57,12 +57,22 @@ export default function Search() {
 
   const router = useRouter();
 
-  const handleSearch = (e : React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const map = data.tracks.length > 0 ? "single" : data.albums.length > 0 ? "album" : "user";
-    const id = data.tracks.length > 0 ? data.tracks[0]._id : data.albums.length > 0 ? data.albums[0]._id : data.users[0]._id;
-    router.push(`/${map}/${id}`)    
-  }
+    const map =
+      data.tracks.length > 0
+        ? "single"
+        : data.albums.length > 0
+        ? "album"
+        : "user";
+    const id =
+      data.tracks.length > 0
+        ? data.tracks[0].id
+        : data.albums.length > 0
+        ? data.albums[0].id
+        : data.users[0].id;
+    router.push(`/${map}/${id}`);
+  };
 
   return (
     <div ref={containerRef} className="relative">
@@ -109,7 +119,7 @@ export default function Search() {
             <>
               <p className="text-sm text-white/50">Tracks</p>
               {data.tracks.map((track: any) => (
-                <SearchResult data={track} key={track._id} type="track" />
+                <SearchResult data={track} key={track.id} type="track" />
               ))}
             </>
           )}
@@ -118,7 +128,7 @@ export default function Search() {
             <>
               <p className="text-sm text-white/50 mt-3">Albums</p>
               {data.albums.map((album: any) => (
-                <SearchResult data={album} key={album._id} type="album" />
+                <SearchResult data={album} key={album.id} type="album" />
               ))}
             </>
           )}
@@ -127,7 +137,7 @@ export default function Search() {
             <>
               <p className="text-sm text-white/50 mt-3">Users</p>
               {data.users.map((user: any) => (
-                <SearchResult data={user} key={user._id} type="user" />
+                <SearchResult data={user} key={user.id} type="user" />
               ))}
             </>
           )}
@@ -144,7 +154,7 @@ const SearchResult = ({ data, type }: { data: any; type: string }) => {
   return (
     <div
       className="flex gap-3 group text-base font-normal text-white justify-start items-start"
-      onClick={() => router.push(`/${map}/${data._id}`)}
+      onClick={() => router.push(`/${map}/${data.id}`)}
     >
       <motion.div
         initial={{ opacity: 0, filter: "blur(20px)" }}

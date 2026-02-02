@@ -57,23 +57,23 @@ export default function Player() {
   }, []);
 
   // Handle spacebar key press for play/pause
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.code === "Space" && playerData?.track) {
-        event.preventDefault();
-        console.log("Spacebar pressed, toggling play/pause", {
-          currentPlaying: playing,
-          trackId: playerData.track.id,
-        });
-        setPlaying(playerData.track.id, !playing);
-      }
-    };
+  // useEffect(() => {
+  //   const handleKeyPress = (event: KeyboardEvent) => {
+  //     if (event.code === "Space" && playerData?.track) {
+  //       event.preventDefault();
+  //       console.log("Spacebar pressed, toggling play/pause", {
+  //         currentPlaying: playing,
+  //         trackId: playerData.track.id,
+  //       });
+  //       setPlaying(playerData.track.id, !playing);
+  //     }
+  //   };
 
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [playing, playerData?.track, setPlaying]);
+  //   document.addEventListener("keydown", handleKeyPress);
+  //   return () => {
+  //     document.removeEventListener("keydown", handleKeyPress);
+  //   };
+  // }, [playing, playerData?.track, setPlaying]);
 
   // Don't render anything until mounted on client
   if (!mounted) {
