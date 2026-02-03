@@ -1,33 +1,22 @@
 import { Metadata } from "next";
 import SingleTrackClient from "@/app/single/[id]/SingleTrackClient";
-import { cookies } from "next/headers";
-import { headers } from "next/headers";
+import prisma from "@/libs/prisma";
 
 export async function generateMetadata(props: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   try {
     const { id } = await props.params;
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL}/api/tracks/metadata?id=${id}`,
-      {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-        },
-      }
-    );
+    const track = await prisma.track.findUnique({ where: { id } });
 
-    if (!response.ok) {
+    if (!track) {
       return {
         title: "Track",
         description: "Loading track details",
       };
     }
 
-    const data = await response.json();
-    const { name, artist, image } = data.track || {};
+    const { name, artist, image } = track || {};
     const imageUrl = image
       ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${image}`
       : `${process.env.NEXT_PUBLIC_URL}/music.jpg`;
