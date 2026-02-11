@@ -1,15 +1,11 @@
 import connectDb from "@/libs/connectDb";
-import Album from "@/models/Album";
-import User from "@/models/User";
 import { toInteger } from "lodash";
 import { NextRequest, NextResponse } from "next/server";
 import { User as Auth } from "@/libs/Auth";
-import Track from "@/models/Track";
+import prisma from "@/libs/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const limit = toInteger(req.nextUrl.searchParams.get("limit"));
-
     const user = await Auth();
 
     if (!user) {
@@ -18,11 +14,20 @@ export async function GET(req: NextRequest) {
 
     await connectDb();
 
-    const album = await Album.find({ user: user.id });
+    const album = await prisma.album.findMany({
+      where: {
+        user: {
+          id: user.id,
+        },
+      },
+    });
 
     return NextResponse.json({ album }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 },
+    );
   }
 }
 
@@ -37,26 +42,44 @@ export async function POST(req: NextRequest) {
     }
     await connectDb();
 
-    const user = await User.findById(decoded.id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.id,
+      },
+    });
 
     if (!user) {
       return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
     }
 
-    const album = await Album.create({
-      name,
-      user: user._id,
-      artist: artist || user.name,
-      description: description || null,
-      tracks: [track_ids],
-      image: image || null,
+    const album = await prisma.album.create({
+      data: {
+        name,
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        artist: user.username,
+        description: description,
+        tracks: {
+          connect: track_ids.map((id: string) => ({ id })),
+        },
+        image: image,
+      },
     });
 
-    await Track.updateMany({ id: { $in: track_ids } }, { album: album.id });
+    await prisma.track.updateMany({
+      where: { id: { in: track_ids } },
+      data: { albumId: album.id },
+    });
 
     return NextResponse.json({ album }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 },
+    );
   }
 }
 
@@ -73,20 +96,15 @@ export async function DELETE(req: NextRequest) {
 
     await connectDb();
 
-    const album = await Album.findById(id);
-
-    if (!album) {
-      return NextResponse.json({ message: "Album not found" }, { status: 404 });
-    }
-
-    if (album.user.toString() !== decoded.id) {
-      return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
-    }
-
-    await Album.findByIdAndDelete(id);
+    const album = await prisma.album.findUnique({
+      where: { id: id || (undefined as string | undefined) },
+    });
 
     return NextResponse.json({ message: "Deleted album" }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 },
+    );
   }
 }

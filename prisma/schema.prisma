@@ -29,7 +29,7 @@ model User {
 model Album {
   id           String   @id @default(uuid())
   name        String
-  artist      String?
+  artist      String
   description String?
   image       String?
   tracks      Track[]

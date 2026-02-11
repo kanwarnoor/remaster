@@ -11,6 +11,7 @@ import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
 import { usePlayer } from "@/context/PlayerContext";
 import { useRouter } from "next/navigation";
+import { Track, Album } from "@/app/generated/prisma/client";
 
 interface Props {
   data: {
@@ -34,7 +35,7 @@ interface Props {
   };
   playing: boolean;
   setPlaying: (id: string, playing: boolean) => void;
-  setData: (data: any) => void;
+  setData: (data: Track) => void;
   toggleVisibility: () => void;
 }
 
@@ -427,7 +428,7 @@ export default function SongPage(props: Props) {
             <div className="flex flex-col gap-0 mt-3 ">
               {isLoading && <p>Loading...</p>}
               {albums.length === 0 && <p>No albums found!</p>}
-              {albums?.map((album: any) => {
+              {albums?.map((album: Album & { tracks: Track[] }) => {
                 return (
                   <div
                     key={album.id}
@@ -458,7 +459,7 @@ export default function SongPage(props: Props) {
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill={
-                          album.tracks.includes(props.data.track.id)
+                          album.tracks && album.tracks.some((track: Track) => track.id === props.data.track.id)
                             ? "black"
                             : "none"
                         }
@@ -540,7 +541,7 @@ export default function SongPage(props: Props) {
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
               onClick={() => {
                 props.setPlaying(props.data.track.id, true);
-                props.setData(props.data);
+                props.setData(props.data.track as unknown as Track);
               }}
             >
               <svg
