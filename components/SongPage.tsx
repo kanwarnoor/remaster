@@ -83,7 +83,7 @@ export default function SongPage(props: Props) {
     // deleting track
     if (option === "delete") {
       const confirmDelete = confirm(
-        "Are you sure you want to delete this track?"
+        "Are you sure you want to delete this track?",
       );
       if (!confirmDelete) return;
 
@@ -160,7 +160,7 @@ export default function SongPage(props: Props) {
             id: props.data.track.id,
             newKey: imageKey,
             oldKey: props.data.track.image || null,
-          }
+          },
         );
 
         if (imageUploadSaveResponse.status !== 200) {
@@ -231,9 +231,7 @@ export default function SongPage(props: Props) {
         if (palette && palette.length > 0) {
           setColors(palette.slice(0, 5));
 
-          setColor(
-            data && data.track.id === props.data.track.id ? palette : color
-          );
+          setColor(data && data.id === props.data.track.id ? palette : color);
         }
       } catch (err) {
         console.error("Color Thief error:", err);
@@ -265,7 +263,7 @@ export default function SongPage(props: Props) {
     if (hrs > 0) {
       return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(
         2,
-        "0"
+        "0",
       )}`;
     } else {
       return `${mins}:${String(secs).padStart(2, "0")}`;
@@ -459,7 +457,10 @@ export default function SongPage(props: Props) {
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill={
-                          album.tracks && album.tracks.some((track: Track) => track.id === props.data.track.id)
+                          album.tracks &&
+                          album.tracks.some(
+                            (track: Track) => track.id === props.data.track.id,
+                          )
                             ? "black"
                             : "none"
                         }

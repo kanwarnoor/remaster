@@ -2,12 +2,23 @@
 
 import { createContext, useContext, useState } from "react";
 
+interface Track {
+  id: string;
+  name: string;
+  artist: string;
+  duration: number;
+  image:string;
+  timestamps: string[];
+  audio:string;
+  visibility: string;
+}
+
 export const PlayerContext = createContext<{
   playing: boolean;
   setPlaying: (id: string, playing: boolean) => void;
 
-  data: any;
-  setData: (data: any) => void;
+  data: Track | null;
+  setData: (data: Track) => void;
 
   color: [number, number, number][];
   setColor: (color: [number, number, number][]) => void;
@@ -21,7 +32,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     id: null,
     playing: false,
   });
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Track | null>(null);
   const [color, setColor] = useState<[number, number, number][]>([]);
 
   return (

@@ -10,10 +10,21 @@ import { usePlayer } from "@/context/PlayerContext";
 import type ReactPlayer from "react-player";
 import ReactPlayerComponent from "react-player";
 
+interface PlayerData {
+  id: string;
+  name: string;
+  artist: string;
+  image: string;
+  audio: string;
+  currentTime: number;
+  duration: number;
+}
+
 export default function Player() {
   const [mounted, setMounted] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const { data: playerData, setPlaying, playing, color } = usePlayer();
+
   const [volume, setVolume] = useState({ value: 1, preValue: 1 });
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(0);
@@ -27,24 +38,26 @@ export default function Player() {
 
   // Prevent hydration mismatch by only rendering on client
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => {
+      setMounted(true);
+    }, 1000);
   }, []);
 
   const { data: audio } = useQuery({
-    queryKey: ["audio", playerData?.track.audio],
+    queryKey: ["audio", playerData?.id],
     queryFn: async () => {
       const response = await axios.get(
-        `/api/tracks/play?s3key=${playerData?.track.audio}`
+        `/api/tracks/play?s3key=${playerData?.audio}`,
       );
       return response.data;
     },
-    enabled: !!playerData?.track.audio,
+    enabled: !!playerData?.id,
     refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const player = playerRef.current as any;
+      const player = playerRef.current as unknown as PlayerData;
       if (player) {
         setProgress({
           played: player.currentTime / player.duration,
@@ -56,27 +69,11 @@ export default function Player() {
     }, 1000);
   }, []);
 
-  // Handle spacebar key press for play/pause
-  // useEffect(() => {
-  //   const handleKeyPress = (event: KeyboardEvent) => {
-  //     if (event.code === "Space" && playerData?.track) {
-  //       event.preventDefault();
-  //       console.log("Spacebar pressed, toggling play/pause", {
-  //         currentPlaying: playing,
-  //         trackId: playerData.track.id,
-  //       });
-  //       setPlaying(playerData.track.id, !playing);
-  //     }
-  //   };
-
-  //   document.addEventListener("keydown", handleKeyPress);
-  //   return () => {
-  //     document.removeEventListener("keydown", handleKeyPress);
-  //   };
-  // }, [playing, playerData?.track, setPlaying]);
-
-  // Don't render anything until mounted on client
   if (!mounted) {
+    return null;
+  }
+
+  if (!playerData) {
     return null;
   }
 
@@ -108,8 +105,6 @@ export default function Player() {
       getLuminance(b as [number, number, number])
     );
   });
-
-  console.log(`rgb(${dark[1].join(",")})`);
 
   return (
     <>
@@ -159,19 +154,19 @@ export default function Player() {
               </svg>
               <Image
                 src={
-                  playerData?.track.image
-                    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.track.image}`
+                  playerData?.image
+                    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.image}`
                     : "/music.jpg"
                 }
-                alt={playerData?.track.name || "track image"}
+                alt={playerData?.name || "track image"}
                 width={100}
                 height={100}
                 className="w-12 h-12 rounded-full opacity-100 group-hover:opacity-20 transition-all duration-100"
               />
             </div>
             <div>
-              <h3 className="font-medium">{playerData?.track.name}</h3>
-              <p className="text-xs text-black">{playerData?.track.artist}</p>
+              <h3 className="font-medium">{playerData?.name}</h3>
+              <p className="text-xs text-black">{playerData?.artist}</p>
             </div>
           </div>
         </div>
@@ -233,7 +228,7 @@ export default function Player() {
             {playing ? (
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer  border-black"
-                onClick={() => setPlaying(playerData?.track.id, false)}
+                onClick={() => setPlaying(playerData?.id, false)}
               >
                 <svg
                   viewBox="0 0 16 16"
@@ -255,7 +250,7 @@ export default function Player() {
             ) : (
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer  border-black"
-                onClick={() => setPlaying(playerData?.track.id, true)}
+                onClick={() => setPlaying(playerData?.id, true)}
               >
                 <svg
                   fill="white"
@@ -298,7 +293,7 @@ export default function Player() {
                 const percentage = clickX / rect.width;
 
                 const mediaEl = document.querySelector(
-                  "audio, video"
+                  "audio, video",
                 ) as HTMLMediaElement | null;
                 if (mediaEl && !isNaN(mediaEl.duration)) {
                   mediaEl.currentTime = percentage * mediaEl.duration;
@@ -468,11 +463,11 @@ export default function Player() {
                 <div className="flex flex-col justify-center items-center w-full h-full">
                   <Image
                     src={
-                      playerData?.track.image
-                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.track.image}`
+                      playerData?.image
+                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.image}`
                         : "/music.jpg"
                     }
-                    alt={playerData?.track.name || "track image"}
+                    alt={playerData?.name || "track image"}
                     width={0}
                     height={0}
                     sizes="100vw"
@@ -482,11 +477,11 @@ export default function Player() {
                     {" "}
                     <div className="flex w-[80%] flex-col justify-start items-start ">
                       <p className="text-2xl text-white font-bold leading-tight">
-                        {playerData?.track.name || "LOCKED"}
+                        {playerData?.name || "LOCKED"}
                       </p>
 
                       <p className="text-xl text-white leading-tight">
-                        {playerData?.track.artist || "Sabu"}
+                        {playerData?.artist || "undefined"}
                       </p>
                     </div>
                     <div className="flex w-[20%] flex-col items-end">

@@ -12,9 +12,16 @@ import Player from "@/components/Player";
 import { useParams } from "next/navigation";
 import { usePlayer } from "@/context/PlayerContext";
 import SongPageLoading from "@/components/SongPageLoading";
+import { Track } from "@/app/generated/prisma/client";
+
+interface User {
+  id: string;
+  username: string;
+}
+
 
 export default function SingleTrackClient() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const queryClient = useQueryClient();
   const params = useParams();
@@ -48,10 +55,9 @@ export default function SingleTrackClient() {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 403) return false;
       }
-      return failureCount < 3;
+      return failureCount < 1;
     },
   });
-  console.log(trackData);
 
   const toggleVisibility = async () => {
     const visibility =
@@ -106,8 +112,8 @@ export default function SingleTrackClient() {
       <InsideNavbar link="/" />
       <SongPage
         data={trackData}
-        setData={setData}
-        user={user}
+        setData={setData as unknown as (data: Track) => void}
+        user={user || { id: "", username: "" }}
         playing={playing}
         setPlaying={setPlaying}
         toggleVisibility={toggleVisibility}
