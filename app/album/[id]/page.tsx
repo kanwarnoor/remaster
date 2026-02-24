@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import AlbumClient from "./AlbumClient";
-import Album from "@/models/Album";
+import prisma from "@/libs/prisma";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -13,7 +13,7 @@ export const generateMetadata = async ({
 }): Promise<Metadata> => {
   const { id } = await params;
 
-  const album = await Album.findById(id);
+  const album = await prisma.album.findUnique({ where: { id } });
 
   return {
     title: album?.name || "Remaster",

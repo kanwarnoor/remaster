@@ -179,12 +179,30 @@ export default function SongPage(props: Props) {
     }
   };
 
+  const addTrackToAlbum = async (albumId: string) => {
+    try {
+      const response = await axios.post("/api/album/add", {
+        albumId,
+        trackId: props.data.track.id,
+      });
+
+      if (response.status !== 200) {
+        console.error("Failed to add track to album");
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["albums"] });
+        setAddAlbum(false);
+      }
+    } catch (error) {
+      console.error("Failed to add track to album", error);
+    }
+  };
+
   const handleAlbum = async () => {
     setAddAlbum(false);
 
     try {
       const response = await axios.post("/api/album", {
-        trackids: props.data.track.id,
+        track_ids: [props.data.track.id],
         name: props.data.track.name,
         image: props.data.track.image,
         artist: props.data.track.artist,
@@ -453,7 +471,10 @@ export default function SongPage(props: Props) {
                     </div>
 
                     {/*  */}
-                    <div className="ml-auto justify-center items-center flex cursor-pointer">
+                    <div
+                      className="ml-auto justify-center items-center flex cursor-pointer"
+                      onClick={() => addTrackToAlbum(album.id)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill={

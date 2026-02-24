@@ -72,7 +72,7 @@ export default function Page() {
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
               title="Your Albums"
-              data={albums}
+              data={{ tracks: albums }}
               isLoading={albumsLoading}
               type="album"
               upload={false}

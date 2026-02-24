@@ -101,7 +101,7 @@ export default function TracksList({
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-5">
-            {data.tracks.map((item: Track, index: number) => {
+            {(data.tracks ?? []).map((item: Track, index: number) => {
               const trackType = type === "album" ? "album/" : "single/";
 
               return (
@@ -132,7 +132,7 @@ export default function TracksList({
           </div>
         </div>
 
-        {data.tracks.length > 5 && (
+        {(data.tracks?.length ?? 0) > 5 && (
           <>
             <div className="absolute top-0 -right-5 h-full w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
               <button
@@ -165,7 +165,7 @@ export default function TracksList({
                   stroke="#000000"
                   strokeWidth="2.4"
                   className="pl-1"
-                >amritsar@50dsadadasddsadasdsadsa
+                >
                   <g>
                     <polygon points="6.8,23.7 5.4,22.3 15.7,12 5.4,1.7 6.8,0.3 18.5,12"></polygon>
                   </g>

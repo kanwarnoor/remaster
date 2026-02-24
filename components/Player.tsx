@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useEffectEvent, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import axios from "axios";
@@ -23,20 +23,33 @@ interface PlayerData {
 export default function Player() {
   const [mounted, setMounted] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const { data: playerData, setPlaying, playing, color } = usePlayer();
+  const {
+    data: playerData,
+    setPlaying,
+    playing,
+    color,
+    queue,
+    queueIndex,
+    playNext,
+    playPrev,
+    jumpToQueueIndex,
+    shuffle,
+    setShuffle,
+    repeat,
+    setRepeat,
+    showQueue,
+    setShowQueue,
+  } = usePlayer();
 
   const [volume, setVolume] = useState({ value: 1, preValue: 1 });
-  const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState(0);
   const playerRef = useRef<typeof ReactPlayer>(null);
   const [progress, setProgress] = useState({
-    played: 0, // 0 to 1
-    playedSeconds: 0, // in seconds
+    played: 0,
+    playedSeconds: 0,
     loaded: 0,
     loadedSeconds: 0,
   });
 
-  // Prevent hydration mismatch by only rendering on client
   useEffect(() => {
     setTimeout(() => {
       setMounted(true);
@@ -67,24 +80,30 @@ export default function Player() {
         });
       }
     }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  const handleEnded = () => {
+    if (repeat === 2) {
+      // Repeat one: restart current track
+      const mediaEl = document.querySelector("audio, video") as HTMLMediaElement | null;
+      if (mediaEl) {
+        mediaEl.currentTime = 0;
+        mediaEl.play();
+      }
+      return;
+    }
+    playNext();
+  };
 
-  if (!playerData) {
-    return null;
-  }
+  if (!mounted) return null;
+  if (!playerData) return null;
 
   function getLuminance(color: [number, number, number]) {
     const [r, g, b] = color;
-    // Normalize the RGB values by dividing them by 255
     const normalizedR = r / 255;
     const normalizedG = g / 255;
     const normalizedB = b / 255;
-
-    // Calculate luminance
     return 0.2126 * normalizedR + 0.7152 * normalizedG + 0.0722 * normalizedB;
   }
 
@@ -115,26 +134,94 @@ export default function Player() {
           playing={playing}
           volume={volume.value}
           controls={false}
-          loop={repeat !== 0}
+          loop={false}
+          onEnded={handleEnded}
         />
       </div>
+
+      {/* Queue Drawer */}
+      <AnimatePresence>
+        {showQueue && (
+          <>
+            <div
+              className="fixed inset-0 z-[58]"
+              onClick={() => setShowQueue(false)}
+            />
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="fixed bottom-28 left-0 right-0 m-auto w-[500px] max-h-[400px] z-[59] bg-neutral-900/95 backdrop-blur-xl rounded-2xl overflow-hidden"
+            >
+              <div className="flex justify-between items-center p-4 border-b border-white/10">
+                <p className="text-lg font-bold text-white">Queue</p>
+                <div
+                  className="cursor-pointer p-1 hover:bg-white/10 rounded-full transition-all"
+                  onClick={() => setShowQueue(false)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="white" className="size-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+              <div className="overflow-y-auto max-h-[340px] p-2">
+                {queue.length === 0 && (
+                  <p className="text-white/50 text-center py-4">Queue is empty</p>
+                )}
+                {queue.map((track, index) => (
+                  <div
+                    key={track.id + index}
+                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all hover:bg-white/10 ${
+                      index === queueIndex ? "bg-white/15" : ""
+                    }`}
+                    onClick={() => jumpToQueueIndex(index)}
+                  >
+                    <p className="text-white/40 text-sm w-6 text-right">{index + 1}</p>
+                    <img
+                      src={
+                        track.image
+                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.image}`
+                          : "/music.jpg"
+                      }
+                      alt={track.name || "track"}
+                      width={40}
+                      height={40}
+                      className="rounded w-10 h-10 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/music.jpg";
+                      }}
+                    />
+                    <div className="flex flex-col overflow-hidden">
+                      <p className={`text-sm font-medium truncate ${index === queueIndex ? "text-white" : "text-white/70"}`}>
+                        {track.name}
+                      </p>
+                      <p className="text-xs text-white/40 truncate">{track.artist}</p>
+                    </div>
+                    {index === queueIndex && (
+                      <div className="ml-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="size-4">
+                          <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Player Bar */}
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 50,
-        }}
+        initial={{ opacity: 0, y: 50 }}
         animate={{
           opacity: fullscreen ? 0 : 1,
           y: fullscreen ? 50 : 0,
         }}
-        exit={{
-          opacity: 0,
-          y: 50,
-        }}
-        transition={{
-          duration: 0.5,
-          ease: "easeInOut",
-        }}
+        exit={{ opacity: 0, y: 50 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
         className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md text-black rounded-full flex`}
       >
         <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full">
@@ -175,7 +262,7 @@ export default function Player() {
             {/* previous */}
             <div
               className="cursor-pointer mb-2"
-              // onClick={() => handleSong("previous")}
+              onClick={() => playPrev()}
             >
               <svg
                 viewBox="0 0 24 24"
@@ -190,37 +277,6 @@ export default function Player() {
                   strokeLinejoin="round"
                 />
               </svg>
-              {/* <svg
-              viewBox="0 -2 12 12"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              className="fill-black size-9"
-            >
-              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-              <g
-                id="SVGRepo_tracerCarrier"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              ></g>
-              <g id="SVGRepo_iconCarrier">
-                <title>previous [#999]</title> <desc>Created with Sketch.</desc>
-                <defs> </defs>
-                <g id="Page-1" stroke="none" strokeWidth="1" fillRule="evenodd">
-                  <g
-                    id="Dribbble-Light-Preview"
-                    transform="translate(-104.000000, -3805.000000)"
-                  >
-                    <g id="icons" transform="translate(56.000000, 160.000000)">
-                      <path
-                        d="M59.9990013,3645.86816 L59.9990013,3652.13116 C59.9990013,3652.84516 58.8540013,3653.25316 58.2180013,3652.82516 L53.9990013,3650.14016 L53.9990013,3652.13116 C53.9990013,3652.84516 53.4260013,3653.25316 52.7900013,3652.82516 L48.4790013,3649.69316 C47.9650013,3649.34616 47.7980013,3648.65316 48.3120013,3648.30616 L52.7900013,3645.17516 C53.4260013,3644.74616 53.9990013,3645.15416 53.9990013,3645.86816 L53.9990013,3647.85916 L58.2180013,3645.17516 C58.8540013,3644.74616 59.9990013,3645.15416 59.9990013,3645.86816"
-                        id="previous-[#999]"
-                      ></path>
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </svg> */}
             </div>
           </div>
           {/* play/pause */}
@@ -267,7 +323,10 @@ export default function Player() {
           </div>
           <div>
             {/* next */}
-            <div className="cursor-pointer mb-2">
+            <div
+              className="cursor-pointer mb-2"
+              onClick={() => playNext()}
+            >
               <svg
                 viewBox="0 0 24 24"
                 className="size-9 fill-black rotate-180"
@@ -310,6 +369,23 @@ export default function Player() {
           </div>
         </div>
         <div className="w-[30%] h-full flex items-center justify-end gap-2 px-6 rounded-r-full transition-all duration-100 z-10">
+          {/* Queue button */}
+          <button
+            className={`p-2 rounded-full transition-all duration-100 ${
+              showQueue ? "bg-black/10" : ""
+            }`}
+            onClick={() => setShowQueue(!showQueue)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+          </button>
+          {/* Shuffle button */}
           <button
             className={`p-2  rounded-full transition-all duration-100 ${
               shuffle ? "bg-black/10" : ""
@@ -325,6 +401,7 @@ export default function Player() {
               <path d="M15.441 8H17v3l5-4-5-4v3h-1.559a1 1 0 0 0-.741.327L13.139 8z" />
             </svg>
           </button>
+          {/* Repeat button */}
           <button
             className={`p-2 justify-center items-center flex transition-all duration-100 rounded-full ${
               repeat !== 0 ? "bg-black/10" : ""
@@ -341,7 +418,7 @@ export default function Player() {
             </svg>
             {repeat !== 0 && (
               <span className="text-[12px] text-black ml-1 transition-all duration-100">
-                {repeat === 1 ? "Project" : "Song"}
+                {repeat === 1 ? "All" : "One"}
               </span>
             )}
           </button>
@@ -390,54 +467,34 @@ export default function Player() {
       <AnimatePresence>
         {fullscreen && (
           <motion.div
-            initial={{
-              y: "100%",
-              // backgroundColor: `rgba(${dark[0].join(",")}, 1)`,
-            }}
-            animate={{
-              y: 0,
-            }}
-            exit={{
-              y: "100%",
-            }}
-            transition={{
-              duration: 0.3,
-              ease: "easeOut",
-            }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="fixed top-0 left-0 w-full h-full z-50 flex justify-center items-center"
           >
             <div className="backbacktainer -z-10 w-full h-full fixed top-0 left-0">
               <div id="body" className="backcontainer">
                 <div
                   id="1st"
-                  style={{
-                    backgroundColor: `rgb(${dark[1].join(",")})`,
-                  }}
+                  style={{ backgroundColor: `rgb(${dark[1].join(",")})` }}
                 ></div>
                 <div
                   id="2nd"
-                  style={{
-                    backgroundColor: `rgb(${dark[4].join(",")})`,
-                  }}
+                  style={{ backgroundColor: `rgb(${dark[4].join(",")})` }}
                 ></div>
                 <div
                   id="3rd"
-                  style={{
-                    backgroundColor: `rgb(${dark[2].join(",")})`,
-                  }}
+                  style={{ backgroundColor: `rgb(${dark[2].join(",")})` }}
                 ></div>
                 <div
                   id="4th"
-                  style={{
-                    backgroundColor: `rgb(${dark[0].join(",")})`,
-                  }}
+                  style={{ backgroundColor: `rgb(${dark[0].join(",")})` }}
                 ></div>
                 <div
                   id="5th"
                   style={{
-                    backgroundColor: `rgb(${
-                      dark[4].join(",") || "222, 222, 222"
-                    })`,
+                    backgroundColor: `rgb(${dark[4].join(",") || "222, 222, 222"})`,
                   }}
                 ></div>
               </div>

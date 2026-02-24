@@ -9,10 +9,15 @@ import SongPageLoading from "@/components/SongPageLoading";
 import { User as Auth } from "@/libs/Auth";
 import { useEffect, useState } from "react";
 
+interface User {
+  id: string;
+  username: string;
+}
+
 export default function AlbumClient() {
   const params = useParams();
   const id = params.id as string;
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -40,7 +45,7 @@ export default function AlbumClient() {
       <AlbumPage
         data={album}
         // setData={() => {}}
-        user={user}
+        user={user ?? undefined}
         // playing={false}
         // setPlaying={() => {}}
         // toggleVisibility={() => {}}

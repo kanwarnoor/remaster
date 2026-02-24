@@ -10,14 +10,15 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
 import { usePlayer } from "@/context/PlayerContext";
+import { Album, Track } from "@/app/generated/prisma/client";
 
 interface Props {
   data: {
-    album: any;
-    tracks: any;
+    album: Album;
+    tracks: Track[];
   };
   user?: {
-    _id: string;
+    id: string;
   };
 }
 
@@ -32,7 +33,7 @@ export default function SongPage(props: Props) {
   })} ${date.getDate()}, ${date.getFullYear()}`;
   const [colors, setColors] = useState<[number, number, number][]>([]);
 
-  const { setColor, color } = usePlayer();
+  const { setColor, color, setQueue, setPlaying } = usePlayer();
 
   const [formData, setFormData] = useState({
     name: props.data.album.name,
@@ -53,14 +54,14 @@ export default function SongPage(props: Props) {
       );
       if (!confirmDelete) return;
 
-      // const response = await axios.delete(`/api/tracks/delete_track`, {
-      //   data: { id: props.data.track._id },
-      // });
-      // if (response.status !== 200) {
-      //   console.error("Failed to delete track");
-      // } else {
-      //   window.location.href = "/";
-      // }
+      const response = await axios.delete("/api/album/delete", {
+        data: { id: props.data.album.id },
+      });
+      if (response.status !== 200) {
+        console.error("Failed to delete album");
+      } else {
+        window.location.href = "/";
+      }
     }
 
     // toggling edit mode
@@ -74,70 +75,56 @@ export default function SongPage(props: Props) {
     if (option === "edit") {
       setEditing(false);
 
-      const fromData = new FormData();
-      fromData.append("id", props.data.album._id);
-      fromData.append("name", formData.name);
-      fromData.append("artist", formData.artist);
-      if (formData.art instanceof File) {
-        fromData.append("art", formData.art);
+      const response = await axios.patch("/api/album/edit", {
+        id: props.data.album.id,
+        name: formData.name,
+        artist: formData.artist,
+        fileType: formData.art?.type,
+        fileSize: formData.art?.size,
+        uploaded: false,
+      });
+
+      if (response.status !== 200) {
+        console.error("Failed to edit album");
+        return;
       }
 
-      // const response = await axios.patch(`/api/tracks/edit_track`, {
-      //   id: props.data.track._id,
-      //   name: formData.name,
-      //   artist: formData.artist,
-      //   fileType: formData.art && formData.art.type,
-      //   fileSize: formData.art && formData.art.size,
-      //   uploaded: false,
-      // });
+      queryClient.invalidateQueries({ queryKey: ["album", props.data.album.id] });
 
-      // if (response.status !== 200) {
-      //   console.error("Failed to edit track");
-      // } else {
-      //   queryClient.invalidateQueries({
-      //     queryKey: ["single", props.data.track._id],
-      //   });
-      //   const { url, imageKey } = response.data;
+      const { url, imageKey } = response.data;
 
-      //   if (!url) {
-      //     return;
-      //   }
+      if (!url) {
+        // No image upload needed — metadata-only update
+        return;
+      }
 
-      //   const file = formData.art;
-      //   if (!file) {
-      //     return;
-      //   }
+      const file = formData.art;
+      if (!file) return;
 
-      //   const imageResponse = await axios.put(url, file, {
-      //     headers: {
-      //       "Content-Type": file.type,
-      //     },
-      //   });
+      const imageResponse = await axios.put(url, file, {
+        headers: { "Content-Type": file.type },
+      });
 
-      //   if (imageResponse.status !== 200 && imageResponse.status !== 201) {
-      //     console.log("Image failed to upload");
-      //     return;
-      //   }
+      if (imageResponse.status !== 200 && imageResponse.status !== 201) {
+        console.error("Image failed to upload to S3");
+        return;
+      }
 
-      //   const imageUploadSaveResponse = await axios.patch(
-      //     "/api/tracks/edit_track",
-      //     {
-      //       uploaded: true,
-      //       id: props.data.track._id,
-      //       newKey: imageKey,
-      //       oldKey: props.data.track.image || null,
-      //     }
-      //   );
+      const saveImageResponse = await axios.patch("/api/album/edit", {
+        id: props.data.album.id,
+        name: formData.name,
+        artist: formData.artist,
+        uploaded: true,
+        newKey: imageKey,
+        oldKey: props.data.album.image || null,
+      });
 
-      //   if (imageUploadSaveResponse.status !== 200) {
-      //     console.log("Failed to upload");
-      //     return;
-      //   }
+      if (saveImageResponse.status !== 200) {
+        console.error("Failed to save image key");
+        return;
+      }
 
-      //   queryClient.invalidateQueries({
-      //     queryKey: ["single", props.data.track._id],
-      //   });
-      // }
+      queryClient.invalidateQueries({ queryKey: ["album", props.data.album.id] });
     }
   };
 
@@ -165,7 +152,7 @@ export default function SongPage(props: Props) {
           setColors(palette.slice(0, 5));
 
           setColor(
-            props.data && props.data.album._id === props.data.album._id
+            props.data && props.data.album.id === props.data.album.id
               ? palette
               : color
           );
@@ -295,7 +282,7 @@ export default function SongPage(props: Props) {
                 type="text"
                 id="artist"
                 className="bg-white/0 border-2 select-none rounded-lg h-[2.5rem] text-white px-[0.5rem] focus:ring-0 focus:outline-none"
-                value={formData.artist}
+                value={formData.artist || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, artist: e.target.value })
                 }
@@ -464,10 +451,15 @@ export default function SongPage(props: Props) {
           <div className="w-[100%] ml-10 h-[35%] flex items-end">
             <div
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
-              // onClick={() => {
-              //   props.setPlaying(props.data.track._id, true);
-              //   props.setData(props.data);
-              // }}
+              onClick={() => {
+                const tracks = props.data?.tracks ?? [];
+                if (tracks.length > 0) {
+                  const albumImage = props.data.album.image;
+                  const tracksWithAlbumArt = tracks.map((t) => ({ ...t, image: albumImage || t.image }));
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  setQueue(tracksWithAlbumArt as any[], 0);
+                }
+              }}
             >
               <svg
                 fill="white"
@@ -482,7 +474,7 @@ export default function SongPage(props: Props) {
               <p className="flex">Play</p>
             </div>
 
-            {props.user && props.user._id === props.data.album.user && (
+            {props.user && props.user.id === props.data.album.userId && (
               <div
                 className="justify-end ml-auto mr-10 flex cursor-pointer"
                 onClick={() => setOptions(!options)}
@@ -505,10 +497,17 @@ export default function SongPage(props: Props) {
 
       {/* tracklist */}
       <div className="w-full h-fit justify-start flex flex-col gap-2">
-        {props.data.tracks.map((track: any) => (
+        {(props.data?.tracks ?? []).map((track: Track, index: number) => (
           <div
+            key={track.id}
             className="flex first:mt-10 mx-20 h-14 rounded-lg odd:bg-neutral-800 even:bg-neutral-900 hover:bg-neutral-700 cursor-pointer "
-            // onDoubleClick={() => props.handleSong("reset")}
+            onClick={() => {
+              const tracks = props.data?.tracks ?? [];
+              const albumImage = props.data.album.image;
+              const tracksWithAlbumArt = tracks.map((t) => ({ ...t, image: albumImage || t.image }));
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              setQueue(tracksWithAlbumArt as any[], index);
+            }}
           >
             <div className="w-[5%] justify-left items-center flex ml-5 ">
               <svg
@@ -541,7 +540,7 @@ export default function SongPage(props: Props) {
               {track.artist}
             </div>
             <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold justify-end select-all pr-3">
-              {formatTime(track.duration)}
+              {formatTime(track.duration ?? 0)}
             </div>
           </div>
         ))}
