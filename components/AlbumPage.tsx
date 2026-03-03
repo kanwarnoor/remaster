@@ -50,7 +50,7 @@ export default function SongPage(props: Props) {
     // deleting album
     if (option === "delete") {
       const confirmDelete = confirm(
-        "Are you sure you want to delete this album?"
+        "Are you sure you want to delete this album?",
       );
       if (!confirmDelete) return;
 
@@ -89,7 +89,9 @@ export default function SongPage(props: Props) {
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["album", props.data.album.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["album", props.data.album.id],
+      });
 
       const { url, imageKey } = response.data;
 
@@ -124,7 +126,9 @@ export default function SongPage(props: Props) {
         return;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["album", props.data.album.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["album", props.data.album.id],
+      });
     }
   };
 
@@ -154,7 +158,7 @@ export default function SongPage(props: Props) {
           setColor(
             props.data && props.data.album.id === props.data.album.id
               ? palette
-              : color
+              : color,
           );
         }
       } catch (err) {
@@ -187,7 +191,7 @@ export default function SongPage(props: Props) {
     if (hrs > 0) {
       return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(
         2,
-        "0"
+        "0",
       )}`;
     } else {
       return `${mins}:${String(secs).padStart(2, "0")}`;
@@ -455,7 +459,10 @@ export default function SongPage(props: Props) {
                 const tracks = props.data?.tracks ?? [];
                 if (tracks.length > 0) {
                   const albumImage = props.data.album.image;
-                  const tracksWithAlbumArt = tracks.map((t) => ({ ...t, image: albumImage || t.image }));
+                  const tracksWithAlbumArt = tracks.map((t) => ({
+                    ...t,
+                    image: albumImage || t.image,
+                  }));
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   setQueue(tracksWithAlbumArt as any[], 0);
                 }
@@ -504,33 +511,27 @@ export default function SongPage(props: Props) {
             onClick={() => {
               const tracks = props.data?.tracks ?? [];
               const albumImage = props.data.album.image;
-              const tracksWithAlbumArt = tracks.map((t) => ({ ...t, image: albumImage || t.image }));
+              const tracksWithAlbumArt = tracks.map((t) => ({
+                ...t,
+                image: albumImage || t.image,
+              }));
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               setQueue(tracksWithAlbumArt as any[], index);
             }}
           >
             <div className="w-[5%] justify-left items-center flex ml-5 ">
               <svg
-                viewBox="0 0 24.00 24.00"
-                fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-white size-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                className="size-5 stroke-white cursor-pointer"
               >
-                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                <g
-                  id="SVGRepo_tracerCarrier"
+                <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                ></g>
-                <g id="SVGRepo_iconCarrier">
-                  {" "}
-                  <path
-                    d="M12 3L14.0357 8.16153C14.2236 8.63799 14.3175 8.87622 14.4614 9.0771C14.5889 9.25516 14.7448 9.41106 14.9229 9.53859C15.1238 9.68245 15.362 9.77641 15.8385 9.96432L21 12L15.8385 14.0357C15.362 14.2236 15.1238 14.3175 14.9229 14.4614C14.7448 14.5889 14.5889 14.7448 14.4614 14.9229C14.3175 15.1238 14.2236 15.362 14.0357 15.8385L12 21L9.96432 15.8385C9.77641 15.362 9.68245 15.1238 9.53859 14.9229C9.41106 14.7448 9.25516 14.5889 9.0771 14.4614C8.87622 14.3175 8.63799 14.2236 8.16153 14.0357L3 12L8.16153 9.96432C8.63799 9.77641 8.87622 9.68245 9.0771 9.53859C9.25516 9.41106 9.41106 9.25516 9.53859 9.0771C9.68245 8.87622 9.77641 8.63799 9.96432 8.16153L12 3Z"
-                    strokeWidth="0.9600000000000002"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  ></path>{" "}
-                </g>
+                  d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                />
               </svg>
             </div>
             <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-xl font-bold">

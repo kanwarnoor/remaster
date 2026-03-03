@@ -562,21 +562,38 @@ export default function SongPage(props: Props) {
             <div
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
               onClick={() => {
-                props.setPlaying(props.data.track.id, true);
-                props.setData(props.data.track as unknown as Track);
+                props.setPlaying(props.data.track.id, !props.playing);
+                if (!props.playing) {
+                  props.setData(props.data.track as unknown as Track);
+                }
               }}
             >
-              <svg
-                fill="white"
-                viewBox="0 0 32 32"
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                className="size-7 cursor-pointer flex"
-              >
-                <title>play</title>
-                <path d="M5.92 24.096q0 1.088 0.928 1.728 0.512 0.288 1.088 0.288 0.448 0 0.896-0.224l16.16-8.064q0.48-0.256 0.8-0.736t0.288-1.088-0.288-1.056-0.8-0.736l-16.16-8.064q-0.448-0.224-0.896-0.224-0.544 0-1.088 0.288-0.928 0.608-0.928 1.728v16.16z"></path>
-              </svg>
-              <p className="flex">Play</p>
+              {props.playing ? (
+                <svg
+                  width="800px"
+                  height="800px"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="size-6 mr-1 cursor-pointer flex"
+                >
+                  <path d="M7 1H2V15H7V1Z" fill="white" />
+                  <path d="M14 1H9V15H14V1Z" fill="white" />
+                </svg>
+              ) : (
+                <svg
+                  fill="white"
+                  viewBox="0 0 32 32"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="size-7 cursor-pointer flex"
+                >
+                  <title> play</title>
+                  <path d="M5.92 24.096q0 1.088 0.928 1.728 0.512 0.288 1.088 0.288 0.448 0 0.896-0.224l16.16-8.064q0.48-0.256 0.8-0.736t0.288-1.088-0.288-1.056-0.8-0.736l-16.16-8.064q-0.448-0.224-0.896-0.224-0.544 0-1.088 0.288-0.928 0.608-0.928 1.728v16.16z"></path>
+                </svg>
+              )}
+
+              <p className="flex">{props.playing ? "Pause" : "Play"}</p>
             </div>
 
             {props.user && props.user.id === props.data.track.userId && (
@@ -601,42 +618,39 @@ export default function SongPage(props: Props) {
       </div>
 
       {/* tracklist */}
-      <div className="w-full h-fit justify-start flex flex-col ">
+      <div
+        className="w-full h-fit justify-start flex flex-col"
+        onDoubleClick={() => {
+          props.setPlaying(props.data.track.id, true);
+          props.setData(props.data.track as unknown as Track);
+        }}
+      >
         <div
-          className="flex mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 cursor-pointer "
+          className="flex mt-10 mx-20 h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700  "
           // onDoubleClick={() => props.handleSong("reset")}
         >
           <div className="w-[5%] justify-left items-center flex ml-5 ">
             <svg
-              viewBox="0 0 24.00 24.00"
-              fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="stroke-white size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              className="size-5 stroke-white cursor-pointer"
             >
-              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-              <g
-                id="SVGRepo_tracerCarrier"
+              <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-              ></g>
-              <g id="SVGRepo_iconCarrier">
-                {" "}
-                <path
-                  d="M12 3L14.0357 8.16153C14.2236 8.63799 14.3175 8.87622 14.4614 9.0771C14.5889 9.25516 14.7448 9.41106 14.9229 9.53859C15.1238 9.68245 15.362 9.77641 15.8385 9.96432L21 12L15.8385 14.0357C15.362 14.2236 15.1238 14.3175 14.9229 14.4614C14.7448 14.5889 14.5889 14.7448 14.4614 14.9229C14.3175 15.1238 14.2236 15.362 14.0357 15.8385L12 21L9.96432 15.8385C9.77641 15.362 9.68245 15.1238 9.53859 14.9229C9.41106 14.7448 9.25516 14.5889 9.0771 14.4614C8.87622 14.3175 8.63799 14.2236 8.16153 14.0357L3 12L8.16153 9.96432C8.63799 9.77641 8.87622 9.68245 9.0771 9.53859C9.25516 9.41106 9.41106 9.25516 9.53859 9.0771C9.68245 8.87622 9.77641 8.63799 9.96432 8.16153L12 3Z"
-                  strokeWidth="0.9600000000000002"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                ></path>{" "}
-              </g>
+                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+              />
             </svg>
           </div>
-          <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-xl font-bold">
+          <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
             {props.data.track.name}
           </div>
-          <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold">
+          <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
             {props.data.track.artist}
           </div>
-          <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-bold justify-end select-all pr-3">
+          <div className=" w-[10%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium justify-end select-all pr-3">
             {formatTime(props.data.track.duration)}
           </div>
         </div>
