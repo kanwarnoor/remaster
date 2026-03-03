@@ -71,7 +71,7 @@ export default function FileUpload() {
 
         const chunkSize = 5 * 1024 * 1024; // 5MB
         const uploadPromises = [];
-        const uploadResult: { ETag: any; PartNumber: number }[] = [];
+        const uploadResult: { ETag: string; PartNumber: number }[] = [];
         const totalChunks = Math.ceil(file.size / chunkSize);
         let chunksUploaded = 0;
 
@@ -81,7 +81,7 @@ export default function FileUpload() {
           const chunk = file.slice(start, end);
 
           const presignedUrl = urls.find(
-            (u: any) => u.partNumber == partNumber
+            (u: { partNumber: number }) => u.partNumber == partNumber,
           )?.url;
 
           if (!presignedUrl) {
@@ -100,7 +100,7 @@ export default function FileUpload() {
                   chunksUploaded += 1;
                 }
                 const percentage = Math.round(
-                  (chunksUploaded / totalChunks) * 100
+                  (chunksUploaded / totalChunks) * 100,
                 );
                 // Update progress bar or UI element with the percentage
                 setProgress(percentage);
@@ -131,7 +131,7 @@ export default function FileUpload() {
 
               if (!cleanEtag) {
                 console.log(
-                  "Error uploading chunk (etag extraction error) " + partNumber
+                  "Error uploading chunk (etag extraction error) " + partNumber,
                 );
                 setLoading(false);
                 return;
@@ -266,7 +266,7 @@ export default function FileUpload() {
             </div>
           ) : (
             <p className="font-bold remaster text-5xl">
-              DROP IT LIKE IT'S HOT🔥
+              DROP IT LIKE IT&apos;S HOT🔥
             </p>
           )}
 

@@ -62,7 +62,7 @@ export async function POST(req: Request) {
                   new Uint8Array(Object.values(art.data) as number[])
                 );
 
-          artKey = `${crypto.randomBytes(8).toString("hex")}`;
+          artKey = crypto.randomUUID();
           await s3Client.send(
             new PutObjectCommand({
               Bucket: AWS_BUCKET_NAME,

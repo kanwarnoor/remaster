@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: "Please login to upload!" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -37,19 +37,20 @@ export async function POST(req: NextRequest) {
     if (!type.startsWith("audio/")) {
       return NextResponse.json(
         { error: "Invalid file type. Only audio files are allowed." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (size > MAX_SIZE) {
       return NextResponse.json(
         { error: "File size exceeds the maximum limit of 100 MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const chunkCount = Math.ceil(size / CHUNK_SIZE);
-    const name = `${crypto.randomBytes(8).toString("hex")}`;
+
+    const name = crypto.randomUUID();
 
     // Initialize multipart upload
     const multipartUpload = new CreateMultipartUploadCommand({
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
     if (!UploadId) {
       return NextResponse.json(
         { error: "Failed to initiate multipart upload" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -88,16 +89,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { urls: presignedUrls, uploadId: UploadId, key: name },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error(
       "Detailed error:",
-      error instanceof Error ? error.stack : String(error)
+      error instanceof Error ? error.stack : String(error),
     );
     return NextResponse.json(
       { error: "Failed to initiate multipart upload" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

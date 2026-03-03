@@ -13,7 +13,7 @@ export default function Upload({click}: Props) {
     animate={{
       scale:1,
     }}
-    whileTap={{
+  whileTap={{
       scale:1.2,
     }}
      className="bg-[#141414] w-fit h-fit p-10 rounded-xl cursor-pointer" onClick={click}>
