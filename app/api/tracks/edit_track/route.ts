@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
       if (artist) track.artist = artist;
 
       // Handle art upload if present
-      const imageKey = crypto.randomBytes(8).toString("hex");
+      const imageKey = crypto.randomUUID();
       if (fileType && fileSize) {
         const command = new PutObjectCommand({
           Bucket: process.env.AWS_BUCKET_NAME,
