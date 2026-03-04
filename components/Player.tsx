@@ -224,7 +224,7 @@ export default function Player() {
         transition={{ duration: 0.5, ease: "easeInOut" }}
         className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md text-black rounded-full flex`}
       >
-        <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full">
+        <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full ">
           <div className="flex items-center gap-2 cursor-pointer">
             <div
               className="flex group"
@@ -368,7 +368,8 @@ export default function Player() {
             </div>
           </div>
         </div>
-        <div className="w-[30%] h-full flex items-center justify-end gap-2 px-6 rounded-r-full transition-all duration-100 z-10">
+        
+        <div className="w-[30%] h-full flex items-center justify-center gap-2  rounded-r-full transition-all duration-100 z-10">
           {/* Queue button */}
           <button
             className={`p-2 rounded-full transition-all duration-100 ${
@@ -424,7 +425,7 @@ export default function Player() {
           </button>
           <div className="flex items-center gap-0">
             <button
-              className="p-2 hover:bg-black/10 rounded-full"
+              className="p-1 hover:bg-black/10 rounded-full"
               onClick={() => {
                 setVolume({
                   value: volume.value === 0 ? volume.preValue : 0,
@@ -442,7 +443,7 @@ export default function Player() {
               </svg>
             </button>
             <div
-              className="relative w-20 h-1 bg-black/50 rounded-full cursor-pointer group"
+              className="relative w-15 h-1 bg-black/50 rounded-full cursor-pointer group"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
@@ -453,6 +454,7 @@ export default function Player() {
                 });
               }}
             >
+              
               <div
                 className="absolute h-full bg-black rounded-full"
                 style={{ width: `${volume.value * 100}%` }}
