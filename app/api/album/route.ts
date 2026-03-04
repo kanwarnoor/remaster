@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
           id: user.id,
         },
       },
+      include: {
+        tracks: true,
+      },
     });
 
     console.log("[GET /api/album] found albums:", album.length);

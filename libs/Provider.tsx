@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { PlayerProvider } from "@/context/PlayerContext";
+import { UploadProvider } from "@/context/UploadContext";
 
 export default function QueryProvider({
   children,
@@ -13,7 +14,9 @@ export default function QueryProvider({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PlayerProvider>{children}</PlayerProvider>
+      <PlayerProvider>
+        <UploadProvider>{children}</UploadProvider>
+      </PlayerProvider>
     </QueryClientProvider>
   );
 }
