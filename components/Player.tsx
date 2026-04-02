@@ -6,6 +6,7 @@ import Image from "next/image";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { usePlayer } from "@/context/PlayerContext";
+import { getPaletteSync } from "colorthief";
 
 import type ReactPlayer from "react-player";
 import ReactPlayerComponent from "react-player";
@@ -28,6 +29,7 @@ export default function Player() {
     setPlaying,
     playing,
     color,
+    setColor,
     queue,
     queueIndex,
     playNext,
@@ -43,6 +45,7 @@ export default function Player() {
 
   const [volume, setVolume] = useState({ value: 1, preValue: 1 });
   const playerRef = useRef<typeof ReactPlayer>(null);
+  const colorImgRef = useRef<HTMLImageElement>(null);
   const [progress, setProgress] = useState({
     played: 0,
     playedSeconds: 0,
@@ -55,6 +58,36 @@ export default function Player() {
       setMounted(true);
     }, 1000);
   }, []);
+
+  // Extract colors from the currently playing track's image
+  useEffect(() => {
+    if (!playerData?.image) return;
+
+    const img = colorImgRef.current;
+    if (!img) return;
+
+    function extractColors() {
+      try {
+        if (!img) return;
+        const palette = getPaletteSync(img, { colorCount: 5 });
+        if (palette && palette.length > 0) {
+          setColor(palette.map(c => c.array()));
+        }
+      } catch (err) {
+        console.error("Player color extraction error:", err);
+      }
+    }
+
+    if (img.complete && img.naturalWidth > 0) {
+      extractColors();
+    } else {
+      img.onload = extractColors;
+    }
+
+    return () => {
+      if (img) img.onload = null;
+    };
+  }, [playerData?.id]);
 
   const { data: audio } = useQuery({
     queryKey: ["audio", playerData?.id],
@@ -86,7 +119,9 @@ export default function Player() {
   const handleEnded = () => {
     if (repeat === 2) {
       // Repeat one: restart current track
-      const mediaEl = document.querySelector("audio, video") as HTMLMediaElement | null;
+      const mediaEl = document.querySelector(
+        "audio, video",
+      ) as HTMLMediaElement | null;
       if (mediaEl) {
         mediaEl.currentTime = 0;
         mediaEl.play();
@@ -125,6 +160,18 @@ export default function Player() {
     );
   });
 
+  // Determine if player bar text should be white or black
+  // The bar has bg-white/50 backdrop-blur, so mix palette with white
+  const avgLuminance =
+    safeColor.reduce(
+      (sum, c) => sum + getLuminance(c as [number, number, number]),
+      0,
+    ) / safeColor.length;
+  // Account for the white/50 overlay: effective ≈ 0.5 * white + 0.5 * blur(palette)
+  const effectiveLuminance = 0.5 * 1.0 + 0.5 * avgLuminance;
+  const isDarkBg = effectiveLuminance < 0.55;
+  const textColor = isDarkBg ? "white" : "black";
+
   return (
     <>
       <div className="hidden ">
@@ -136,6 +183,16 @@ export default function Player() {
           controls={false}
           loop={false}
           onEnded={handleEnded}
+        />
+        <img
+          ref={colorImgRef}
+          src={
+            playerData?.image
+              ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData.image}`
+              : "/music.jpg"
+          }
+          crossOrigin="anonymous"
+          alt="color-extract"
         />
       </div>
 
@@ -160,14 +217,27 @@ export default function Player() {
                   className="cursor-pointer p-1 hover:bg-white/10 rounded-full transition-all"
                   onClick={() => setShowQueue(false)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="white" className="size-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    stroke="white"
+                    className="size-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18 18 6M6 6l12 12"
+                    />
                   </svg>
                 </div>
               </div>
               <div className="overflow-y-auto max-h-[340px] p-2">
                 {queue.length === 0 && (
-                  <p className="text-white/50 text-center py-4">Queue is empty</p>
+                  <p className="text-white/50 text-center py-4">
+                    Queue is empty
+                  </p>
                 )}
                 {queue.map((track, index) => (
                   <div
@@ -177,7 +247,9 @@ export default function Player() {
                     }`}
                     onClick={() => jumpToQueueIndex(index)}
                   >
-                    <p className="text-white/40 text-sm w-6 text-right">{index + 1}</p>
+                    <p className="text-white/40 text-sm w-6 text-right">
+                      {index + 1}
+                    </p>
                     <img
                       src={
                         track.image
@@ -193,14 +265,23 @@ export default function Player() {
                       }}
                     />
                     <div className="flex flex-col overflow-hidden">
-                      <p className={`text-sm font-medium truncate ${index === queueIndex ? "text-white" : "text-white/70"}`}>
+                      <p
+                        className={`text-sm font-medium truncate ${index === queueIndex ? "text-white" : "text-white/70"}`}
+                      >
                         {track.name}
                       </p>
-                      <p className="text-xs text-white/40 truncate">{track.artist}</p>
+                      <p className="text-xs text-white/40 truncate">
+                        {track.artist}
+                      </p>
                     </div>
                     {index === queueIndex && (
                       <div className="ml-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="size-4">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="white"
+                          className="size-4"
+                        >
                           <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z" />
                         </svg>
                       </div>
@@ -222,7 +303,16 @@ export default function Player() {
         }}
         exit={{ opacity: 0, y: 50 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
-        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md text-black rounded-full flex`}
+        style={{
+          background: dark
+            ? `rgba(${dark[4]?.[0] ?? 32},${dark[4]?.[1] ?? 32},${dark[4]?.[2] ?? 32},0.50)`
+            : `rgba(${color[0]?.[0] ?? 32},${color[0]?.[1] ?? 32},${color[0]?.[2] ?? 32},0.20)`,
+          borderTop: dark
+            ? `2px solid rgba(${dark[4][0]},${dark[4][1]},${dark[4][2]},1)`
+            : "2px solid rgba(32,32,32,0.15)",
+          color: textColor,
+        }}
+        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter] duration-300`}
       >
         <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full ">
           <div className="flex items-center gap-2 cursor-pointer">
@@ -231,9 +321,9 @@ export default function Player() {
               onClick={() => setFullscreen(!fullscreen)}
             >
               <svg
-                className="size-5 opacity-0 absolute top-0 left-0 m-[1.4rem] group-hover:opacity-100 transition-all duration-100 fill-black"
+                className="size-5 opacity-0 absolute top-0 left-0 m-[1.4rem] group-hover:opacity-100 transition-all duration-100 fill-current"
                 viewBox="0 0 24 24"
-                fill="black"
+                fill="currentColor"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path d="M21.7092 2.29502C21.8041 2.3904 21.8757 2.50014 21.9241 2.61722C21.9727 2.73425 21.9996 2.8625 22 2.997L22 3V9C22 9.55228 21.5523 10 21 10C20.4477 10 20 9.55228 20 9V5.41421L14.7071 10.7071C14.3166 11.0976 13.6834 11.0976 13.2929 10.7071C12.9024 10.3166 12.9024 9.68342 13.2929 9.29289L18.5858 4H15C14.4477 4 14 3.55228 14 3C14 2.44772 14.4477 2 15 2H20.9998C21.2749 2 21.5242 2.11106 21.705 2.29078L21.7092 2.29502Z" />
@@ -253,25 +343,22 @@ export default function Player() {
             </div>
             <div>
               <h3 className="font-medium">{playerData?.name}</h3>
-              <p className="text-xs text-black">{playerData?.artist}</p>
+              <p className="text-xs opacity-70">{playerData?.artist}</p>
             </div>
           </div>
         </div>
         <div className="relative w-[40%] h-full flex items-center justify-center gap-3">
           <div>
             {/* previous */}
-            <div
-              className="cursor-pointer mb-2"
-              onClick={() => playPrev()}
-            >
+            <div className="cursor-pointer mb-2" onClick={() => playPrev()}>
               <svg
                 viewBox="0 0 24 24"
-                className="size-9 fill-black"
+                className="size-9 fill-current"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   d="M5 18L5 6M19 6V18L9 12L19 6Z"
-                  stroke="#000000"
+                  stroke="currentColor"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -323,10 +410,7 @@ export default function Player() {
           </div>
           <div>
             {/* next */}
-            <div
-              className="cursor-pointer mb-2"
-              onClick={() => playNext()}
-            >
+            <div className="cursor-pointer mb-2" onClick={() => playNext()}>
               <svg
                 viewBox="0 0 24 24"
                 className="size-9 fill-black rotate-180"
@@ -368,7 +452,7 @@ export default function Player() {
             </div>
           </div>
         </div>
-        
+
         <div className="w-[30%] h-full flex items-center justify-center gap-2  rounded-r-full transition-all duration-100 z-10">
           {/* Queue button */}
           <button
@@ -377,7 +461,16 @@ export default function Player() {
             }`}
             onClick={() => setShowQueue(!showQueue)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="size-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="8" y1="6" x2="21" y2="6" />
               <line x1="8" y1="12" x2="21" y2="12" />
               <line x1="8" y1="18" x2="21" y2="18" />
@@ -454,7 +547,6 @@ export default function Player() {
                 });
               }}
             >
-              
               <div
                 className="absolute h-full bg-black rounded-full"
                 style={{ width: `${volume.value * 100}%` }}

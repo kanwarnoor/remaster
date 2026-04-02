@@ -1,0 +1,823 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import Image from "next/image";
+// import ColorThief from "colorthief";
+import {getPaletteSync} from 'colorthief';
+
+import Options from "@/components/Options";
+import axios from "axios";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import ResizeImage from "@/libs/ResizeImage";
+import Switch from "@/components/Switch";
+import { usePlayer } from "@/context/PlayerContext";
+import { useRouter } from "next/navigation";
+import { Track, Album } from "@/app/generated/prisma/client";
+
+type AlbumMode = {
+  mode: "album";
+  data: {
+    album: Album;
+    tracks: Track[];
+  };
+  user?: { id: string };
+};
+
+type SingleMode = {
+  mode: "single";
+  data: {
+    track: {
+      id: string;
+      name: string;
+      artist: string;
+      duration: number;
+      art: string;
+      timestamps: string[];
+      visibility: string;
+      userId: string;
+      createdAt: string;
+      image: string;
+      album: string;
+    };
+  };
+  user: { id: string; username: string };
+  playing: boolean;
+  setPlaying: (id: string, playing: boolean) => void;
+  setData: (data: Track) => void;
+  toggleVisibility: () => void;
+};
+
+type Props = AlbumMode | SingleMode;
+
+export default function MusicPage(props: Props) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [options, setOptions] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [editing, setEditing] = useState(false);
+  const [addAlbum, setAddAlbum] = useState(false);
+  const [colors, setColors] = useState<[number, number, number][]>([]);
+
+  const isAlbum = props.mode === "album";
+
+  // Normalized accessors
+  const itemId = isAlbum ? props.data.album.id : props.data.track.id;
+  const itemName = isAlbum ? props.data.album.name : props.data.track.name;
+  const itemArtist = isAlbum
+    ? props.data.album.artist
+    : props.data.track.artist;
+  const itemImage = isAlbum ? props.data.album.image : props.data.track.image;
+  const itemUserId = isAlbum
+    ? props.data.album.userId
+    : props.data.track.userId;
+  const itemCreatedAt = isAlbum
+    ? props.data.album.createdAt
+    : props.data.track.createdAt;
+
+  const date = new Date(itemCreatedAt);
+  const createdAt = `${date.toLocaleString("default", {
+    month: "long",
+  })} ${date.getDate()}, ${date.getFullYear()}`;
+
+  const playerCtx = usePlayer();
+
+  const [formData, setFormData] = useState({
+    name: itemName,
+    artist: itemArtist,
+    previewArt: itemImage
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${itemImage}`
+      : null,
+    art: null as File | null,
+  });
+
+  // Albums query (single mode only)
+  const {
+    data: albums = [],
+    isLoading: albumsLoading,
+  } = useQuery({
+    queryKey: ["albums"],
+    queryFn: async () => {
+      const album = await axios.get("/api/album");
+      return album.data.album || [];
+    },
+    enabled: !isAlbum && !!props.user && addAlbum,
+  });
+
+  const handleOption = async (option: string) => {
+    setOptions(false);
+
+    if (option === "delete") {
+      const confirmDelete = confirm(
+        `Are you sure you want to delete this ${isAlbum ? "album" : "track"}?`,
+      );
+      if (!confirmDelete) return;
+
+      if (isAlbum) {
+        const response = await axios.delete("/api/album/delete", {
+          data: { id: itemId },
+        });
+        if (response.status !== 200) {
+          console.error("Failed to delete album");
+        } else {
+          window.location.href = "/";
+        }
+      } else {
+        const response = await axios.delete(`/api/tracks/delete_track`, {
+          data: { id: itemId },
+        });
+        if (response.status !== 200) {
+          console.error("Failed to delete track");
+        } else {
+          window.location.href = "/";
+        }
+      }
+    }
+
+    if (option === "toggleEdit") {
+      setEditing(true);
+      setOptions(false);
+      return;
+    }
+
+    if (option === "edit") {
+      setEditing(false);
+
+      if (isAlbum) {
+        const response = await axios.patch("/api/album/edit", {
+          id: itemId,
+          name: formData.name,
+          artist: formData.artist,
+          fileType: formData.art?.type,
+          fileSize: formData.art?.size,
+          uploaded: false,
+        });
+
+        if (response.status !== 200) {
+          console.error("Failed to edit album");
+          return;
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+
+        const { url, imageKey } = response.data;
+        if (!url) return;
+
+        const file = formData.art;
+        if (!file) return;
+
+        const imageResponse = await axios.put(url, file, {
+          headers: { "Content-Type": file.type },
+        });
+
+        if (imageResponse.status !== 200 && imageResponse.status !== 201) {
+          console.error("Image failed to upload to S3");
+          return;
+        }
+
+        const saveImageResponse = await axios.patch("/api/album/edit", {
+          id: itemId,
+          name: formData.name,
+          artist: formData.artist,
+          uploaded: true,
+          newKey: imageKey,
+          oldKey: itemImage || null,
+        });
+
+        if (saveImageResponse.status !== 200) {
+          console.error("Failed to save image key");
+          return;
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+      } else {
+        const response = await axios.patch(`/api/tracks/edit_track`, {
+          id: itemId,
+          name: formData.name,
+          artist: formData.artist,
+          fileType: formData.art && formData.art.type,
+          fileSize: formData.art && formData.art.size,
+          uploaded: false,
+        });
+
+        if (response.status !== 200) {
+          console.error("Failed to edit track");
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["single", itemId] });
+          const { url, imageKey } = response.data;
+
+          if (!url) return;
+          const file = formData.art;
+          if (!file) return;
+
+          const imageResponse = await axios.put(url, file, {
+            headers: { "Content-Type": file.type },
+          });
+
+          if (imageResponse.status !== 200 && imageResponse.status !== 201) {
+            console.log("Image failed to upload");
+            return;
+          }
+
+          const imageUploadSaveResponse = await axios.patch(
+            "/api/tracks/edit_track",
+            {
+              uploaded: true,
+              id: itemId,
+              newKey: imageKey,
+              oldKey: itemImage || null,
+            },
+          );
+
+          if (imageUploadSaveResponse.status !== 200) {
+            console.log("Failed to upload");
+            return;
+          }
+
+          queryClient.invalidateQueries({ queryKey: ["single", itemId] });
+        }
+      }
+    }
+
+    if (option === "album" && !isAlbum) {
+      setAddAlbum(true);
+    }
+  };
+
+  const addTrackToAlbum = async (albumId: string) => {
+    if (isAlbum) return;
+    try {
+      const response = await axios.post("/api/album/add", {
+        albumId,
+        trackId: props.data.track.id,
+      });
+
+      if (response.status !== 200) {
+        console.error("Failed to add track to album");
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["albums"] });
+        setAddAlbum(false);
+      }
+    } catch (error) {
+      console.error("Failed to add track to album", error);
+    }
+  };
+
+  const handleAlbum = async () => {
+    if (isAlbum) return;
+    setAddAlbum(false);
+
+    try {
+      const response = await axios.post("/api/album", {
+        track_ids: [props.data.track.id],
+        name: props.data.track.name,
+        image: props.data.track.image,
+        artist: props.data.track.artist,
+      });
+
+      if (response.status !== 200) {
+        console.error("Failed to add track to album");
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["albums"] });
+        setAddAlbum(false);
+        router.push(`/album/${response.data.album.id}`);
+      }
+    } catch (error) {
+      console.error("Failed to add track to album");
+    }
+  };
+
+  const list = isAlbum
+    ? [
+        { name: "Edit", handleOption: () => handleOption("toggleEdit") },
+        {
+          name: "Delete",
+          danger: true,
+          handleOption: () => handleOption("delete"),
+        },
+      ]
+    : [
+        { name: "Edit", handleOption: () => handleOption("toggleEdit") },
+        { name: "Album", handleOption: () => handleOption("album") },
+        {
+          name: "Delete",
+          danger: true,
+          handleOption: () => handleOption("delete"),
+        },
+      ];
+
+  useEffect(() => {
+    const img = imgRef.current;
+
+    function getColor() {
+      try {
+        if (!img) return;
+        // const colorThief = new ColorThief();
+        
+        const palette = getPaletteSync(img, {colorCount: 5});
+        if (palette && palette.length > 0) {
+          const rgbPalette = palette.map(c => c.array());
+          setColors(rgbPalette);
+
+          // Don't set player color here — Player.tsx handles its own colors
+          // based on the currently playing track.
+        }
+      } catch (err) {
+        console.error("Color Thief error:", err);
+        setColors([]);
+      }
+    }
+
+    if (img) {
+      if (img.complete) {
+        getColor();
+      } else {
+        img.onload = getColor;
+      }
+    }
+
+    return () => {
+      if (img) {
+        img.onload = null;
+      }
+    };
+  }, [itemImage, isAlbum ? null : playerCtx.data]);
+
+  function formatTime(seconds: number) {
+    seconds = Math.floor(seconds);
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hrs > 0) {
+      return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(
+        2,
+        "0",
+      )}`;
+    } else {
+      return `${mins}:${String(secs).padStart(2, "0")}`;
+    }
+  }
+
+  // Build tracks list for the tracklist section
+  const tracksList = isAlbum
+    ? (props.data.tracks ?? [])
+    : [props.data.track];
+
+  const imageUrl = itemImage
+    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${itemImage}`
+    : "/music.jpg";
+
+  const typeLabel = isAlbum
+    ? "Album"
+    : props.data.track.album != null
+      ? "Album"
+      : "Single";
+
+  return (
+    <div className="w-screen min-h-screen pt-10 text-center select-none ">
+      <div
+        className="absolute top-0 w-screen -z-10  h-[500px]"
+        style={
+          colors.length >= 1
+            ? {
+                backgroundImage: `linear-gradient(to bottom,
+              rgba(${colors[0].join(",")}, 0.7) 5%,
+              rgba(0, 0, 0, 1) 100%, rgb(0, 0, 0) 100%`,
+              }
+            : {}
+        }
+      ></div>
+
+      {/* Edit modal */}
+      {editing && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-10"
+            onClick={() => setEditing(false)}
+          ></div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute w-fit h-[20rem] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex justify-start items-center px-10"
+          >
+            <div className=" w-56 h-56 flex justify-center items-center rounded-lg overflow-hidden group">
+              <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
+                <p className="text-xl font-bold text-white hidden group-hover:flex transition-all">
+                  Edit
+                </p>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  name=""
+                  id=""
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const resizedFile = await ResizeImage(file, 800);
+                      const url = URL.createObjectURL(resizedFile);
+                      setFormData({
+                        ...formData,
+                        previewArt: url,
+                        art: resizedFile,
+                      });
+                    }
+                  }}
+                  className="absolute w-full h-full left-0 bottom-0 cursor-pointer opacity-0"
+                />
+              </div>
+              <Image
+                src={formData.previewArt || "/music.jpg"}
+                height={0}
+                width={0}
+                sizes="100% 100%"
+                alt=""
+                priority
+                className="w-56 h-56 flex transition rounded"
+              />
+            </div>
+
+            <form
+              className="mx-5 flex h-full flex-col text-left pt-16 pb-12"
+              onSubmit={() => handleOption("edit")}
+            >
+              <label htmlFor="title" className="text-sm">
+                Name
+              </label>
+              <input
+                type="text"
+                name="title"
+                id="title"
+                className="bg-white/0 border-2 select-none rounded-lg h-[2.5rem] text-white px-3  focus:ring-0 focus:outline-none"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+              />
+              <label htmlFor="title" className="text-sm mt-1">
+                Artist
+              </label>
+              <input
+                type="text"
+                id="artist"
+                className="bg-white/0 border-2 select-none rounded-lg h-[2.5rem] text-white px-[0.5rem] focus:ring-0 focus:outline-none"
+                value={formData.artist || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, artist: e.target.value })
+                }
+              />
+
+              {/* public private toggle - single mode only */}
+              {!isAlbum && (
+                <div className="flex mt-2 items-center ">
+                  <p className="text-sm capitalize">Public</p>
+                  <div>
+                    <Switch
+                      checked={props.data.track.visibility === "PUBLIC"}
+                      handleChange={() => props.toggleVisibility()}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex text-left mt-auto ">
+                <button
+                  type="submit"
+                  className="text-left flex mt-auto px-7 py-2 bg-black backdrop-blur-xl rounded-full text-base"
+                  onClick={() => handleOption("edit")}
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </>
+      )}
+
+      {/* Add to album modal - single mode only */}
+      {!isAlbum && addAlbum && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-10"
+            onClick={() => setAddAlbum(false)}
+          ></div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute w-[30%] h-fit max-h-[60%] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 text-black"
+          >
+            <div className="flex justify-between items-center">
+              <p className="text-3xl font-bold text-left top-0">Add to Album</p>
+              <div
+                className="flex hover:bg-white/20 rounded-full translate-x-2 p-2 cursor-pointer transition-all duration-100"
+                onClick={() => handleAlbum()}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
+              </div>
+            </div>
+            <div className="flex flex-col gap-0 mt-3 ">
+              {albumsLoading && <p>Loading...</p>}
+              {albums.length === 0 && <p>No albums found!</p>}
+              {albums?.map((album: Album & { tracks: Track[] }) => {
+                return (
+                  <div
+                    key={album.id}
+                    className="flex hover:bg-white/20 rounded-md p-2 transition-all duration-100"
+                  >
+                    <Image
+                      src={
+                        album.image
+                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${album.image}`
+                          : "/music.jpg"
+                      }
+                      alt={album.name}
+                      width={50}
+                      height={50}
+                      className="rounded-md"
+                    />
+                    <div className="flex flex-col items-start justify-center  ml-3 ">
+                      <p className="text-xl font-bold leading-tight text-ellipsis overflow-hidden line-clamp-1">
+                        {album.name}
+                      </p>
+                      <p className="text-xs text-ellipsis overflow-hidden line-clamp-1">
+                        {album.artist || "Unknown Artist"}
+                      </p>
+                    </div>
+
+                    <div
+                      className="ml-auto justify-center items-center flex cursor-pointer"
+                      onClick={() => addTrackToAlbum(album.id)}
+                    >
+                      {Array.isArray(album.tracks) &&
+                      album.tracks.findIndex(
+                        (track: Track) => track.id === props.data.track.id,
+                      ) !== -1 ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="black"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          className="size-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          className="size-6"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </>
+      )}
+
+      {/* Header section */}
+      <div className="h-80 rounded mx-20 mt-10 flex justify-left text-left ">
+        <motion.div
+          initial={{ opacity: 0, filter: "blur(20px)" }}
+          animate={{
+            opacity: 1,
+            filter: "blur(0px)",
+          }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="min-w-80 h-80 -z-10 flex w-80"
+        >
+          <Image
+            src={imageUrl}
+            height={0}
+            width={0}
+            sizes="100% 100%"
+            alt="Album Art"
+            priority
+            onError={(e) => {
+              e.currentTarget.src = "/music.jpg";
+            }}
+            className="w-80 h-full transition rounded"
+          />
+          <img
+            ref={imgRef}
+            src={imageUrl}
+            crossOrigin="anonymous"
+            style={{ display: "none" }}
+            alt="color-thief-img"
+            onError={(e) => {
+              e.currentTarget.src = "/music.jpg";
+            }}
+          />
+        </motion.div>
+        <div className="w-full">
+          <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
+            <p className="text-sm font-bold opacity-60">{typeLabel}</p>
+
+            <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
+              {itemName}
+            </p>
+            <p className="text-xl font-bold text-ellipsis overflow-hidden line-clamp-1">
+              {itemArtist || "Unknown Artist"}
+            </p>
+          </div>
+          <div className="w-[100%] ml-10 h-[35%] flex items-end">
+            <div
+              className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
+              onClick={() => {
+                if (isAlbum) {
+                  const tracks = props.data.tracks ?? [];
+                  if (tracks.length > 0) {
+                    const albumImage = props.data.album.image;
+                    const tracksWithAlbumArt = tracks.map((t) => ({
+                      ...t,
+                      image: albumImage || t.image,
+                    }));
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    playerCtx.setQueue(tracksWithAlbumArt as any[], 0);
+                  }
+                } else {
+                  props.setPlaying(props.data.track.id, !props.playing);
+                  if (!props.playing) {
+                    props.setData(props.data.track as unknown as Track);
+                  }
+                }
+              }}
+            >
+              {!isAlbum && props.playing ? (
+                <svg
+                  width="800px"
+                  height="800px"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="size-6 mr-1 cursor-pointer flex"
+                >
+                  <path d="M7 1H2V15H7V1Z" fill="white" />
+                  <path d="M14 1H9V15H14V1Z" fill="white" />
+                </svg>
+              ) : (
+                <svg
+                  fill="white"
+                  viewBox="0 0 32 32"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="size-7 cursor-pointer flex"
+                >
+                  <title>play</title>
+                  <path d="M5.92 24.096q0 1.088 0.928 1.728 0.512 0.288 1.088 0.288 0.448 0 0.896-0.224l16.16-8.064q0.48-0.256 0.8-0.736t0.288-1.088-0.288-1.056-0.8-0.736l-16.16-8.064q-0.448-0.224-0.896-0.224-0.544 0-1.088 0.288-0.928 0.608-0.928 1.728v16.16z"></path>
+                </svg>
+              )}
+
+              <p className="flex">
+                {!isAlbum && props.playing ? "Pause" : "Play"}
+              </p>
+            </div>
+
+            {props.user && props.user.id === itemUserId && (
+              <div
+                className="justify-end ml-auto mr-10 flex cursor-pointer"
+                onClick={() => setOptions(!options)}
+              >
+                Edit
+              </div>
+            )}
+          </div>
+          {options && (
+            <>
+              <div
+                className="fixed inset-0 z-0"
+                onClick={() => setOptions(false)}
+              ></div>
+              <Options list={list} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Tracklist */}
+      <div
+        className="w-full h-fit justify-start flex flex-col gap-2"
+        {...(!isAlbum
+          ? {
+              onDoubleClick: () => {
+                props.setPlaying(props.data.track.id, true);
+                props.setData(props.data.track as unknown as Track);
+              },
+            }
+          : {})}
+      >
+        {tracksList.map((track, index: number) => (
+          <div
+            key={track.id}
+            className={`flex first:mt-10 mx-20 h-14 rounded-lg cursor-pointer`}
+            style={{
+              borderTop: colors[0]
+                ? `2px solid rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
+                : "2px solid rgba(32,32,32,0.15)",
+              background:
+                index % 2 === 0
+                  ? `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.10)`
+                  : `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.05)`,
+              transition: "background 0s",
+            }}
+            onMouseEnter={(
+              e: React.MouseEvent<HTMLDivElement, MouseEvent>
+            ) => {
+              if (colors[0]) {
+                (e.currentTarget as HTMLDivElement).style.background = `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`;
+              } else {
+                (e.currentTarget as HTMLDivElement).style.background = "rgba(32,32,32,0.13)";
+              }
+            }}
+            onMouseLeave={(
+              e: React.MouseEvent<HTMLDivElement, MouseEvent>
+            ) => {
+              if (colors[0]) {
+                (e.currentTarget as HTMLDivElement).style.background =
+                  index % 2 === 0
+                    ? `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.10)`
+                    : `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.05)`;
+              } else {
+                (e.currentTarget as HTMLDivElement).style.background =
+                  index % 2 === 0
+                    ? "rgba(32,32,32,0.10)"
+                    : "rgba(32,32,32,0.05)";
+              }
+            }}
+            onClick={() => {
+              if (isAlbum) {
+                const tracks = props.data.tracks ?? [];
+                const albumImage = props.data.album.image;
+                const tracksWithAlbumArt = tracks.map((t) => ({
+                  ...t,
+                  image: albumImage || t.image,
+                }));
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                playerCtx.setQueue(tracksWithAlbumArt as any[], index);
+              }
+            }}
+          >
+            <div className="w-[5%] justify-left items-center flex ml-5 ">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                className="size-5 stroke-white cursor-pointer"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                />
+              </svg>
+            </div>
+            <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+              {track.name}
+            </div>
+            <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+              {track.artist}
+            </div>
+            <div className=" w-[05%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium justify-start select-all pr-3 text-left ">
+              {formatTime(track.duration ?? 0)}
+            </div>
+          </div>
+        ))}
+
+        <div className="flex mt-10 text-base  text-white mx-20 select-text">
+          <p>{createdAt}</p>
+        </div>
+      </div>
+    </div>
+  );
+}

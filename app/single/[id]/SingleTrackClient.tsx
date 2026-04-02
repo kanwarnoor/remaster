@@ -7,7 +7,7 @@ import Image from "next/image";
 import { User } from "@/libs/Auth";
 import { AnimatePresence } from "framer-motion";
 import InsideNavbar from "@/components/InsideNavbar";
-import SongPage from "@/components/SongPage";
+import MusicPage from "@/components/MusicPage";
 import Player from "@/components/Player";
 import { useParams } from "next/navigation";
 import { usePlayer } from "@/context/PlayerContext";
@@ -110,7 +110,8 @@ export default function SingleTrackClient() {
   return (
     <>
       <InsideNavbar link="/" />
-      <SongPage
+      <MusicPage
+        mode="single"
         data={trackData}
         setData={setData as unknown as (data: Track) => void}
         user={user || { id: "", username: "" }}

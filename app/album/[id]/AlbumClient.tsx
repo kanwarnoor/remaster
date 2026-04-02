@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import InsideNavbar from "@/components/InsideNavbar";
-import AlbumPage from "@/components/AlbumPage";
+import MusicPage from "@/components/MusicPage";
 import SongPageLoading from "@/components/SongPageLoading";
 import { User as Auth } from "@/libs/Auth";
 import { useEffect, useState } from "react";
@@ -42,13 +42,10 @@ export default function AlbumClient() {
   return (
     <div>
       <InsideNavbar link="/" />
-      <AlbumPage
+      <MusicPage
+        mode="album"
         data={album}
-        // setData={() => {}}
         user={user ?? undefined}
-        // playing={false}
-        // setPlaying={() => {}}
-        // toggleVisibility={() => {}}
       />
     </div>
   );
