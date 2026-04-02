@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 // import ColorThief from "colorthief";
-import {getPaletteSync} from 'colorthief';
+import { getPaletteSync } from "colorthief";
 
 import Options from "@/components/Options";
 import axios from "axios";
@@ -92,10 +92,7 @@ export default function MusicPage(props: Props) {
   });
 
   // Albums query (single mode only)
-  const {
-    data: albums = [],
-    isLoading: albumsLoading,
-  } = useQuery({
+  const { data: albums = [], isLoading: albumsLoading } = useQuery({
     queryKey: ["albums"],
     queryFn: async () => {
       const album = await axios.get("/api/album");
@@ -313,10 +310,10 @@ export default function MusicPage(props: Props) {
       try {
         if (!img) return;
         // const colorThief = new ColorThief();
-        
-        const palette = getPaletteSync(img, {colorCount: 5});
+
+        const palette = getPaletteSync(img, { colorCount: 5 });
         if (palette && palette.length > 0) {
-          const rgbPalette = palette.map(c => c.array());
+          const rgbPalette = palette.map((c) => c.array());
           setColors(rgbPalette);
 
           // Don't set player color here — Player.tsx handles its own colors
@@ -360,9 +357,7 @@ export default function MusicPage(props: Props) {
   }
 
   // Build tracks list for the tracklist section
-  const tracksList = isAlbum
-    ? (props.data.tracks ?? [])
-    : [props.data.track];
+  const tracksList = isAlbum ? (props.data.tracks ?? []) : [props.data.track];
 
   const imageUrl = itemImage
     ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${itemImage}`
@@ -403,7 +398,7 @@ export default function MusicPage(props: Props) {
           >
             <div className=" w-56 h-56 flex justify-center items-center rounded-lg overflow-hidden group">
               <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
-                <p className="text-xl font-bold text-white hidden group-hover:flex transition-all">
+                <p className="text-xl font-bold text-whtie hidden group-hover:flex transition-all">
                   Edit
                 </p>
 
@@ -650,7 +645,7 @@ export default function MusicPage(props: Props) {
               {itemArtist || "Unknown Artist"}
             </p>
           </div>
-          <div className="w-[100%] ml-10 h-[35%] flex items-end">
+          <div className="w-full pl-10 h-[35%] flex items-end">
             <div
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
               onClick={() => {
@@ -705,7 +700,7 @@ export default function MusicPage(props: Props) {
 
             {props.user && props.user.id === itemUserId && (
               <div
-                className="justify-end ml-auto mr-10 flex cursor-pointer"
+                className="justify-end  ml-auto  flex cursor-pointer "
                 onClick={() => setOptions(!options)}
               >
                 Edit
@@ -746,26 +741,24 @@ export default function MusicPage(props: Props) {
                 : "2px solid rgba(32,32,32,0.15)",
               background:
                 index % 2 === 0
-                  ? `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.10)`
+                  ? `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.20)`
                   : `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.05)`,
-              transition: "background 0s",
+              transition: "background 0.1s",
             }}
-            onMouseEnter={(
-              e: React.MouseEvent<HTMLDivElement, MouseEvent>
-            ) => {
+            onMouseEnter={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
               if (colors[0]) {
-                (e.currentTarget as HTMLDivElement).style.background = `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`;
+                (e.currentTarget as HTMLDivElement).style.background =
+                  `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.5)`;
               } else {
-                (e.currentTarget as HTMLDivElement).style.background = "rgba(32,32,32,0.13)";
+                (e.currentTarget as HTMLDivElement).style.background =
+                  "rgba(32,32,32,0.13)";
               }
             }}
-            onMouseLeave={(
-              e: React.MouseEvent<HTMLDivElement, MouseEvent>
-            ) => {
+            onMouseLeave={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
               if (colors[0]) {
                 (e.currentTarget as HTMLDivElement).style.background =
                   index % 2 === 0
-                    ? `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.10)`
+                    ? `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
                     : `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.05)`;
               } else {
                 (e.currentTarget as HTMLDivElement).style.background =
@@ -787,13 +780,13 @@ export default function MusicPage(props: Props) {
               }
             }}
           >
-            <div className="w-[5%] justify-left items-center flex ml-5 ">
+            <div className="w-[2%] justify-left items-center flex ml-5 ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
-                className="size-5 stroke-white cursor-pointer"
+                className="size-3 stroke-white cursor-pointer"
               >
                 <path
                   strokeLinecap="round"
@@ -801,6 +794,9 @@ export default function MusicPage(props: Props) {
                   d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
                 />
               </svg>
+            </div>
+            <div className="w-[2%]  justify-center text-center text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+              {index + 1}
             </div>
             <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
               {track.name}
