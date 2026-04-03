@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/libs/prisma";
+import { User } from "@/libs/Auth";
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,8 +20,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Album not found" }, { status: 404 });
     }
 
+    if (album.visibility === "PRIVATE") {
+      const user = await User();
+      if (!user) {
+        return NextResponse.json(
+          { message: "not authorized" },
+          { status: 404 },
+        );
+      }
+
+      if (user.id !== album.userId) {
+        return NextResponse.json(
+          { message: "not authorized" },
+          { status: 404 },
+        );
+      }
+    }
+
     return NextResponse.json({ album, tracks: album.tracks }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+        ? error
+        : "An unknown error occurred";
+    return NextResponse.json({ message }, { status: 500 });
   }
 }

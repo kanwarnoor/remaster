@@ -8,6 +8,7 @@ import MusicPage from "@/components/MusicPage";
 import SongPageLoading from "@/components/SongPageLoading";
 import { User as Auth } from "@/libs/Auth";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface User {
   id: string;
@@ -27,13 +28,35 @@ export default function AlbumClient() {
     getUser();
   }, []);
 
-  const { data: album, isLoading: albumLoading } = useQuery({
+  const {
+    data: album,
+    isLoading: albumLoading,
+    isError,
+  } = useQuery({
     queryKey: ["album", id],
     queryFn: async () => {
       const album = await axios.get(`/api/album/album_by_id?id=${id}`);
       return album.data;
     },
   });
+
+  if (isError) {
+    return (
+      <>
+        <InsideNavbar link="/" />
+        <div className="w-screen h-screen flex flex-col justify-center items-center ">
+          <Image
+            src={"/dead.webp"}
+            height={500}
+            width={500}
+            alt={"dead mouse"}
+            priority
+          />
+          <p className="text-3xl font-bold mt-5">Album does not exist!</p>
+        </div>
+      </>
+    );
+  }
 
   if (albumLoading) {
     return <SongPageLoading />;
@@ -42,11 +65,7 @@ export default function AlbumClient() {
   return (
     <div>
       <InsideNavbar link="/" />
-      <MusicPage
-        mode="album"
-        data={album}
-        user={user ?? undefined}
-      />
+      <MusicPage mode="album" data={album} user={user ?? undefined} />
     </div>
   );
 }
