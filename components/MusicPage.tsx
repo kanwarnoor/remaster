@@ -22,6 +22,7 @@ type AlbumMode = {
     tracks: Track[];
   };
   user?: { id: string };
+  toggleVisibility: () => void;
 };
 
 type SingleMode = {
@@ -463,18 +464,19 @@ export default function MusicPage(props: Props) {
                 }
               />
 
-              {/* public private toggle - single mode only */}
-              {!isAlbum && (
-                <div className="flex mt-2 items-center ">
-                  <p className="text-sm capitalize">Public</p>
-                  <div>
-                    <Switch
-                      checked={props.data.track.visibility === "PUBLIC"}
-                      handleChange={() => props.toggleVisibility()}
-                    />
-                  </div>
+              <div className="flex mt-2 items-center ">
+                <p className="text-sm capitalize">Public</p>
+                <div>
+                  <Switch
+                    checked={
+                      isAlbum
+                        ? props.data.album.visibility === "PUBLIC"
+                        : props.data.track.visibility === "PUBLIC"
+                    }
+                    handleChange={() => props.toggleVisibility()}
+                  />
                 </div>
-              )}
+              </div>
 
               <div className="flex text-left mt-auto ">
                 <button
@@ -734,7 +736,7 @@ export default function MusicPage(props: Props) {
         {tracksList.map((track, index: number) => (
           <div
             key={track.id}
-            className={`flex first:mt-10 mx-20 h-14 rounded-lg cursor-pointer`}
+            className={`flex first:mt-10 mx-20 h-13 rounded-lg cursor-pointer`}
             style={{
               borderTop: colors[0]
                 ? `2px solid rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`

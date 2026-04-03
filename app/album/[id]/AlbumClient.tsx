@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import InsideNavbar from "@/components/InsideNavbar";
@@ -18,6 +18,7 @@ interface User {
 export default function AlbumClient() {
   const params = useParams();
   const id = params.id as string;
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -39,6 +40,24 @@ export default function AlbumClient() {
       return album.data;
     },
   });
+
+  const toggleVisibility = async () => {
+    const visibility =
+      album.album.visibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+    try {
+      const res = await axios.put(
+        `/api/album/toggle_visibility?id=${id}&visibility=${visibility}`
+      );
+
+      if (res.status !== 200) {
+        throw new Error("Failed to toggle visibility");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["album", id] });
+    } catch (error) {
+      console.error("Error toggling visibility:", error);
+    }
+  };
 
   if (isError) {
     return (
@@ -65,7 +84,7 @@ export default function AlbumClient() {
   return (
     <div>
       <InsideNavbar link="/" />
-      <MusicPage mode="album" data={album} user={user ?? undefined} />
+      <MusicPage mode="album" data={album} user={user ?? undefined} toggleVisibility={toggleVisibility} />
     </div>
   );
 }
