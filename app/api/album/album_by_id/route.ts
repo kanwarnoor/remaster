@@ -13,7 +13,12 @@ export async function GET(req: NextRequest) {
 
     const album = await prisma.album.findUnique({
       where: { id },
-      include: { tracks: true },
+      include: {
+        tracks: {
+          orderBy: { sort: "asc" },
+          include: { track: true },
+        },
+      },
     });
 
     if (!album) {
@@ -37,7 +42,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ album, tracks: album.tracks }, { status: 200 });
+    return NextResponse.json({ album, tracks: album.tracks.map(t => t.track) }, { status: 200 });
   } catch (error) {
     const message =
       error instanceof Error

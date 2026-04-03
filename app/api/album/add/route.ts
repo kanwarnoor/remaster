@@ -35,9 +35,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Track does not exist!" }, { status: 404 });
     }
 
-    await prisma.track.update({
-      where: { id: trackId },
-      data: { albumId: albumId },
+    const lastEntry = await prisma.albumTracks.findFirst({
+      where: { albumId },
+      orderBy: { sort: "desc" },
+    });
+
+    await prisma.albumTracks.create({
+      data: {
+        albumId,
+        trackId,
+        sort: lastEntry ? lastEntry.sort + 1 : 1,
+      },
     });
 
     return NextResponse.json({ message: "Track added to album!" }, { status: 200 });

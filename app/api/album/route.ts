@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
         },
       },
       include: {
-        tracks: true,
+        tracks: {
+          orderBy: { sort: "asc" },
+          include: { track: true },
+        },
       },
     });
 
@@ -77,20 +80,16 @@ export async function POST(req: NextRequest) {
         artist: user.username,
         description: description,
         tracks: {
-          connect: track_ids.map((id: string) => ({ id })),
+          create: track_ids.map((id: string, index: number) => ({
+            trackId: id,
+            sort: index + 1,
+          })),
         },
         image: image,
       },
     });
 
     console.log("[POST /api/album] album created:", album);
-
-    await prisma.track.updateMany({
-      where: { id: { in: track_ids } },
-      data: { albumId: album.id },
-    });
-
-    console.log("[POST /api/album] tracks updated with albumId:", album.id);
 
     return NextResponse.json({ album }, { status: 200 });
   } catch (error: unknown) {

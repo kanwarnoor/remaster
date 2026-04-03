@@ -35,10 +35,9 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized to delete this album" }, { status: 403 });
     }
 
-    // Disconnect all tracks from the album before deleting
-    await prisma.track.updateMany({
+    // Delete all AlbumTracks entries for this album before deleting
+    await prisma.albumTracks.deleteMany({
       where: { albumId: id },
-      data: { albumId: null },
     });
 
     // Delete album image from S3 if it exists

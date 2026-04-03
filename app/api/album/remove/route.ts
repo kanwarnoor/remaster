@@ -29,9 +29,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Not authorized!" }, { status: 401 });
     }
 
-    await prisma.track.update({
-      where: { id: trackId },
-      data: { albumId: null },
+    await prisma.albumTracks.delete({
+      where: { albumId_trackId: { albumId, trackId } },
     });
 
     return NextResponse.json({ message: "Track removed from album!" }, { status: 200 });

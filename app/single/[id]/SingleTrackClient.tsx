@@ -115,7 +115,7 @@ export default function SingleTrackClient() {
         data={trackData}
         setData={setData as unknown as (data: Track) => void}
         user={user || { id: "", username: "" }}
-        playing={playing}
+        playing={playing && data?.id === trackData?.track?.id}
         setPlaying={setPlaying}
         toggleVisibility={toggleVisibility}
       />

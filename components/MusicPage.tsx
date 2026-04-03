@@ -14,6 +14,7 @@ import Switch from "@/components/Switch";
 import { usePlayer } from "@/context/PlayerContext";
 import { useRouter } from "next/navigation";
 import { Track, Album } from "@/app/generated/prisma/client";
+import { AlbumTracks } from "@/app/generated/prisma/client";
 
 type AlbumMode = {
   mode: "album";
@@ -561,7 +562,7 @@ export default function MusicPage(props: Props) {
                     >
                       {Array.isArray(album.tracks) &&
                       album.tracks.findIndex(
-                        (track: Track) => track.id === props.data.track.id,
+                        (entry: Track) => entry.id === props.data.track.id,
                       ) !== -1 ? (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -733,6 +734,13 @@ export default function MusicPage(props: Props) {
             }
           : {})}
       >
+      {tracksList.length <= 0 && (
+        <>
+        <div className="flex mt-10 text-base text-center w-full text-white mx-20 select-text">
+          <p>No tracks found!</p>
+        </div>
+        </>
+      )}
         {tracksList.map((track, index: number) => (
           <div
             key={track.id}

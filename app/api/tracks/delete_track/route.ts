@@ -68,6 +68,9 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
+    // Remove track from all albums before deleting
+    await prisma.albumTracks.deleteMany({ where: { trackId: id } });
+
     const deletedTrack = await prisma.track.delete({ where: { id } });
 
     if (!deletedTrack) {
@@ -78,7 +81,8 @@ export async function DELETE(req: NextRequest) {
       { message: "Track deleted successfully" },
       { status: 200 }
     );
-  } catch {
+  } catch (error) {
+    console.error("Failed to delete track", error);
     return NextResponse.json(
       { error: "Failed to delete track" },
       { status: 500 }
