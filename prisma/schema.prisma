@@ -32,7 +32,7 @@ model Album {
   artist      String
   description String?
   image       String?
-  tracks      Track[]
+  tracks      AlbumTracks[]
   user        User    @relation(fields: [userId], references: [id])
   userId      String
   visibility  Visibility @default(PRIVATE)
@@ -51,11 +51,19 @@ model Track {
   optimized  Boolean? @default(false)
   user       User @relation(fields: [userId], references: [id])
   userId     String
-  album      Album?  @relation(fields: [albumId], references: [id])
-  albumId    String?
+  albums     AlbumTracks[]
   visibility Visibility @default(PRIVATE)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model AlbumTracks {
+  album Album @relation(fields: [albumId], references: [id])
+  albumId String
+  track Track @relation(fields: [trackId], references: [id])
+  trackId String
+  sort Int
+  @@id([albumId, trackId])
 }
 
 model Invite{
