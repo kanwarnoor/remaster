@@ -32,7 +32,10 @@ export async function DELETE(req: NextRequest) {
     }
 
     if (album.userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized to delete this album" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Unauthorized to delete this album" },
+        { status: 403 },
+      );
     }
 
     // Delete all AlbumTracks entries for this album before deleting
@@ -45,7 +48,7 @@ export async function DELETE(req: NextRequest) {
       try {
         const command = new DeleteObjectCommand({
           Bucket: process.env.AWS_BUCKET_NAME || "",
-          Key: `images/track/${album.image}`,
+          Key: `images/album/${album.image}`,
         });
         await s3Client.send(command);
       } catch (s3Error) {
@@ -55,9 +58,15 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.album.delete({ where: { id } });
 
-    return NextResponse.json({ message: "Album deleted successfully" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Album deleted successfully" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error deleting album:", error);
-    return NextResponse.json({ error: "Failed to delete album" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete album" },
+      { status: 500 },
+    );
   }
 }
