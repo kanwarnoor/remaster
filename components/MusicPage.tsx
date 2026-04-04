@@ -15,6 +15,13 @@ import { usePlayer } from "@/context/PlayerContext";
 import { useRouter } from "next/navigation";
 import { Track, Album } from "@/app/generated/prisma/client";
 import { AlbumTracks } from "@/app/generated/prisma/client";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import { generateKeyBetween } from "fractional-indexing";
 
 type AlbumMode = {
   mode: "album";
@@ -60,6 +67,9 @@ export default function MusicPage(props: Props) {
   const [editing, setEditing] = useState(false);
   const [addAlbum, setAddAlbum] = useState(false);
   const [colors, setColors] = useState<[number, number, number][]>([]);
+  const [localTracks, setLocalTracks] = useState<(Track & { sort?: string })[]>(
+    props.mode === "album" ? (props.data.tracks ?? []) : [],
+  );
 
   const isAlbum = props.mode === "album";
 
@@ -358,8 +368,45 @@ export default function MusicPage(props: Props) {
     }
   }
 
+  // Sync localTracks when album data refreshes (e.g. after query invalidation)
+  useEffect(() => {
+    if (isAlbum) {
+      setLocalTracks(props.data.tracks ?? []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.mode === "album" ? props.data.tracks : null]);
+
+  const isOwner = !!props.user && props.user.id === itemUserId;
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination || !isAlbum) return;
+    const src = result.source.index;
+    const dst = result.destination.index;
+    if (src === dst) return;
+
+    const newList = [...localTracks];
+    const [moved] = newList.splice(src, 1);
+    newList.splice(dst, 0, moved);
+
+    const before =
+      (newList[dst - 1] as Track & { sort?: string })?.sort ?? null;
+    const after = (newList[dst + 1] as Track & { sort?: string })?.sort ?? null;
+    const newSort = generateKeyBetween(before, after);
+
+    newList[dst] = { ...moved, sort: newSort };
+    setLocalTracks(newList);
+
+    axios
+      .patch("/api/album/sort", {
+        albumId: props.data.album.id,
+        trackId: moved.id,
+        sort: newSort,
+      })
+      .catch(console.error);
+  };
+
   // Build tracks list for the tracklist section
-  const tracksList = isAlbum ? (props.data.tracks ?? []) : [props.data.track];
+  const tracksList = isAlbum ? localTracks : [props.data.track];
 
   const imageUrl = itemImage
     ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${itemImage}`
@@ -723,107 +770,141 @@ export default function MusicPage(props: Props) {
       </div>
 
       {/* Tracklist */}
-      <div
-        className="w-full h-fit justify-start flex flex-col gap-2"
-        {...(!isAlbum
-          ? {
-              onDoubleClick: () => {
-                props.setPlaying(props.data.track.id, true);
-                props.setData(props.data.track as unknown as Track);
-              },
-            }
-          : {})}
-      >
-      {tracksList.length <= 0 && (
-        <>
-        <div className="flex mt-10 text-base text-center w-full text-white mx-20 select-text">
-          <p>No tracks found!</p>
-        </div>
-        </>
-      )}
-        {tracksList.map((track, index: number) => (
-          <div
-            key={track.id}
-            className={`flex first:mt-10 mx-20 h-13 rounded-lg cursor-pointer`}
-            style={{
-              borderTop: colors[0]
-                ? `2px solid rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
-                : "2px solid rgba(32,32,32,0.15)",
-              background:
-                index % 2 === 0
-                  ? `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.20)`
-                  : `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.05)`,
-              transition: "background 0.1s",
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-              if (colors[0]) {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.5)`;
-              } else {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "rgba(32,32,32,0.13)";
-              }
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-              if (colors[0]) {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  index % 2 === 0
-                    ? `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
-                    : `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.05)`;
-              } else {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  index % 2 === 0
-                    ? "rgba(32,32,32,0.10)"
-                    : "rgba(32,32,32,0.05)";
-              }
-            }}
-            onClick={() => {
-              if (isAlbum) {
-                const tracks = props.data.tracks ?? [];
-                const albumImage = props.data.album.image;
-                const tracksWithAlbumArt = tracks.map((t) => ({
-                  ...t,
-                  image: albumImage || t.image,
-                }));
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                playerCtx.setQueue(tracksWithAlbumArt as any[], index);
-              }
-            }}
-          >
-            <div className="w-[2%] justify-left items-center flex ml-5 ">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                className="size-3 stroke-white cursor-pointer"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
-                />
-              </svg>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable
+          droppableId="tracklist"
+          isDropDisabled={!isOwner || !isAlbum}
+        >
+          {(droppableProvided) => (
+            <div
+              ref={droppableProvided.innerRef}
+              {...droppableProvided.droppableProps}
+              className="w-full h-fit justify-start flex flex-col px-20 pt-10"
+              {...(!isAlbum
+                ? {
+                    onDoubleClick: () => {
+                      props.setPlaying(props.data.track.id, true);
+                      props.setData(props.data.track as unknown as Track);
+                    },
+                  }
+                : {})}
+            >
+              {tracksList.length <= 0 && (
+                <div className="flex mt-10 text-base text-center w-full text-white select-text">
+                  <p>No tracks found!</p>
+                </div>
+              )}
+              {tracksList.map((track, index: number) => (
+                <Draggable
+                  key={track.id}
+                  draggableId={track.id}
+                  index={index}
+                  isDragDisabled={!isOwner || !isAlbum}
+                >
+                  {(draggableProvided, snapshot) => (
+                    <div
+                      ref={draggableProvided.innerRef}
+                      {...draggableProvided.draggableProps}
+                      {...draggableProvided.dragHandleProps}
+                      className={`flex h-13 rounded-lg cursor-pointer mb-2 group`}
+                      style={{
+                        borderTop: colors[0]
+                          ? `2px solid rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
+                          : "2px solid rgba(32,32,32,0.15)",
+                        background: snapshot.isDragging
+                          ? colors[0]
+                            ? `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.6)`
+                            : "rgba(32,32,32,0.4)"
+                          : index % 2 === 0
+                            ? `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.20)`
+                            : `rgba(${colors[0]?.[0] ?? 32},${colors[0]?.[1] ?? 32},${colors[0]?.[2] ?? 32},0.05)`,
+                        transition: "background 0.1s",
+                        ...draggableProvided.draggableProps.style,
+                      }}
+                      onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                        if (snapshot.isDragging) return;
+                        if (colors[0]) {
+                          (e.currentTarget as HTMLDivElement).style.background =
+                            `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.5)`;
+                        } else {
+                          (e.currentTarget as HTMLDivElement).style.background =
+                            "rgba(32,32,32,0.13)";
+                        }
+                      }}
+                      onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                        if (snapshot.isDragging) return;
+                        if (colors[0]) {
+                          (e.currentTarget as HTMLDivElement).style.background =
+                            index % 2 === 0
+                              ? `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
+                              : `rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.05)`;
+                        } else {
+                          (e.currentTarget as HTMLDivElement).style.background =
+                            index % 2 === 0
+                              ? "rgba(32,32,32,0.10)"
+                              : "rgba(32,32,32,0.05)";
+                        }
+                      }}
+                      onClick={() => {
+                        if (isAlbum) {
+                          const albumImage = props.data.album.image;
+                          const tracksWithAlbumArt = localTracks.map((t) => ({
+                            ...t,
+                            image: albumImage || t.image,
+                          }));
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          playerCtx.setQueue(
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            tracksWithAlbumArt as any[],
+                            index,
+                          );
+                        }
+                      }}
+                    >
+                      <div className="w-[2%] justify-left items-center flex ml-5 ">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          className="size-3 stroke-white cursor-pointer"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="w-[2%]  justify-center text-center text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+                        {index + 1}
+                      </div>
+                      <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+                        {track.name}
+                      </div>
+                      <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+                        {track.artist}
+                      </div>
+                      <div className="w-[05%] text-ellipsis overflow-hidden flex items-center justify-center ml-2 text-base font-medium select-all pr-3 text-center group-hover:block">
+                        <span className="hidden group-hover:flex items-center justify-center w-full h-full hover:underline">
+                          Edit
+                        </span>
+                        <span className="group-hover:hidden">
+                          {formatTime(track.duration ?? 0)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {droppableProvided.placeholder}
+              <div className="flex mt-10 text-base text-white select-text">
+                <p>{createdAt}</p>
+              </div>
             </div>
-            <div className="w-[2%]  justify-center text-center text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
-              {index + 1}
-            </div>
-            <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
-              {track.name}
-            </div>
-            <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
-              {track.artist}
-            </div>
-            <div className=" w-[05%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium justify-start select-all pr-3 text-left ">
-              {formatTime(track.duration ?? 0)}
-            </div>
-          </div>
-        ))}
-
-        <div className="flex mt-10 text-base  text-white mx-20 select-text">
-          <p>{createdAt}</p>
-        </div>
-      </div>
+          )}
+        </Droppable>
+      </DragDropContext>
     </div>
   );
 }

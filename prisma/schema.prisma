@@ -62,7 +62,7 @@ model AlbumTracks {
   albumId String
   track Track @relation(fields: [trackId], references: [id])
   trackId String
-  sort Int
+  sort String @default("a0")
   @@id([albumId, trackId])
 }
 

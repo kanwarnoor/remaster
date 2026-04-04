@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ album, tracks: album.tracks.map(t => t.track) }, { status: 200 });
+    return NextResponse.json({ album, tracks: album.tracks.map(t => ({ ...t.track, sort: String(t.sort) })) }, { status: 200 });
   } catch (error) {
     const message =
       error instanceof Error

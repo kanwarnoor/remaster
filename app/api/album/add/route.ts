@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { User } from "@/libs/Auth";
 import prisma from "@/libs/prisma";
+import { generateKeyBetween } from "fractional-indexing";
 
 export async function POST(req: NextRequest) {
   const { albumId, trackId } = await req.json();
@@ -44,12 +45,14 @@ export async function POST(req: NextRequest) {
       data: {
         albumId,
         trackId,
-        sort: lastEntry ? lastEntry.sort + 1 : 1,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        sort: generateKeyBetween(lastEntry ? String(lastEntry.sort) : null, null) as any,
       },
     });
 
     return NextResponse.json({ message: "Track added to album!" }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    console.log(error)
+    return NextResponse.json({ message: error instanceof Error ? error.message : "An unknown error occurred" }, { status: 500 });
   }
 }

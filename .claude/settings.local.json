@@ -3,7 +3,8 @@
     "allow": [
       "Bash(powershell.exe:*)",
       "Bash(grep:*)",
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
