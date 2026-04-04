@@ -71,7 +71,7 @@ export default function Player() {
         if (!img) return;
         const palette = getPaletteSync(img, { colorCount: 5 });
         if (palette && palette.length > 0) {
-          setColor(palette.map(c => c.array()));
+          setColor(palette.map((c) => c.array()));
         }
       } catch (err) {
         console.error("Player color extraction error:", err);
@@ -266,7 +266,7 @@ export default function Player() {
                     />
                     <div className="flex flex-col overflow-hidden">
                       <p
-                        className={`text-sm font-medium truncate ${index === queueIndex ? "text-white" : "text-white/70"}`}
+                        className={`text-sm text-ellipsis overflow-hidden line-clamp-1 font-medium ${index === queueIndex ? "text-white" : "text-white/70"}`}
                       >
                         {track.name}
                       </p>
@@ -315,7 +315,7 @@ export default function Player() {
         className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter] duration-300`}
       >
         <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full ">
-          <div className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-center gap-2 cursor-pointer overflow-hidden text-ellipsis line-clamp-1">
             <div
               className="flex group"
               onClick={() => setFullscreen(!fullscreen)}
@@ -342,8 +342,12 @@ export default function Player() {
               />
             </div>
             <div>
-              <h3 className="font-medium">{playerData?.name}</h3>
-              <p className="text-xs opacity-70">{playerData?.artist}</p>
+              <h3 className="font-medium text-ellipsis overflow-hidden line-clamp-1">
+                {playerData?.name}
+              </h3>
+              <p className="text-xs opacity-70 text-ellipsis overflow-hidden line-clamp-1">
+                {playerData?.artist}
+              </p>
             </div>
           </div>
         </div>

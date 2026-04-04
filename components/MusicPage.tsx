@@ -63,6 +63,9 @@ export default function MusicPage(props: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [options, setOptions] = useState(false);
+  const [activeTrackOptions, setActiveTrackOptions] = useState<string | null>(null);
+  const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
+  const [trackFormData, setTrackFormData] = useState<{ name: string; artist: string }>({ name: "", artist: "" });
   const imgRef = useRef<HTMLImageElement>(null);
   const [editing, setEditing] = useState(false);
   const [addAlbum, setAddAlbum] = useState(false);
@@ -324,6 +327,91 @@ export default function MusicPage(props: Props) {
           handleOption: () => handleOption("delete"),
         },
       ];
+
+  const getTrackOptionsList = (trackId: string) => [
+    {
+      name: "Edit",
+      handleOption: () => {
+        const track = isAlbum
+          ? localTracks.find((t) => t.id === trackId)
+          : props.data.track;
+        if (track) {
+          setTrackFormData({ name: track.name || "", artist: track.artist || "" });
+          setEditingTrackId(trackId);
+        }
+        setActiveTrackOptions(null);
+      },
+    },
+    ...(isAlbum
+      ? [
+          {
+            name: "Remove from Album",
+            handleOption: async () => {
+              setActiveTrackOptions(null);
+              const confirmRemove = confirm("Remove this track from the album?");
+              if (!confirmRemove) return;
+              try {
+                const response = await axios.post("/api/album/remove", {
+                  albumId: props.data.album.id,
+                  trackId,
+                });
+                if (response.status === 200) {
+                  setLocalTracks((prev) => prev.filter((t) => t.id !== trackId));
+                  queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+                }
+              } catch (error) {
+                console.error("Failed to remove track from album", error);
+              }
+            },
+          },
+        ]
+      : []),
+    {
+      name: "Delete Track",
+      danger: true,
+      handleOption: async () => {
+        setActiveTrackOptions(null);
+        const confirmDelete = confirm("Are you sure you want to permanently delete this track?");
+        if (!confirmDelete) return;
+        try {
+          const response = await axios.delete("/api/tracks/delete_track", {
+            data: { id: trackId },
+          });
+          if (response.status === 200) {
+            setLocalTracks((prev) => prev.filter((t) => t.id !== trackId));
+            queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+          }
+        } catch (error) {
+          console.error("Failed to delete track", error);
+        }
+      },
+    },
+  ];
+
+  const handleTrackEdit = async () => {
+    if (!editingTrackId) return;
+    try {
+      const response = await axios.patch("/api/tracks/edit_track", {
+        id: editingTrackId,
+        name: trackFormData.name,
+        artist: trackFormData.artist,
+        uploaded: false,
+      });
+      if (response.status === 200) {
+        setLocalTracks((prev) =>
+          prev.map((t) =>
+            t.id === editingTrackId
+              ? { ...t, name: trackFormData.name, artist: trackFormData.artist }
+              : t,
+          ),
+        );
+        queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+        setEditingTrackId(null);
+      }
+    } catch (error) {
+      console.error("Failed to edit track", error);
+    }
+  };
 
   useEffect(() => {
     const img = imgRef.current;
@@ -617,7 +705,13 @@ export default function MusicPage(props: Props) {
                       className="ml-auto justify-center items-center flex cursor-pointer"
                       onClick={() => {
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const alreadyIn = Array.isArray(album.tracks) && album.tracks.findIndex((entry: any) => entry.trackId === props.data.track.id) !== -1;
+                        const alreadyIn =
+                          Array.isArray(album.tracks) &&
+                          album.tracks.findIndex(
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            (entry: any) =>
+                              entry.trackId === props.data.track.id,
+                          ) !== -1;
                         addTrackToAlbum(album.id, alreadyIn);
                       }}
                     >
@@ -661,6 +755,70 @@ export default function MusicPage(props: Props) {
                 );
               })}
             </div>
+          </motion.div>
+        </>
+      )}
+
+      {/* Track edit modal */}
+      {editingTrackId && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-30"
+            onClick={() => setEditingTrackId(null)}
+          ></div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed w-fit h-fit bg-white/50 backdrop-blur-lg rounded-xl z-30 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-8  text-left"
+          >
+            {/* <p className="text-2xl font-bold mb-4">Edit Track</p> */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleTrackEdit();
+              }}
+              className="flex flex-col gap-0"
+            >
+              <label htmlFor="trackName" className="text-sm">
+                Name
+              </label>
+              <input
+                type="text"
+                id="trackName"
+                className="bg-white/0 border-2 rounded-lg h-[2.5rem] text-white px-3 focus:ring-0 focus:outline-none"
+                value={trackFormData.name}
+                onChange={(e) =>
+                  setTrackFormData({ ...trackFormData, name: e.target.value })
+                }
+              />
+              <label htmlFor="trackArtist" className="text-sm mt-1">
+                Artist
+              </label>
+              <input
+                type="text"
+                id="trackArtist"
+                className="bg-white/0 border-2 rounded-lg h-[2.5rem] text-white px-3 focus:ring-0 focus:outline-none"
+                value={trackFormData.artist}
+                onChange={(e) =>
+                  setTrackFormData({ ...trackFormData, artist: e.target.value })
+                }
+              />
+              <div className="flex gap-3 mt-4">
+                <button
+                  type="submit"
+                  className="px-7 py-2 bg-black backdrop-blur-xl rounded-full text-base text-white"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="px-7 py-2 bg-white/10 text-black backdrop-blur-xl rounded-full text-base"
+                  onClick={() => setEditingTrackId(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </motion.div>
         </>
       )}
@@ -860,7 +1018,7 @@ export default function MusicPage(props: Props) {
                               : "rgba(32,32,32,0.05)";
                         }
                       }}
-                      onClick={() => {
+                      onDoubleClick={() => {
                         if (isAlbum) {
                           const albumImage = props.data.album.image;
                           const tracksWithAlbumArt = localTracks.map((t) => ({
@@ -900,13 +1058,35 @@ export default function MusicPage(props: Props) {
                       <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
                         {track.artist}
                       </div>
-                      <div className="w-[05%] text-ellipsis overflow-hidden flex items-center justify-center ml-2 text-base font-medium select-all pr-3 text-center group-hover:block">
-                        <span className="hidden group-hover:flex items-center justify-center w-full h-full hover:underline">
-                          Edit
-                        </span>
-                        <span className="group-hover:hidden">
-                          {formatTime(track.duration ?? 0)}
-                        </span>
+                      <div className="w-[05%] flex items-center justify-center ml-2 text-base font-medium pr-3 text-center relative">
+                        {isOwner && (
+                          <div
+                            className="hidden group-hover:flex items-center justify-center w-full h-full hover:underline cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveTrackOptions(activeTrackOptions === track.id ? null : track.id);
+                            }}
+                          >
+                            Edit
+                          </div>
+                        )}
+
+                        {activeTrackOptions === track.id && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setActiveTrackOptions(null)}
+                            ></div>
+                            <div className="relative z-20">
+                              <Options list={getTrackOptionsList(track.id)} />
+                            </div>
+                          </>
+                        )}
+                        {activeTrackOptions !== track.id && (
+                          <span className="group-hover:hidden">
+                            {formatTime(track.duration ?? 0)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
