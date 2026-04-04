@@ -253,22 +253,32 @@ export default function MusicPage(props: Props) {
     }
   };
 
-  const addTrackToAlbum = async (albumId: string) => {
+  const addTrackToAlbum = async (albumId: string, alreadyInAlbum: boolean) => {
     if (isAlbum) return;
     try {
-      const response = await axios.post("/api/album/add", {
-        albumId,
-        trackId: props.data.track.id,
-      });
-
-      if (response.status !== 200) {
-        console.error("Failed to add track to album");
+      if (alreadyInAlbum) {
+        const response = await axios.post("/api/album/remove", {
+          albumId,
+          trackId: props.data.track.id,
+        });
+        if (response.status !== 200) {
+          console.error("Failed to remove track from album");
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["albums"] });
+        }
       } else {
-        queryClient.invalidateQueries({ queryKey: ["albums"] });
-        setAddAlbum(false);
+        const response = await axios.post("/api/album/add", {
+          albumId,
+          trackId: props.data.track.id,
+        });
+        if (response.status !== 200) {
+          console.error("Failed to add track to album");
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["albums"] });
+        }
       }
     } catch (error) {
-      console.error("Failed to add track to album", error);
+      console.error("Failed to toggle track in album", error);
     }
   };
 
@@ -605,11 +615,16 @@ export default function MusicPage(props: Props) {
 
                     <div
                       className="ml-auto justify-center items-center flex cursor-pointer"
-                      onClick={() => addTrackToAlbum(album.id)}
+                      onClick={() => {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const alreadyIn = Array.isArray(album.tracks) && album.tracks.findIndex((entry: any) => entry.trackId === props.data.track.id) !== -1;
+                        addTrackToAlbum(album.id, alreadyIn);
+                      }}
                     >
                       {Array.isArray(album.tracks) &&
                       album.tracks.findIndex(
-                        (entry: Track) => entry.id === props.data.track.id,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (entry: any) => entry.trackId === props.data.track.id,
                       ) !== -1 ? (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
