@@ -63,9 +63,14 @@ export default function MusicPage(props: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [options, setOptions] = useState(false);
-  const [activeTrackOptions, setActiveTrackOptions] = useState<string | null>(null);
+  const [activeTrackOptions, setActiveTrackOptions] = useState<string | null>(
+    null,
+  );
   const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
-  const [trackFormData, setTrackFormData] = useState<{ name: string; artist: string }>({ name: "", artist: "" });
+  const [trackFormData, setTrackFormData] = useState<{
+    name: string;
+    artist: string;
+  }>({ name: "", artist: "" });
   const imgRef = useRef<HTMLImageElement>(null);
   const [editing, setEditing] = useState(false);
   const [addAlbum, setAddAlbum] = useState(false);
@@ -336,7 +341,10 @@ export default function MusicPage(props: Props) {
           ? localTracks.find((t) => t.id === trackId)
           : props.data.track;
         if (track) {
-          setTrackFormData({ name: track.name || "", artist: track.artist || "" });
+          setTrackFormData({
+            name: track.name || "",
+            artist: track.artist || "",
+          });
           setEditingTrackId(trackId);
         }
         setActiveTrackOptions(null);
@@ -348,7 +356,9 @@ export default function MusicPage(props: Props) {
             name: "Remove from Album",
             handleOption: async () => {
               setActiveTrackOptions(null);
-              const confirmRemove = confirm("Remove this track from the album?");
+              const confirmRemove = confirm(
+                "Remove this track from the album?",
+              );
               if (!confirmRemove) return;
               try {
                 const response = await axios.post("/api/album/remove", {
@@ -356,8 +366,12 @@ export default function MusicPage(props: Props) {
                   trackId,
                 });
                 if (response.status === 200) {
-                  setLocalTracks((prev) => prev.filter((t) => t.id !== trackId));
-                  queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+                  setLocalTracks((prev) =>
+                    prev.filter((t) => t.id !== trackId),
+                  );
+                  queryClient.invalidateQueries({
+                    queryKey: ["album", itemId],
+                  });
                 }
               } catch (error) {
                 console.error("Failed to remove track from album", error);
@@ -371,7 +385,9 @@ export default function MusicPage(props: Props) {
       danger: true,
       handleOption: async () => {
         setActiveTrackOptions(null);
-        const confirmDelete = confirm("Are you sure you want to permanently delete this track?");
+        const confirmDelete = confirm(
+          "Are you sure you want to permanently delete this track?",
+        );
         if (!confirmDelete) return;
         try {
           const response = await axios.delete("/api/tracks/delete_track", {
@@ -1064,7 +1080,11 @@ export default function MusicPage(props: Props) {
                             className="hidden group-hover:flex items-center justify-center w-full h-full hover:underline cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveTrackOptions(activeTrackOptions === track.id ? null : track.id);
+                              setActiveTrackOptions(
+                                activeTrackOptions === track.id
+                                  ? null
+                                  : track.id,
+                              );
                             }}
                           >
                             Edit

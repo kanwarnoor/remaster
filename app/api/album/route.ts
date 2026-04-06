@@ -2,15 +2,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { User as Auth } from "@/libs/Auth";
 import prisma from "@/libs/prisma";
+import { generateKeyBetween } from "fractional-indexing";
 
 export async function GET(req: NextRequest) {
-  console.log("[GET /api/album] request received");
   try {
     const user = await Auth();
-    console.log("[GET /api/album] user:", user);
 
     if (!user) {
-      console.log("[GET /api/album] unauthorized - no user");
       return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
     }
 
@@ -28,7 +26,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    console.log("[GET /api/album] found albums:", album.length);
     return NextResponse.json({ album }, { status: 200 });
   } catch (error: unknown) {
     console.error("[GET /api/album] error:", error);
@@ -40,7 +37,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  console.log("[POST /api/album] request received");
   try {
     const body = await req.json();
     console.log("[POST /api/album] body:", body);
@@ -69,6 +65,11 @@ export async function POST(req: NextRequest) {
 
     console.log("[POST /api/album] creating album with track_ids:", track_ids);
 
+    const sortKeys: string[] = [];
+    for (let i = 0; i < track_ids.length; i++) {
+      sortKeys.push(generateKeyBetween(i === 0 ? null : sortKeys[i - 1], null));
+    }
+
     const album = await prisma.album.create({
       data: {
         name,
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
         tracks: {
           create: track_ids.map((id: string, index: number) => ({
             trackId: id,
-            sort: index + 1,
+            sort: sortKeys[index],
           })),
         },
         image: image,
