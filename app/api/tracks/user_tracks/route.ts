@@ -5,6 +5,7 @@ import prisma from "@/libs/prisma";
 
 export async function GET(req: NextRequest) {
   const user = await Decoded();
+  const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
 
   if (user == null || !user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const tracks = await prisma.track.findMany({
       where: { userId: user.id },
+      take: limit,
       orderBy: { createdAt: "desc" },
     });
 

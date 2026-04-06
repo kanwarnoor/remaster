@@ -1,14 +1,16 @@
 import prisma from "@/libs/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDb from "@/libs/connectDb";
 
-export async function GET(request: Request) {
+export async function GET(req: NextRequest) {
   await connectDb();
+  const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
 
   try {
     const tracks = await prisma.track.findMany({
       where: { visibility: "PUBLIC" },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
 
     return NextResponse.json({ tracks }, { status: 200 });

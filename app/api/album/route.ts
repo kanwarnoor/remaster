@@ -1,10 +1,10 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { User as Auth } from "@/libs/Auth";
 import prisma from "@/libs/prisma";
 import { generateKeyBetween } from "fractional-indexing";
 
 export async function GET(req: NextRequest) {
+  const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
   try {
     const user = await Auth();
 
@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
           include: { track: true },
         },
       },
+      take: limit,
     });
 
     return NextResponse.json({ album }, { status: 200 });
