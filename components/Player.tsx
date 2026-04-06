@@ -208,7 +208,7 @@ export default function Player() {
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className="fixed bottom-28 left-0 right-0 m-auto w-[500px] max-h-[400px] z-[59] bg-neutral-900/95 backdrop-blur-xl rounded-2xl overflow-hidden"
             >
               <div className="flex justify-between items-center p-4 border-b border-white/10">
@@ -312,16 +312,16 @@ export default function Player() {
             : "2px solid rgba(32,32,32,0.15)",
           color: textColor,
         }}
-        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 w-[800px] justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter] duration-300`}
+        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter,width] duration-300 ${repeat !== 0 ? "w-[830px]" : "w-[800px]"}`}
       >
-        <div className="w-[30%] h-full flex items-center justify-start px-2 rounded-l-full ">
-          <div className="flex items-center gap-2 cursor-pointer overflow-hidden text-ellipsis line-clamp-1">
+        <div className="w-[240px] h-full flex items-center justify-start px-2 rounded-l-full shrink-0 overflow-hidden">
+          <div className="flex items-center gap-2 cursor-pointer">
             <div
-              className="flex group"
+              className="shrink-0 flex group"
               onClick={() => setFullscreen(!fullscreen)}
             >
               <svg
-                className="size-5 opacity-0 absolute top-0 left-0 m-[1.4rem] group-hover:opacity-100 transition-all duration-100 fill-current"
+                className="size-5 opacity-0 absolute top-0 left-0 m-[1.45rem] group-hover:opacity-100 transition-all duration-100 fill-current"
                 viewBox="0 0 24 24"
                 fill="currentColor"
                 xmlns="http://www.w3.org/2000/svg"
@@ -341,17 +341,17 @@ export default function Player() {
                 className="w-12 h-12 rounded-full opacity-100 group-hover:opacity-20 transition-all duration-100"
               />
             </div>
-            <div>
-              <h3 className="font-medium text-ellipsis overflow-hidden line-clamp-1">
+            <div className="max-w-xs">
+              <h3 className="font-medium line-clamp-1">
                 {playerData?.name}
               </h3>
-              <p className="text-xs opacity-70 text-ellipsis overflow-hidden line-clamp-1">
+              <p className="text-xs opacity-70 line-clamp-1">
                 {playerData?.artist}
               </p>
             </div>
           </div>
         </div>
-        <div className="relative w-[40%] h-full flex items-center justify-center gap-3">
+        <div className="relative w-[320px] h-full flex items-center justify-center gap-3 shrink-0">
           <div>
             {/* previous */}
             <div className="cursor-pointer mb-2" onClick={() => playPrev()}>
@@ -457,10 +457,10 @@ export default function Player() {
           </div>
         </div>
 
-        <div className="w-[30%] h-full flex items-center justify-center gap-2  rounded-r-full transition-all duration-100 z-10">
+        <div className="h-full flex items-center justify-center gap-2 px-2 rounded-r-full shrink-0">
           {/* Queue button */}
           <button
-            className={`p-2 rounded-full transition-all duration-100 ${
+            className={`p-2 rounded-full transition-all duration-100 shrink-0 ${
               showQueue ? "bg-black/10" : ""
             }`}
             onClick={() => setShowQueue(!showQueue)}
@@ -485,7 +485,7 @@ export default function Player() {
           </button>
           {/* Shuffle button */}
           <button
-            className={`p-2  rounded-full transition-all duration-100 ${
+            className={`p-2 rounded-full transition-all duration-100 shrink-0 ${
               shuffle ? "bg-black/10" : ""
             }`}
             onClick={() => setShuffle(!shuffle)}
@@ -501,7 +501,7 @@ export default function Player() {
           </button>
           {/* Repeat button */}
           <button
-            className={`p-2 justify-center items-center flex transition-all duration-100 rounded-full ${
+            className={`p-2 justify-center items-center flex transition-all duration-100 rounded-full shrink-0 ${
               repeat !== 0 ? "bg-black/10" : ""
             }`}
             onClick={() => setRepeat(repeat === 0 ? 1 : repeat === 1 ? 2 : 0)}
@@ -514,15 +514,15 @@ export default function Player() {
               <path d="M12 16c1.671 0 3-1.331 3-3s-1.329-3-3-3-3 1.331-3 3 1.329 3 3 3z" />
               <path d="M20.817 11.186a8.94 8.94 0 0 0-1.355-3.219 9.053 9.053 0 0 0-2.43-2.43 8.95 8.95 0 0 0-3.219-1.355 9.028 9.028 0 0 0-1.838-.18V2L8 5l3.975 3V6.002c.484-.002.968.044 1.435.14a6.961 6.961 0 0 1 2.502 1.053 7.005 7.005 0 0 1 1.892 1.892A6.967 6.967 0 0 1 19 13a7.032 7.032 0 0 1-.55 2.725 7.11 7.11 0 0 1-.644 1.188 7.2 7.2 0 0 1-.858 1.039 7.028 7.028 0 0 1-3.536 1.907 7.13 7.13 0 0 1-2.822 0 6.961 6.961 0 0 1-2.503-1.054 7.002 7.002 0 0 1-1.89-1.89A6.996 6.996 0 0 1 5 13H3a9.02 9.02 0 0 0 1.539 5.034 9.096 9.096 0 0 0 2.428 2.428A8.95 8.95 0 0 0 12 22a9.09 9.09 0 0 0 1.814-.183 9.014 9.014 0 0 0 3.218-1.355 8.886 8.886 0 0 0 1.331-1.099 9.228 9.228 0 0 0 1.1-1.332A8.952 8.952 0 0 0 21 13a9.09 9.09 0 0 0-.183-1.814z" />
             </svg>
-            {repeat !== 0 && (
-              <span className="text-[12px] text-black ml-1 transition-all duration-100">
-                {repeat === 1 ? "All" : "One"}
-              </span>
-            )}
+            <span
+              className={`text-[12px] text-black overflow-hidden whitespace-nowrap inline-block transition-all duration-300 ${repeat !== 0 ? "w-6 ml-1 opacity-100" : "w-0 ml-0 opacity-0"}`}
+            >
+              {repeat === 1 ? "All" : repeat === 2 ? "One" : "All"}
+            </span>
           </button>
-          <div className="flex items-center gap-0">
+          <div className="flex items-center gap-0 shrink-0">
             <button
-              className="p-1 hover:bg-black/10 rounded-full"
+              className="p-1 hover:bg-black/10 rounded-full shrink-0"
               onClick={() => {
                 setVolume({
                   value: volume.value === 0 ? volume.preValue : 0,
@@ -540,7 +540,7 @@ export default function Player() {
               </svg>
             </button>
             <div
-              className="relative w-15 h-1 bg-black/50 rounded-full cursor-pointer group"
+              className="relative w-16 h-1 bg-black/50 rounded-full cursor-pointer group shrink-0"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;

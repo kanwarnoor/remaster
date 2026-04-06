@@ -3,6 +3,7 @@
 import React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Tile from "./Tile";
+import Link from "next/link";
 
 interface Track {
   id: string;
@@ -33,6 +34,7 @@ interface Props {
   type?: string;
   setCurrentUser?: (user: User) => void;
   upload?: boolean;
+  link?: string;
 }
 
 export default function TracksList({
@@ -41,6 +43,7 @@ export default function TracksList({
   isLoading,
   type,
   isError,
+  link,
   upload,
   deleteTrack,
 }: Props) {
@@ -97,7 +100,16 @@ export default function TracksList({
 
   return (
     <>
-      <p className="text-3xl font-bold mb-5">{title}</p>
+      <div className="flex justify-between items-top gap-5 ">
+        <p className="text-3xl font-bold mb-5">{title}</p>
+        <Link
+          href={link || "/"}
+          className="text-sm mt-2 hover:underline text-white/50 hover:text-white transition-all duration-300"
+        >
+          View more
+        </Link>
+      </div>
+
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-5">

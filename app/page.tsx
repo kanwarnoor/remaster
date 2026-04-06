@@ -83,6 +83,7 @@ export default function Page() {
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
               title="Your Tracks"
+              link="/tracks"
               data={userTracks}
               isLoading={userLoading}
               type="user"
