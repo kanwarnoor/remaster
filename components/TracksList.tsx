@@ -102,12 +102,14 @@ export default function TracksList({
     <>
       <div className="flex justify-between items-top gap-5 ">
         <p className="text-3xl font-bold mb-5">{title}</p>
-        <Link
-          href={link || "/"}
-          className="text-sm mt-2 hover:underline text-white/50 hover:text-white transition-all duration-300"
-        >
-          View more
-        </Link>
+        {link && (
+          <Link
+            href={link || "/"}
+            className="text-sm mt-2 hover:underline text-white/50 hover:text-white transition-all duration-300"
+          >
+            View more
+          </Link>
+        )}
       </div>
 
       <div className="relative">

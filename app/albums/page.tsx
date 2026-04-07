@@ -9,7 +9,7 @@ export default async function page() {
   if (!user) {
     return redirect("/login");
   }
-  const userTracks = await prisma.track.findMany({
+  const userAlbums = await prisma.album.findMany({
     where: {
       userId: user.id,
     },
@@ -18,5 +18,5 @@ export default async function page() {
     },
   });
 
-  return <Client tracks={userTracks} />;
+  return <Client albums={userAlbums} />;
 }

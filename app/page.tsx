@@ -76,6 +76,7 @@ export default function Page() {
               isLoading={albumsLoading}
               type="album"
               upload={false}
+              link="/albums"
             />
           </section>
         )}
