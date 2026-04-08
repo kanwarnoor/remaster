@@ -29,7 +29,7 @@ export default function Tile({
     }
   };
   return !upload ? (
-    <div className="flex flex-col rounded w-[200px]">
+    <div className="flex flex-col w-[200px]">
       <div onClick={handleClick}>
         <motion.div
           initial={{ opacity: 0, filter: "blur(20px)" }}
