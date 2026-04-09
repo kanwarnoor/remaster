@@ -13,7 +13,7 @@ import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
 import { usePlayer } from "@/context/PlayerContext";
 import { useRouter } from "next/navigation";
-import { Track, Album } from "@/app/generated/prisma/client";
+import { Track, Album, Playlist } from "@/app/generated/prisma/client";
 import { AlbumTracks } from "@/app/generated/prisma/client";
 import {
   DragDropContext,
@@ -30,7 +30,8 @@ type AlbumMode = {
     tracks: Track[];
   };
   user?: { id: string };
-  toggleVisibility: () => void;
+  toggleVisibility?: () => void;
+  likedTrackIds?: string[];
 };
 
 type SingleMode = {
@@ -57,7 +58,17 @@ type SingleMode = {
   toggleVisibility: () => void;
 };
 
-type Props = AlbumMode | SingleMode;
+type PlaylistMode = {
+  mode: "playlist";
+  data: {
+    playlist: Playlist;
+    tracks: Track[];
+  };
+  user?: { id: string };
+  likedTrackIds?: string[];
+};
+
+type Props = AlbumMode | SingleMode | PlaylistMode;
 
 export default function MusicPage(props: Props) {
   const router = useRouter();
@@ -75,25 +86,67 @@ export default function MusicPage(props: Props) {
   const [editing, setEditing] = useState(false);
   const [addAlbum, setAddAlbum] = useState(false);
   const [colors, setColors] = useState<[number, number, number][]>([]);
+  const isAlbum = props.mode === "album";
+  const isPlaylist = props.mode === "playlist";
+  const isList = isAlbum || isPlaylist;
+  const isSingle = props.mode === "single";
+
   const [localTracks, setLocalTracks] = useState<(Track & { sort?: string })[]>(
-    props.mode === "album" ? (props.data.tracks ?? []) : [],
+    isList ? (props.data.tracks ?? []) : [],
+  );
+  const [likedIds, setLikedIds] = useState<Set<string>>(
+    new Set(isList ? (props.likedTrackIds ?? []) : []),
   );
 
-  const isAlbum = props.mode === "album";
+  const toggleLike = async (trackId: string) => {
+    try {
+      const res = await axios.post("/api/tracks/like", { trackId });
+      if (res.status === 200) {
+        setLikedIds((prev) => {
+          const next = new Set(prev);
+          if (res.data.liked) {
+            next.add(trackId);
+          } else {
+            next.delete(trackId);
+          }
+          return next;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to toggle like", error);
+    }
+  };
+
+  const handleToggleVisibility = async () => {
+    if (!isAlbum) return;
+    const visibility =
+      props.data.album.visibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+    try {
+      const res = await axios.put(
+        `/api/album/toggle_visibility?id=${itemId}&visibility=${visibility}`,
+      );
+      if (res.status !== 200) {
+        throw new Error("Failed to toggle visibility");
+      }
+      queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+    } catch (error) {
+      console.error("Error toggling visibility:", error);
+    }
+  };
 
   // Normalized accessors
-  const itemId = isAlbum ? props.data.album.id : props.data.track.id;
-  const itemName = isAlbum ? props.data.album.name : props.data.track.name;
-  const itemArtist = isAlbum
-    ? props.data.album.artist
-    : props.data.track.artist;
-  const itemImage = isAlbum ? props.data.album.image : props.data.track.image;
-  const itemUserId = isAlbum
-    ? props.data.album.userId
-    : props.data.track.userId;
-  const itemCreatedAt = isAlbum
-    ? props.data.album.createdAt
-    : props.data.track.createdAt;
+  const source = isAlbum
+    ? props.data.album
+    : isPlaylist
+      ? props.data.playlist
+      : props.data.track;
+  const itemId = source.id;
+  const itemName = source.name;
+  const itemArtist = isAlbum ? props.data.album.artist : isPlaylist ? null : props.data.track.artist;
+  const itemImage = source.image;
+  const itemUserId = source.userId;
+  const itemCreatedAt = source.createdAt;
+  const imagePrefix = isPlaylist ? "images/playlist" : "images/track";
 
   const date = new Date(itemCreatedAt);
   const createdAt = `${date.toLocaleString("default", {
@@ -106,7 +159,7 @@ export default function MusicPage(props: Props) {
     name: itemName,
     artist: itemArtist,
     previewArt: itemImage
-      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${itemImage}`
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/${imagePrefix}/${itemImage}`
       : null,
     art: null as File | null,
   });
@@ -118,15 +171,16 @@ export default function MusicPage(props: Props) {
       const album = await axios.get("/api/album");
       return album.data.album || [];
     },
-    enabled: !isAlbum && !!props.user && addAlbum,
+    enabled: isSingle && !!props.user && addAlbum,
   });
 
   const handleOption = async (option: string) => {
     setOptions(false);
 
     if (option === "delete") {
+      const typeWord = isAlbum ? "album" : isPlaylist ? "playlist" : "track";
       const confirmDelete = confirm(
-        `Are you sure you want to delete this ${isAlbum ? "album" : "track"}?`,
+        `Are you sure you want to delete this ${typeWord}?`,
       );
       if (!confirmDelete) return;
 
@@ -136,6 +190,15 @@ export default function MusicPage(props: Props) {
         });
         if (response.status !== 200) {
           console.error("Failed to delete album");
+        } else {
+          window.location.href = "/";
+        }
+      } else if (isPlaylist) {
+        const response = await axios.delete("/api/playlist/delete", {
+          data: { id: itemId },
+        });
+        if (response.status !== 200) {
+          console.error("Failed to delete playlist");
         } else {
           window.location.href = "/";
         }
@@ -256,13 +319,13 @@ export default function MusicPage(props: Props) {
       }
     }
 
-    if (option === "album" && !isAlbum) {
+    if (option === "album" && isSingle) {
       setAddAlbum(true);
     }
   };
 
   const addTrackToAlbum = async (albumId: string, alreadyInAlbum: boolean) => {
-    if (isAlbum) return;
+    if (!isSingle) return;
     try {
       if (alreadyInAlbum) {
         const response = await axios.post("/api/album/remove", {
@@ -291,7 +354,7 @@ export default function MusicPage(props: Props) {
   };
 
   const handleAlbum = async () => {
-    if (isAlbum) return;
+    if (!isSingle) return;
     setAddAlbum(false);
 
     try {
@@ -314,9 +377,10 @@ export default function MusicPage(props: Props) {
     }
   };
 
-  const list = isAlbum
+  const list = isSingle
     ? [
         { name: "Edit", handleOption: () => handleOption("toggleEdit") },
+        { name: "Album", handleOption: () => handleOption("album") },
         {
           name: "Delete",
           danger: true,
@@ -325,7 +389,6 @@ export default function MusicPage(props: Props) {
       ]
     : [
         { name: "Edit", handleOption: () => handleOption("toggleEdit") },
-        { name: "Album", handleOption: () => handleOption("album") },
         {
           name: "Delete",
           danger: true,
@@ -337,7 +400,7 @@ export default function MusicPage(props: Props) {
     {
       name: "Edit",
       handleOption: () => {
-        const track = isAlbum
+        const track = isList
           ? localTracks.find((t) => t.id === trackId)
           : props.data.track;
         if (track) {
@@ -379,7 +442,33 @@ export default function MusicPage(props: Props) {
             },
           },
         ]
-      : []),
+      : isPlaylist
+        ? [
+            {
+              name: "Remove from Playlist",
+              handleOption: async () => {
+                setActiveTrackOptions(null);
+                const confirmRemove = confirm(
+                  "Remove this track from the playlist?",
+                );
+                if (!confirmRemove) return;
+                try {
+                  const response = await axios.post("/api/playlist/remove", {
+                    playlistId: props.data.playlist.id,
+                    trackId,
+                  });
+                  if (response.status === 200) {
+                    setLocalTracks((prev) =>
+                      prev.filter((t) => t.id !== trackId),
+                    );
+                  }
+                } catch (error) {
+                  console.error("Failed to remove track from playlist", error);
+                }
+              },
+            },
+          ]
+        : []),
     {
       name: "Delete Track",
       danger: true,
@@ -464,7 +553,7 @@ export default function MusicPage(props: Props) {
         img.onload = null;
       }
     };
-  }, [itemImage, isAlbum ? null : playerCtx.data]);
+  }, [itemImage, isList ? null : playerCtx.data]);
 
   function formatTime(seconds: number) {
     seconds = Math.floor(seconds);
@@ -482,15 +571,16 @@ export default function MusicPage(props: Props) {
     }
   }
 
-  // Sync localTracks when album data refreshes (e.g. after query invalidation)
+  // Sync localTracks when album/playlist data refreshes (e.g. after query invalidation)
   useEffect(() => {
-    if (isAlbum) {
+    if (isList) {
       setLocalTracks(props.data.tracks ?? []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.mode === "album" ? props.data.tracks : null]);
+  }, [isList ? props.data.tracks : null]);
 
   const isOwner = !!props.user && props.user.id === itemUserId;
+  const isDefaultPlaylist = isPlaylist && props.data.playlist.default;
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !isAlbum) return;
@@ -520,17 +610,19 @@ export default function MusicPage(props: Props) {
   };
 
   // Build tracks list for the tracklist section
-  const tracksList = isAlbum ? localTracks : [props.data.track];
+  const tracksList = isList ? localTracks : [props.data.track];
 
   const imageUrl = itemImage
-    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${itemImage}`
+    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/${imagePrefix}/${itemImage}`
     : "/music.jpg";
 
   const typeLabel = isAlbum
     ? "Album"
-    : props.data.track.album != null
-      ? "Album"
-      : "Single";
+    : isPlaylist
+      ? "Playlist"
+      : props.data.track.album != null
+        ? "Album"
+        : "Single";
 
   return (
     <div className="w-screen min-h-screen pt-10 text-center select-none ">
@@ -633,9 +725,17 @@ export default function MusicPage(props: Props) {
                     checked={
                       isAlbum
                         ? props.data.album.visibility === "PUBLIC"
-                        : props.data.track.visibility === "PUBLIC"
+                        : isPlaylist
+                          ? props.data.playlist.visibility === "PUBLIC"
+                          : props.data.track.visibility === "PUBLIC"
                     }
-                    handleChange={() => props.toggleVisibility()}
+                    handleChange={() => {
+                      if (isAlbum) {
+                        handleToggleVisibility();
+                      } else if (isSingle) {
+                        props.toggleVisibility();
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -655,7 +755,7 @@ export default function MusicPage(props: Props) {
       )}
 
       {/* Add to album modal - single mode only */}
-      {!isAlbum && addAlbum && (
+      {isSingle && addAlbum && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-10"
@@ -881,23 +981,23 @@ export default function MusicPage(props: Props) {
               {itemName}
             </p>
             <p className="text-xl font-bold text-ellipsis overflow-hidden line-clamp-1">
-              {itemArtist || "Unknown Artist"}
+              {isPlaylist
+                ? props.data.playlist.description || ""
+                : itemArtist || "Unknown Artist"}
             </p>
           </div>
           <div className="w-full pl-10 h-[35%] flex items-end">
             <div
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
               onClick={() => {
-                if (isAlbum) {
+                if (isList) {
                   const tracks = props.data.tracks ?? [];
                   if (tracks.length > 0) {
-                    const albumImage = props.data.album.image;
-                    const tracksWithAlbumArt = tracks.map((t) => ({
-                      ...t,
-                      image: albumImage || t.image,
-                    }));
+                    const queueTracks = isAlbum
+                      ? tracks.map((t) => ({ ...t, image: props.data.album.image || t.image }))
+                      : tracks;
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    playerCtx.setQueue(tracksWithAlbumArt as any[], 0);
+                    playerCtx.setQueue(queueTracks as any[], 0);
                   }
                 } else {
                   props.setPlaying(props.data.track.id, !props.playing);
@@ -907,7 +1007,7 @@ export default function MusicPage(props: Props) {
                 }
               }}
             >
-              {!isAlbum && props.playing ? (
+              {isSingle && props.playing ? (
                 <svg
                   width="800px"
                   height="800px"
@@ -933,11 +1033,11 @@ export default function MusicPage(props: Props) {
               )}
 
               <p className="flex">
-                {!isAlbum && props.playing ? "Pause" : "Play"}
+                {isSingle && props.playing ? "Pause" : "Play"}
               </p>
             </div>
 
-            {props.user && props.user.id === itemUserId && (
+            {props.user && props.user.id === itemUserId && !isDefaultPlaylist && (
               <div
                 className="justify-end  ml-auto  flex cursor-pointer "
                 onClick={() => setOptions(!options)}
@@ -969,7 +1069,7 @@ export default function MusicPage(props: Props) {
               ref={droppableProvided.innerRef}
               {...droppableProvided.droppableProps}
               className="w-full h-fit justify-start flex flex-col px-20 pt-10"
-              {...(!isAlbum
+              {...(isSingle
                 ? {
                     onDoubleClick: () => {
                       props.setPlaying(props.data.track.id, true);
@@ -1035,28 +1135,32 @@ export default function MusicPage(props: Props) {
                         }
                       }}
                       onDoubleClick={() => {
-                        if (isAlbum) {
-                          const albumImage = props.data.album.image;
-                          const tracksWithAlbumArt = localTracks.map((t) => ({
-                            ...t,
-                            image: albumImage || t.image,
-                          }));
+                        if (isList) {
+                          const queueTracks = isAlbum
+                            ? localTracks.map((t) => ({ ...t, image: props.data.album.image || t.image }))
+                            : localTracks;
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           playerCtx.setQueue(
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            tracksWithAlbumArt as any[],
+                            queueTracks as any[],
                             index,
                           );
                         }
                       }}
                     >
-                      <div className="w-[2%] justify-left items-center flex ml-5 ">
+                      <div
+                        className="w-[2%] justify-left items-center flex ml-5"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLike(track.id);
+                        }}
+                      >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
+                          fill={likedIds.has(track.id) ? "white" : "none"}
                           viewBox="0 0 24 24"
                           strokeWidth="1.5"
-                          className="size-3 stroke-white cursor-pointer"
+                          className="size-3 stroke-white cursor-pointer hover:scale-125 transition-transform"
                         >
                           <path
                             strokeLinecap="round"
@@ -1075,7 +1179,7 @@ export default function MusicPage(props: Props) {
                         {track.artist}
                       </div>
                       <div className="w-[05%] flex items-center justify-center ml-2 text-base font-medium pr-3 text-center relative">
-                        {isOwner && (
+                        {isOwner && !isDefaultPlaylist && (
                           <div
                             className="hidden group-hover:flex items-center justify-center w-full h-full hover:underline cursor-pointer"
                             onClick={(e) => {

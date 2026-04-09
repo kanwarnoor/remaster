@@ -44,6 +44,44 @@ export default function Player() {
   } = usePlayer();
 
   const [volume, setVolume] = useState({ value: 1, preValue: 1 });
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+
+  // Fetch liked track IDs
+  const { data: likedData } = useQuery({
+    queryKey: ["liked-tracks"],
+    queryFn: async () => {
+      const res = await axios.get("/api/tracks/liked");
+      return res.data.trackIds as string[];
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (likedData) {
+      setTimeout(() => {
+        setLikedIds(new Set(likedData));
+      }, 1000);
+    }
+  }, [likedData]);
+
+  const toggleLike = async (trackId: string) => {
+    try {
+      const res = await axios.post("/api/tracks/like", { trackId });
+      if (res.status === 200) {
+        setLikedIds((prev) => {
+          const next = new Set(prev);
+          if (res.data.liked) {
+            next.add(trackId);
+          } else {
+            next.delete(trackId);
+          }
+          return next;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to toggle like", error);
+    }
+  };
   const playerRef = useRef<typeof ReactPlayer>(null);
   const colorImgRef = useRef<HTMLImageElement>(null);
   const [progress, setProgress] = useState({
@@ -205,11 +243,20 @@ export default function Player() {
               onClick={() => setShowQueue(false)}
             />
             <motion.div
-              initial={{ y: "100%", opacity: 0 }}
+              initial={{ y: "45%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed bottom-28 left-0 right-0 m-auto w-[500px] max-h-[400px] z-[59] bg-neutral-900/95 backdrop-blur-xl rounded-2xl overflow-hidden"
+              exit={{ y: "45%", opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="fixed bottom-28 left-0 right-0 m-auto w-[500px] max-h-[400px] z-[59]  border-t-1 backdrop-blur-xl rounded-2xl overflow-hidden"
+              style={{
+                background: dark
+                  ? `rgba(${dark[4]?.[0] ?? 32},${dark[4]?.[1] ?? 32},${dark[4]?.[2] ?? 32},0.50)`
+                  : `rgba(${color[0]?.[0] ?? 32},${color[0]?.[1] ?? 32},${color[0]?.[2] ?? 32},0.20)`,
+                borderTop: dark
+                  ? `2px solid rgba(${dark[4][0]},${dark[4][1]},${dark[4][2]},1)`
+                  : "2px solid rgba(32,32,32,0.15)",
+                color: textColor,
+              }}
             >
               <div className="flex justify-between items-center p-4 border-b border-white/10">
                 <p className="text-lg font-bold text-white">Queue</p>
@@ -233,7 +280,7 @@ export default function Player() {
                   </svg>
                 </div>
               </div>
-              <div className="overflow-y-auto max-h-[340px] p-2">
+              <div className="overflow-y-auto max-h-[340px] p-2 ">
                 {queue.length === 0 && (
                   <p className="text-white/50 text-center py-4">
                     Queue is empty
@@ -242,7 +289,7 @@ export default function Player() {
                 {queue.map((track, index) => (
                   <div
                     key={track.id + index}
-                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all hover:bg-white/10 ${
+                    className={`flex items-center gap-3 p-2 rounded-lg first:mt-0 mt-1 cursor-pointer transition-all hover:bg-white/10 ${
                       index === queueIndex ? "bg-white/15" : ""
                     }`}
                     onClick={() => jumpToQueueIndex(index)}
@@ -342,9 +389,7 @@ export default function Player() {
               />
             </div>
             <div className="max-w-xs">
-              <h3 className="font-medium line-clamp-1">
-                {playerData?.name}
-              </h3>
+              <h3 className="font-medium line-clamp-1">{playerData?.name}</h3>
               <p className="text-xs opacity-70 line-clamp-1">
                 {playerData?.artist}
               </p>
@@ -639,13 +684,16 @@ export default function Player() {
                         {playerData?.artist || "undefined"}
                       </p>
                     </div>
-                    <div className="flex w-[20%] flex-col items-end">
+                    <div
+                      className="flex w-[20%] flex-col items-end"
+                      onClick={() => toggleLike(playerData.id)}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
+                        fill={likedIds.has(playerData.id) ? "white" : "none"}
                         viewBox="0 0 24 24"
                         strokeWidth="1.5"
-                        className="size-7 stroke-white cursor-pointer"
+                        className="size-7 stroke-white cursor-pointer hover:scale-110 transition-transform"
                       >
                         <path
                           strokeLinecap="round"

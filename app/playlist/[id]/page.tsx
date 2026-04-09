@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-
 import prisma from "@/libs/prisma";
 import { User } from "@/libs/Auth";
 import MusicPage from "@/components/MusicPage";
@@ -16,16 +15,16 @@ export const generateMetadata = async ({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> => {
   const { id } = await params;
-  const album = await prisma.album.findUnique({ where: { id } });
+  const playlist = await prisma.playlist.findUnique({ where: { id } });
   return {
-    title: album?.name || "Remaster",
+    title: playlist?.name || "Remaster",
   };
 };
 
 export default async function Page({ params }: Props) {
   const { id } = await params;
 
-  const album = await prisma.album.findUnique({
+  const playlist = await prisma.playlist.findUnique({
     where: { id },
     include: {
       tracks: {
@@ -35,7 +34,7 @@ export default async function Page({ params }: Props) {
     },
   });
 
-  if (!album) {
+  if (!playlist) {
     return (
       <>
         <InsideNavbar link="/" />
@@ -47,7 +46,7 @@ export default async function Page({ params }: Props) {
             alt={"dead mouse"}
             priority
           />
-          <p className="text-3xl font-bold mt-5">Album does not exist!</p>
+          <p className="text-3xl font-bold mt-5">Playlist does not exist!</p>
         </div>
       </>
     );
@@ -55,9 +54,8 @@ export default async function Page({ params }: Props) {
 
   const user = await User();
 
-  // If private, only owner can view
-  if (album.visibility === "PRIVATE") {
-    if (!user || user.id !== album.userId) {
+  if (playlist.visibility === "PRIVATE") {
+    if (!user || user.id !== playlist.userId) {
       return (
         <>
           <InsideNavbar link="/" />
@@ -69,14 +67,14 @@ export default async function Page({ params }: Props) {
               alt={"dead mouse"}
               priority
             />
-            <p className="text-3xl font-bold mt-5">Album does not exist!</p>
+            <p className="text-3xl font-bold mt-5">Playlist does not exist!</p>
           </div>
         </>
       );
     }
   }
 
-  const tracks = album.tracks.map((t) => ({
+  const tracks = playlist.tracks.map((t) => ({
     ...t.track,
     sort: String(t.sort),
   }));
@@ -93,15 +91,14 @@ export default async function Page({ params }: Props) {
     }
   }
 
-  // Strip the nested tracks relation from album before passing to client
-  const { tracks: _albumTracks, ...albumData } = album;
+  const { tracks: _playlistTracks, ...playlistData } = playlist;
 
   return (
     <div>
       <InsideNavbar link="/" />
       <MusicPage
-        mode="album"
-        data={{ album: albumData, tracks }}
+        mode="playlist"
+        data={{ playlist: playlistData, tracks }}
         user={user ?? undefined}
         likedTrackIds={likedTrackIds}
       />

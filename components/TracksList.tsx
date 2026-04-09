@@ -116,7 +116,12 @@ export default function TracksList({
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-5">
             {(data.tracks ?? []).map((item: Track, index: number) => {
-              const trackType = type === "album" ? "album/" : "single/";
+              const trackType =
+                type === "album"
+                  ? "album/"
+                  : type === "playlist"
+                    ? "playlist/"
+                    : "single/";
 
               return (
                 <div key={item.id + index} className="flex-[0_0_200px]">
@@ -125,7 +130,7 @@ export default function TracksList({
                     artist={item.artist}
                     art={
                       item.image
-                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${item.image}`
+                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "track" : type === "playlist" ? "playlist" : "track"}/${item.image}`
                         : "/music.jpg"
                     }
                     link={trackType + item.id}

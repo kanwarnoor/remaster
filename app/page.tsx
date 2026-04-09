@@ -51,6 +51,15 @@ export default function Page() {
     enabled: !!currentUser,
   });
 
+  const { data: playlists = [], isLoading: playlistsLoading } = useQuery({
+    queryKey: ["playlists"],
+    queryFn: async () => {
+      const res = await axios.get("/api/playlist");
+      return res.data.playlists || [];
+    },
+    enabled: !!currentUser,
+  });
+
   const deleteTrack = async (id: string) => {
     const res = await axios.delete("/api/tracks/delete_track", {
       data: { id },
@@ -77,6 +86,18 @@ export default function Page() {
               type="album"
               upload={false}
               link="/albums"
+            />
+          </section>
+        )}
+        {currentUser && (playlistsLoading || playlists) && playlists.length > 0 && (
+          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <TracksList
+              title="Your Playlists"
+              data={{ tracks: playlists }}
+              isLoading={playlistsLoading}
+              type="playlist"
+              upload={false}
+              link="/playlists"
             />
           </section>
         )}

@@ -3,7 +3,7 @@ import { User } from "@/libs/Auth";
 import prisma from "@/libs/prisma";
 import { generateKeyBetween } from "fractional-indexing";
 
-export default async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const { trackId } = await req.json();
     const user = await User();
@@ -15,7 +15,7 @@ export default async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Track not found" }, { status: 404 });
     }
 
-    // create like songs playlist if not exists
+    // create liked songs playlist if not exists
     let fav = await prisma.playlist.findFirst({
       where: { userId: user.id, name: "Favourites", default: true },
     });
@@ -30,7 +30,18 @@ export default async function POST(req: NextRequest) {
       });
     }
 
-    // add track to favourites playlist
+    // check if track is already in favourites
+    const existing = await prisma.playlistTracks.findFirst({
+      where: { playlistId: fav.id, trackId: track.id },
+    });
+
+    if (existing) {
+      // unlike - remove from favourites
+      await prisma.playlistTracks.delete({ where: { id: existing.id } });
+      return NextResponse.json({ liked: false }, { status: 200 });
+    }
+
+    // like - add to favourites
     const lastEntry = await prisma.playlistTracks.findFirst({
       where: { playlistId: fav.id },
       orderBy: { sort: "desc" },
@@ -38,12 +49,12 @@ export default async function POST(req: NextRequest) {
     await prisma.playlistTracks.create({
       data: {
         playlistId: fav.id,
-        trackId: track.id ?? "",
+        trackId: track.id,
         sort: generateKeyBetween(lastEntry ? String(lastEntry.sort) : null, null),
       },
     });
 
-    return NextResponse.json({ message: "Track added to favourites!" }, { status: 200 });
+    return NextResponse.json({ liked: true }, { status: 200 });
   } catch (error) {
     console.error("Error in liking track:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
