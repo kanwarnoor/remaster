@@ -1,20 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import axios, { AxiosError } from "axios";
 import Navbar from "../../components/Navbar";
 import Image from "next/image";
 import Link from "next/link";
-import Signup from "../../components/Signup";
-import prisma from "@/libs/prisma";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [verifyPassword, setVerifyPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showVerifyPassword, setShowVerifyPassword] = useState(false);
   const [email, setEmail] = useState("");
-  const [invite, setInvite] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
 
   const {
     mutate: verifyInvite,
@@ -24,10 +26,36 @@ export default function Page() {
     isSuccess: isVerifySuccess,
   } = useMutation({
     mutationFn: (code: string) => axios.get(`/api/invite?code=${code}`),
-    onSuccess: (data) => {
-      setInvite(data.data);
+  });
+
+  const {
+    mutate: signup,
+    isPending: isSignupPending,
+    error: signupError,
+    isError: isSignupError,
+  } = useMutation({
+    mutationFn: (data: {
+      username: string;
+      email: string;
+      password: string;
+      inviteCode: string;
+    }) => axios.post("/api/auth/signup", data),
+    onSuccess: () => {
+      router.push("/");
     },
   });
+
+  const passwordsMatch = password === verifyPassword;
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isVerifySuccess) {
+      verifyInvite(inviteCode);
+      return;
+    }
+    if (!passwordsMatch) return;
+    signup({ username, email, password, inviteCode });
+  };
 
   return (
     <>
@@ -47,10 +75,7 @@ export default function Page() {
         <div className="flex flex-col items-center justify-center gap-5 ">
           <form
             className="p-6 w-96 gap-5 flex flex-col justify-center m-auto"
-            onSubmit={(e) => {
-              e.preventDefault();
-              verifyInvite(invite);
-            }}
+            onSubmit={handleSignup}
           >
             <div className="flex flex-col items-center justify-center gap-2 mb-5">
               <h1 className="text-5xl text-center font-bold text-white ">
@@ -68,8 +93,8 @@ export default function Page() {
                     type="text"
                     className="w-full p-2 border-2 border-remaster text-white bg-remaster/50 rounded-lg"
                     id="invite code"
-                    value={invite}
-                    onChange={(e) => setInvite(e.target.value)}
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
                     required
                   />
                 </div>
@@ -126,7 +151,7 @@ export default function Page() {
                 <div className="">
                   <label className="block text-white/90">email</label>
                   <input
-                    type="text"
+                    type="email"
                     className="w-full p-2 border-2 border-remaster bg-remaster/50 text-white rounded-lg"
                     id="email"
                     value={email}
@@ -136,17 +161,73 @@ export default function Page() {
                 </div>
                 <div className="">
                   <label className="block text-white/90 ">password</label>
-                  <input
-                    type="password"
-                    className="w-full p-2 border-2 border-remaster text-white bg-remaster/50 rounded-lg"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="w-full p-2 border-2 border-remaster text-white bg-remaster/50 rounded-lg pr-10"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white cursor-pointer"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="">
+                  <label className="block text-white/90 ">verify password</label>
+                  <div className="relative">
+                    <input
+                      type={showVerifyPassword ? "text" : "password"}
+                      className={`w-full p-2 border-2 text-white bg-remaster/50 rounded-lg pr-10 ${
+                        verifyPassword && !passwordsMatch
+                          ? "border-red-500"
+                          : "border-remaster"
+                      }`}
+                      id="verify-password"
+                      value={verifyPassword}
+                      onChange={(e) => setVerifyPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white cursor-pointer"
+                      onClick={() => setShowVerifyPassword(!showVerifyPassword)}
+                    >
+                      {showVerifyPassword ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  {verifyPassword && !passwordsMatch && (
+                    <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+                  )}
                 </div>
 
-                {false ? (
+                {isSignupPending ? (
                   <button
                     type="submit"
                     className="w-full bg-remaster text-white py-2 rounded-lg flex items-center justify-center"
@@ -156,19 +237,31 @@ export default function Page() {
                 ) : (
                   <button
                     type="submit"
-                    className="w-full bg-remaster text-white py-2 rounded-lg"
+                    disabled={!passwordsMatch || !verifyPassword}
+                    className="w-full bg-remaster text-white py-2 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Let&apos;s go!
                   </button>
                 )}
 
-                {/* {error && <p className="text-red-500">{error}</p>} */}
+                {isSignupError && (
+                  <p className="text-red-500 text-center">
+                    {(signupError as AxiosError<{ error: string }>)?.response
+                      ?.data?.error ?? "Something went wrong"}
+                  </p>
+                )}
                 <p className="text-center text-gray-500 ">
-                  Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="text-remaster">
-                    Sign up
+                  Have an account? {" "}
+                  <Link href="/login" className="text-remaster">
+                    Login
                   </Link>
                 </p>
+
+                {inviteCode && (
+                  <p className="text-center text-white/70">
+                    Invite code: {inviteCode}
+                  </p>
+                )}
               </>
             )}
           </form>
