@@ -259,7 +259,7 @@ export default function Player() {
               }}
             >
               <div className="flex justify-between items-center p-4 border-b border-white/10">
-                <p className="text-lg font-bold text-white">Queue</p>
+                <p className="text-lg font-bold text-black">Queue</p>
                 <div
                   className="cursor-pointer p-1 hover:bg-white/10 rounded-full transition-all"
                   onClick={() => setShowQueue(false)}
@@ -269,7 +269,7 @@ export default function Player() {
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth="2"
-                    stroke="white"
+                    stroke="black"
                     className="size-5"
                   >
                     <path
@@ -282,7 +282,7 @@ export default function Player() {
               </div>
               <div className="overflow-y-auto max-h-[340px] p-2 ">
                 {queue.length === 0 && (
-                  <p className="text-white/50 text-center py-4">
+                  <p className="text-black/50 text-center py-4">
                     Queue is empty
                   </p>
                 )}
@@ -290,11 +290,11 @@ export default function Player() {
                   <div
                     key={track.id + index}
                     className={`flex items-center gap-3 p-2 rounded-lg first:mt-0 mt-1 cursor-pointer transition-all hover:bg-white/10 ${
-                      index === queueIndex ? "bg-white/15" : ""
+                      index === queueIndex ? "bg-black/10" : ""
                     }`}
                     onClick={() => jumpToQueueIndex(index)}
                   >
-                    <p className="text-white/40 text-sm w-6 text-right">
+                    <p className="text-black text-sm w-6 text-right">
                       {index + 1}
                     </p>
                     <img
@@ -313,11 +313,11 @@ export default function Player() {
                     />
                     <div className="flex flex-col overflow-hidden">
                       <p
-                        className={`text-sm text-ellipsis overflow-hidden line-clamp-1 font-medium ${index === queueIndex ? "text-white" : "text-white/70"}`}
+                        className={`text-sm text-ellipsis overflow-hidden line-clamp-1 font-medium ${index === queueIndex ? "text-black" : "text-black/70"}`}
                       >
                         {track.name}
                       </p>
-                      <p className="text-xs text-white/40 truncate">
+                      <p className="text-xs text-black/60 truncate">
                         {track.artist}
                       </p>
                     </div>
@@ -326,7 +326,7 @@ export default function Player() {
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
-                          fill="white"
+                          fill="black"
                           className="size-4"
                         >
                           <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z" />
