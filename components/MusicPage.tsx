@@ -1095,7 +1095,7 @@ export default function MusicPage(props: Props) {
                       ref={draggableProvided.innerRef}
                       {...draggableProvided.draggableProps}
                       {...draggableProvided.dragHandleProps}
-                      className={`flex h-13 rounded-lg cursor-pointer mb-2 group`}
+                  
                       style={{
                         borderTop: colors[0]
                           ? `2px solid rgba(${colors[0][0]},${colors[0][1]},${colors[0][2]},0.20)`
@@ -1147,6 +1147,7 @@ export default function MusicPage(props: Props) {
                           );
                         }
                       }}
+                      className={`flex h-13 rounded-lg cursor-pointer mb-2 group`}
                     >
                       <div
                         className="w-[2%] justify-left items-center flex ml-5"
@@ -1160,7 +1161,7 @@ export default function MusicPage(props: Props) {
                           fill={likedIds.has(track.id) ? "white" : "none"}
                           viewBox="0 0 24 24"
                           strokeWidth="1.5"
-                          className="size-3 stroke-white cursor-pointer hover:scale-125 transition-transform"
+                          className="size-4 stroke-white cursor-pointer hover:scale-125 transition-transform"
                         >
                           <path
                             strokeLinecap="round"
