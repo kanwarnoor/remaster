@@ -6,7 +6,7 @@ import axios from "axios";
 import Image from "next/image";
 import { User } from "@/libs/Auth";
 import { AnimatePresence } from "framer-motion";
-import InsideNavbar from "@/components/InsideNavbar";
+import Navbar from "@/components/Navbar";
 import MusicPage from "@/components/MusicPage";
 import Player from "@/components/Player";
 import { useParams } from "next/navigation";
@@ -83,7 +83,7 @@ export default function SingleTrackClient() {
       //   <div className="remaster-spinner w-10 h-10"></div>
       // </div>
       <>
-        <InsideNavbar link="/" />
+        <Navbar />
         <SongPageLoading />
       </>
     );
@@ -92,7 +92,7 @@ export default function SingleTrackClient() {
   if (!trackData || error) {
     return (
       <>
-        <InsideNavbar link="/" />
+        <Navbar />
         <div className="w-screen h-screen flex flex-col justify-center items-center ">
           <Image
             src={"/dead.webp"}
@@ -109,7 +109,7 @@ export default function SingleTrackClient() {
 
   return (
     <>
-      <InsideNavbar link="/" />
+      <Navbar />
       <MusicPage
         mode="single"
         data={trackData}

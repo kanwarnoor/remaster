@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Notification from "@/components/Notification";
-import InsideNavbar from "@/components/InsideNavbar";
+import Navbar from "@/components/Navbar";
 import { useUpload } from "@/context/UploadContext";
 import mime from "mime";
 
@@ -68,7 +68,7 @@ export default function FileUpload() {
 
   return (
     <>
-      <InsideNavbar link={"/"} />
+      <Navbar />
       <AnimatePresence>
         {popup.show && (
           <Notification message={popup.message} type={popup.type} />

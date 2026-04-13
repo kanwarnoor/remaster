@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import prisma from "@/libs/prisma";
 import { User } from "@/libs/Auth";
 import MusicPage from "@/components/MusicPage";
-import InsideNavbar from "@/components/InsideNavbar";
+import Navbar from "@/components/Navbar";
 import Image from "next/image";
 
 type Props = {
@@ -38,7 +38,7 @@ export default async function Page({ params }: Props) {
   if (!album) {
     return (
       <>
-        <InsideNavbar link="/" />
+        <Navbar />
         <div className="w-screen h-screen flex flex-col justify-center items-center">
           <Image
             src={"/dead.webp"}
@@ -60,7 +60,7 @@ export default async function Page({ params }: Props) {
     if (!user || user.id !== album.userId) {
       return (
         <>
-          <InsideNavbar link="/" />
+          <Navbar />
           <div className="w-screen h-screen flex flex-col justify-center items-center">
             <Image
               src={"/dead.webp"}
@@ -98,7 +98,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <div>
-      <InsideNavbar link="/" />
+      <Navbar />
       <MusicPage
         mode="album"
         data={{ album: albumData, tracks }}
