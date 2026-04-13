@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Lander() {
   return (
-    <div className="w-screen relative h-[500px] bg-remaster/50 flex flex-col items-center justify-center ">
+    <div className="w-screen relative h-[70vh] flex flex-col items-center justify-center ">
       <div className="w-full h-full m-6 flex items-center justify-center flex-col">
         <Image
           src="/remaster1.webp"

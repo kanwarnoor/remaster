@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Popup from "./Popup";
 import { User, Logout } from "@/libs/Auth";
 import { useRouter } from "next/navigation";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Search from "./Search";
 
 export default function Navbar() {
@@ -30,13 +30,40 @@ export default function Navbar() {
     },
   });
 
+  const [scroll, setScroll] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScroll(window.scrollY > 100 ? true : false);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <div className="fixed bg-blue-200 z-20">
-        <div className="navbar h-16 pl-5 text-center fixed left-0  justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50">
-          <Link href="/" className="mt-1">
-            REMASTER
-          </Link>
+        <div className="navbar h-16 pl-[13px] text-center fixed left-0 justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50">
+          <button
+            onClick={() => {
+              router.push("/");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="mt-1 relative overflow- block cursor-pointer"
+          >
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={scroll ? "R" : "Remaster"}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="block"
+              >
+                {scroll ? "R" : "Remaster"}
+              </motion.span>
+            </AnimatePresence>
+          </button>
         </div>
 
         <div className="fixed left-0 right-0 flex justify-center items-center p-2 h-16">

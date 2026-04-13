@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
 import Tile from "@/components/Tile";
 import Upload from "@/components/Upload";
@@ -71,12 +70,16 @@ export default function Page() {
     }
   };
 
+  if (publicLoading && userLoading && albumsLoading && playlistsLoading) {
+    return <Loader />;
+  }
+
   return (
     <>
       <Navbar />
       <Lander />
 
-      <div className="w-screen h-screen flex flex-col pt-16">
+      <div className="w-screen h-screen flex flex-col">
         {currentUser && (albumsLoading || albums) && albums.length > 0 && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
@@ -89,18 +92,20 @@ export default function Page() {
             />
           </section>
         )}
-        {currentUser && (playlistsLoading || playlists) && playlists.length > 0 && (
-          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
-            <TracksList
-              title="Your Playlists"
-              data={{ tracks: playlists }}
-              isLoading={playlistsLoading}
-              type="playlist"
-              upload={false}
-              link="/playlists"
-            />
-          </section>
-        )}
+        {currentUser &&
+          (playlistsLoading || playlists) &&
+          playlists.length > 0 && (
+            <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+              <TracksList
+                title="Your Playlists"
+                data={{ tracks: playlists }}
+                isLoading={playlistsLoading}
+                type="playlist"
+                upload={false}
+                link="/playlists"
+              />
+            </section>
+          )}
         {currentUser && (userLoading || userTracks) && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
