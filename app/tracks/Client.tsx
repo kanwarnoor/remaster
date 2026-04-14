@@ -11,8 +11,8 @@ export default function Client(tracks: { tracks: Track[] }) {
     <div>
       <Navbar />
       <div className="w-fit h-screen flex flex-col pt-16 ">
-        <h1 className="text-5xl font-bold px-20 pt-12">Your Tracks</h1>
-        <div className="w-fit flex px-20 flex-wrap h-auto pt-12 pb-32 gap-4">
+        <h1 className="text-5xl font-bold px-25 pt-12">Your Tracks</h1>
+        <div className="w-fit flex px-25 flex-wrap h-auto pt-12 pb-32 gap-4">
           {tracks.tracks.map((track: Track, index: number) => (
             <Tile
               key={track.id}

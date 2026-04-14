@@ -79,7 +79,30 @@ export default function Page() {
       <Navbar />
       <Lander />
 
-      <div className="w-screen h-screen flex flex-col">
+      <div className="w-screen h-fit flex flex-col">
+        {(publicLoading || publicTracks) && (
+          <section className="w-screen h-fit flex flex-col px-20 pt-12">
+            <TracksList
+              title="Public Tracks"
+              data={publicTracks}
+              isLoading={publicLoading}
+              type="public"
+            />
+          </section>
+        )}
+        {currentUser && (userLoading || userTracks) && (
+          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <TracksList
+              title="Your Tracks"
+              link="/tracks"
+              data={userTracks}
+              isLoading={userLoading}
+              type="user"
+              upload={true}
+              deleteTrack={deleteTrack}
+            />
+          </section>
+        )}
         {currentUser && (albumsLoading || albums) && albums.length > 0 && (
           <section className=" w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
@@ -95,7 +118,7 @@ export default function Page() {
         {currentUser &&
           (playlistsLoading || playlists) &&
           playlists.length > 0 && (
-            <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <section className=" w-screen h-fit flex flex-col px-20 pt-12 pb-12">
               <TracksList
                 title="Your Playlists"
                 data={{ tracks: playlists }}
@@ -106,30 +129,6 @@ export default function Page() {
               />
             </section>
           )}
-        {currentUser && (userLoading || userTracks) && (
-          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
-            <TracksList
-              title="Your Tracks"
-              link="/tracks"
-              data={userTracks}
-              isLoading={userLoading}
-              type="user"
-              upload={true}
-              deleteTrack={deleteTrack}
-            />
-          </section>
-        )}
-
-        {(publicLoading || publicTracks) && (
-          <section className="w-screen h-fit flex flex-col px-20 pt-12 pb-20">
-            <TracksList
-              title="Public Tracks"
-              data={publicTracks}
-              isLoading={publicLoading}
-              type="public"
-            />
-          </section>
-        )}
       </div>
     </>
   );

@@ -3,6 +3,7 @@ import "./globals.css";
 import Provider from "@/libs/Provider"; // Import QueryProvider
 import { Inter } from "next/font/google";
 import Player from "@/components/Player";
+import Footer from "@/components/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s",
     default: "Remaster",
   },
-  description: "Where music meets creativity",
+  description: "Where music meets ownership",
   icons: {
     icon: "/favicon.ico",
   },
@@ -28,6 +29,7 @@ export default function RootLayout({
         <Provider>
           {children}
           <Player />
+          <Footer />
         </Provider>
       </body>
     </html>
