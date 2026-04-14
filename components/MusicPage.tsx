@@ -1147,10 +1147,10 @@ export default function MusicPage(props: Props) {
                           );
                         }
                       }}
-                      className={`flex h-13 rounded-lg cursor-pointer mb-2 group`}
+                      className={`flex h-13 rounded-lg cursor-pointer mb-2 group transition-all `}
                     >
                       <div
-                        className="w-[2%] justify-left items-center flex ml-5"
+                        className="w-[5%] ml-2 hidden group-hover:flex justify-center items-center flex "
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleLike(track.id);
@@ -1170,9 +1170,24 @@ export default function MusicPage(props: Props) {
                           />
                         </svg>
                       </div>
-                      <div className="w-[2%]  justify-center text-center text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
+                      <div className="w-[5%] justify-center text-center text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium group-hover:hidden">
                         {index + 1}
                       </div>
+                      {isPlaylist && (
+                        <div className="flex items-center justify-center ml-2 min-w-10 w-10 h-full">
+                          <Image
+                            src={
+                              track.image
+                                ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.image}`
+                                : "/music.jpg"
+                            }
+                            alt={track.name || "Track art"}
+                            width={36}
+                            height={36}
+                            className="rounded object-cover w-10 h-10 aspect-square"
+                          />
+                        </div>
+                      )}
                       <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
                         {track.name}
                       </div>
@@ -1208,7 +1223,7 @@ export default function MusicPage(props: Props) {
                           </>
                         )}
                         {activeTrackOptions !== track.id && (
-                          <span className="group-hover:hidden">
+                          <span className="">
                             {formatTime(track.duration ?? 0)}
                           </span>
                         )}

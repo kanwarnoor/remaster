@@ -17,6 +17,7 @@ export default function footer() {
               duration: 1,
               delay: (index + 1) * 0.1,
             }}
+            viewport={{ once: true }}
             exit={{ opacity: 0 }}
             className="text-9xl font-bold remaster"
           >
@@ -31,6 +32,7 @@ export default function footer() {
           className="underline"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
           transition={{
             ease: "easeInOut",
             duration: 1,

@@ -12,6 +12,7 @@ import TracksList from "@/components/TracksList";
 import Player from "@/components/Player";
 import Lander from "@/components/Lander";
 import Notification from "@/components/Notification";
+import Footer from "@/components/footer";
 
 export default function Page() {
   const queryClient = useQueryClient();
@@ -79,7 +80,7 @@ export default function Page() {
       <Navbar />
       <Lander />
 
-      <div className="w-screen h-fit flex flex-col">
+      <div className="w-screen h-fit flex flex-col mb-12">
         {(publicLoading || publicTracks) && (
           <section className="w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
@@ -118,7 +119,7 @@ export default function Page() {
         {currentUser &&
           (playlistsLoading || playlists) &&
           playlists.length > 0 && (
-            <section className=" w-screen h-fit flex flex-col px-20 pt-12 pb-12">
+            <section className=" w-screen h-fit flex flex-col px-20 pt-12">
               <TracksList
                 title="Your Playlists"
                 data={{ tracks: playlists }}
@@ -130,6 +131,7 @@ export default function Page() {
             </section>
           )}
       </div>
+      <Footer />
     </>
   );
 }
