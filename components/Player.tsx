@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { usePlayer } from "@/context/PlayerContext";
 import { getPaletteSync } from "colorthief";
 
@@ -43,6 +44,8 @@ export default function Player() {
     setShowQueue,
   } = usePlayer();
 
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const [volume, setVolume] = useState({ value: 1, preValue: 1 });
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
 
@@ -77,6 +80,9 @@ export default function Player() {
           }
           return next;
         });
+        queryClient.invalidateQueries({ queryKey: ["liked-tracks"] });
+        queryClient.invalidateQueries({ queryKey: ["playlists"] });
+        router.refresh();
       }
     } catch (error) {
       console.error("Failed to toggle like", error);
@@ -100,15 +106,13 @@ export default function Player() {
     if (!bar) return;
     const rect = bar.getBoundingClientRect();
     const pct = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-    const mediaEl = document.querySelector(
-      "audio, video",
-    ) as HTMLMediaElement | null;
-    if (mediaEl && !isNaN(mediaEl.duration)) {
-      mediaEl.currentTime = pct * mediaEl.duration;
+    const player = playerRef.current as unknown as PlayerData | null;
+    if (player && !isNaN(player.duration)) {
+      player.currentTime = pct * player.duration;
       setProgress((p) => ({
         ...p,
         played: pct,
-        playedSeconds: pct * mediaEl.duration,
+        playedSeconds: pct * player.duration,
       }));
     }
   };
@@ -132,6 +136,19 @@ export default function Player() {
       window.removeEventListener("mouseup", onUp);
     };
   }, [isDraggingProgress]);
+
+  const volumeControlRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.05 : -0.05;
+      setVolume((v) => ({
+        value: Math.min(Math.max(v.value + delta, 0), 1),
+        preValue: v.value,
+      }));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+  }, []);
 
   useEffect(() => {
     if (!isDraggingVolume) return;
@@ -623,7 +640,10 @@ export default function Player() {
               {repeat === 1 ? "All" : repeat === 2 ? "One" : "All"}
             </span>
           </button>
-          <div className="flex items-center gap-0 shrink-0">
+          <div
+            ref={volumeControlRef}
+            className="flex items-center gap-0 shrink-0"
+          >
             <button
               className="p-1 hover:bg-black/10 rounded-full shrink-0"
               onClick={() => {
@@ -647,13 +667,6 @@ export default function Player() {
               onMouseDown={(e) => {
                 setIsDraggingVolume(true);
                 setVolumeFromClientX(e.clientX);
-              }}
-              onWheel={(e) => {
-                const delta = e.deltaY < 0 ? 0.05 : -0.05;
-                setVolume((v) => ({
-                  value: Math.min(Math.max(v.value + delta, 0), 1),
-                  preValue: v.value,
-                }));
               }}
             >
               <div

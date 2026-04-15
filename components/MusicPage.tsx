@@ -124,7 +124,14 @@ export default function MusicPage(props: Props) {
           }
           return next;
         });
+        const inFavouritesView =
+          isPlaylist && props.data.playlist.default && !res.data.liked;
+        if (inFavouritesView) {
+          setLocalTracks((prev) => prev.filter((t) => t.id !== trackId));
+        }
         queryClient.invalidateQueries({ queryKey: ["liked-tracks"] });
+        queryClient.invalidateQueries({ queryKey: ["playlists"] });
+        router.refresh();
       }
     } catch (error) {
       console.error("Failed to toggle like", error);

@@ -28,7 +28,7 @@ export default async function Page({ params }: Props) {
     where: { id },
     include: {
       tracks: {
-        orderBy: { sort: "asc" },
+        orderBy: { sort: "desc" },
         include: { track: true },
       },
     },
