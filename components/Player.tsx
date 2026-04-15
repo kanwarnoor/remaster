@@ -84,12 +84,66 @@ export default function Player() {
   };
   const playerRef = useRef<typeof ReactPlayer>(null);
   const colorImgRef = useRef<HTMLImageElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const volumeBarRef = useRef<HTMLDivElement>(null);
+  const [isDraggingProgress, setIsDraggingProgress] = useState(false);
+  const [isDraggingVolume, setIsDraggingVolume] = useState(false);
   const [progress, setProgress] = useState({
     played: 0,
     playedSeconds: 0,
     loaded: 0,
     loadedSeconds: 0,
   });
+
+  const seekToClientX = (clientX: number) => {
+    const bar = progressBarRef.current;
+    if (!bar) return;
+    const rect = bar.getBoundingClientRect();
+    const pct = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    const mediaEl = document.querySelector(
+      "audio, video",
+    ) as HTMLMediaElement | null;
+    if (mediaEl && !isNaN(mediaEl.duration)) {
+      mediaEl.currentTime = pct * mediaEl.duration;
+      setProgress((p) => ({
+        ...p,
+        played: pct,
+        playedSeconds: pct * mediaEl.duration,
+      }));
+    }
+  };
+
+  const setVolumeFromClientX = (clientX: number) => {
+    const bar = volumeBarRef.current;
+    if (!bar) return;
+    const rect = bar.getBoundingClientRect();
+    const pct = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    setVolume((v) => ({ value: pct, preValue: v.value }));
+  };
+
+  useEffect(() => {
+    if (!isDraggingProgress) return;
+    const onMove = (e: MouseEvent) => seekToClientX(e.clientX);
+    const onUp = () => setIsDraggingProgress(false);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [isDraggingProgress]);
+
+  useEffect(() => {
+    if (!isDraggingVolume) return;
+    const onMove = (e: MouseEvent) => setVolumeFromClientX(e.clientX);
+    const onUp = () => setIsDraggingVolume(false);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [isDraggingVolume]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -141,6 +195,7 @@ export default function Player() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (isDraggingProgress) return;
       const player = playerRef.current as unknown as PlayerData;
       if (player) {
         setProgress({
@@ -152,7 +207,7 @@ export default function Player() {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isDraggingProgress]);
 
   const handleEnded = () => {
     if (repeat === 2) {
@@ -476,27 +531,30 @@ export default function Player() {
             </div>
           </div>
           {/* progress bar */}
-          <div className="absolute w-full bottom-0 left-0 mb-2 rounded-full">
+          <div
+            className="absolute rounded-full w-full bottom-0 left-0 mb-1 py-1 cursor-pointer group/progress"
+            onMouseDown={(e) => {
+              setIsDraggingProgress(true);
+              seekToClientX(e.clientX);
+            }}
+          >
             <div
-              className="bg-black/50 h-1 flex justify-end relative cursor-pointer group progress-bar"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const percentage = clickX / rect.width;
-
-                const mediaEl = document.querySelector(
-                  "audio, video",
-                ) as HTMLMediaElement | null;
-                if (mediaEl && !isNaN(mediaEl.duration)) {
-                  mediaEl.currentTime = percentage * mediaEl.duration;
-                }
-              }}
+              ref={progressBarRef}
+              className={`bg-black/50 flex justify-end relative cursor-pointer group progress-bar rounded-full transition-[height] duration-150 ${
+                isDraggingProgress ? "h-2" : "h-1 group-hover/progress:h-2"
+              }`}
             >
               <div
-                className="bg-black h-1 w-full absolute left-0 top-0"
+                className="bg-black h-full w-full absolute left-0 top-0 rounded-full"
                 style={{ width: `${progress.played * 100}%` }}
               >
-                <div className="bg-black h-3 w-1 absolute right-0 -top-1 group-hover:scale-110 transition-all"></div>
+                <div
+                  className={`bg-black w-1 absolute right-0 transition-all duration-150 ${
+                    isDraggingProgress
+                      ? "h-4 -top-1 scale-110"
+                      : "h-3 -top-1 group-hover/progress:h-4 group-hover/progress:-top-1"
+                  }`}
+                ></div>
               </div>
             </div>
           </div>
@@ -585,22 +643,37 @@ export default function Player() {
               </svg>
             </button>
             <div
-              className="relative w-16 h-1 bg-black/50 rounded-full cursor-pointer group shrink-0"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const percentage = clickX / rect.width;
-                setVolume({
-                  value: Math.min(Math.max(percentage, 0), 1),
-                  preValue: volume.value,
-                });
+              className="relative py-2 -my-2 flex items-center cursor-pointer group/volume shrink-0"
+              onMouseDown={(e) => {
+                setIsDraggingVolume(true);
+                setVolumeFromClientX(e.clientX);
+              }}
+              onWheel={(e) => {
+                const delta = e.deltaY < 0 ? 0.05 : -0.05;
+                setVolume((v) => ({
+                  value: Math.min(Math.max(v.value + delta, 0), 1),
+                  preValue: v.value,
+                }));
               }}
             >
               <div
-                className="absolute h-full bg-black rounded-full"
-                style={{ width: `${volume.value * 100}%` }}
+                ref={volumeBarRef}
+                className={`relative w-16 bg-black/50 rounded-full transition-[height] duration-150 ${
+                  isDraggingVolume ? "h-2" : "h-1 group-hover/volume:h-2"
+                }`}
               >
-                <div className="bg-black h-3 w-1 absolute right-0 -top-1 group-hover:scale-110 "></div>
+                <div
+                  className="absolute h-full bg-black rounded-full"
+                  style={{ width: `${volume.value * 100}%` }}
+                >
+                  <div
+                    className={`bg-black w-1 absolute right-0 transition-all duration-150 ${
+                      isDraggingVolume
+                        ? "h-4 -top-1 scale-110"
+                        : "h-3 -top-1 group-hover/volume:h-4 group-hover/volume:-top-1"
+                    }`}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
