@@ -98,6 +98,19 @@ export default function MusicPage(props: Props) {
     new Set(isList ? (props.likedTrackIds ?? []) : []),
   );
 
+  const { data: likedData } = useQuery({
+    queryKey: ["liked-tracks"],
+    queryFn: async () => {
+      const res = await axios.get("/api/tracks/liked");
+      return res.data.trackIds as string[];
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (likedData) setLikedIds(new Set(likedData));
+  }, [likedData]);
+
   const toggleLike = async (trackId: string) => {
     try {
       const res = await axios.post("/api/tracks/like", { trackId });
@@ -111,6 +124,7 @@ export default function MusicPage(props: Props) {
           }
           return next;
         });
+        queryClient.invalidateQueries({ queryKey: ["liked-tracks"] });
       }
     } catch (error) {
       console.error("Failed to toggle like", error);
@@ -1039,7 +1053,7 @@ export default function MusicPage(props: Props) {
 
             {props.user && props.user.id === itemUserId && !isDefaultPlaylist && (
               <div
-                className="justify-end  ml-auto  flex cursor-pointer "
+                className="justify-end ml-auto flex cursor-pointer "
                 onClick={() => setOptions(!options)}
               >
                 Edit
@@ -1223,7 +1237,9 @@ export default function MusicPage(props: Props) {
                           </>
                         )}
                         {activeTrackOptions !== track.id && (
-                          <span className="">
+                          <span className={`flex ${
+                            isPlaylist || !isOwner  ? "" : "group-hover:hidden"
+                          }`}>
                             {formatTime(track.duration ?? 0)}
                           </span>
                         )}
