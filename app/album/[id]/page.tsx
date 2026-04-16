@@ -76,7 +76,7 @@ export default async function Page({ params }: Props) {
     }
   }
 
-  const tracks = album.tracks.map((t) => ({
+  const rawTracks = album.tracks.map((t) => ({
     ...t.track,
     sort: String(t.sort),
   }));
@@ -93,6 +93,22 @@ export default async function Page({ params }: Props) {
     }
   }
 
+  const isCreator = !!user && user.id === album.userId;
+  let purchased = false;
+  if (!isCreator && user) {
+    const p = await prisma.purchase.findFirst({
+      where: { userId: user.id, albumId: album.id, status: "PAID" },
+      select: { id: true },
+    });
+    purchased = !!p;
+  }
+  const owned = isCreator || purchased;
+
+  const gated = album.forSale && !owned;
+  const tracks = gated
+    ? rawTracks.map((t) => ({ ...t, audio: "" }))
+    : rawTracks;
+
   // Strip the nested tracks relation from album before passing to client
   const { tracks: _albumTracks, ...albumData } = album;
 
@@ -104,6 +120,7 @@ export default async function Page({ params }: Props) {
         data={{ album: albumData, tracks }}
         user={user ?? undefined}
         likedTrackIds={likedTrackIds}
+        owned={owned}
       />
     </div>
   );

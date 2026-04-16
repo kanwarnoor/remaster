@@ -5,7 +5,9 @@
       "Bash(grep:*)",
       "Bash(npm list:*)",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)",
+      "Bash(ls /Users/famousfortech/Documents/GitHub/remaster/.env*)"
     ]
   }
 }

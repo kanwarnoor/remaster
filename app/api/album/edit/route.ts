@@ -17,10 +17,40 @@ const s3Client = new S3Client({
   },
 });
 
+type PricingFields = { forSale?: boolean; price?: number | null };
+
+function normalizePricing({ forSale, price }: PricingFields) {
+  const data: { forSale?: boolean; price?: number | null } = {};
+  if (typeof forSale === "boolean") data.forSale = forSale;
+  if (price === null) {
+    data.price = null;
+  } else if (typeof price === "number" && Number.isFinite(price)) {
+    const rounded = Math.round(price);
+    if (rounded < 0) {
+      return { error: "Price cannot be negative" } as const;
+    }
+    data.price = rounded;
+  }
+  if (data.forSale === true && (data.price == null || data.price <= 0)) {
+    return { error: "Set a positive price before enabling sale" } as const;
+  }
+  return { data } as const;
+}
+
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, name, artist, fileType, fileSize, uploaded, newKey, oldKey } =
-      await req.json();
+    const {
+      id,
+      name,
+      artist,
+      fileType,
+      fileSize,
+      uploaded,
+      newKey,
+      oldKey,
+      forSale,
+      price,
+    } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: "Missing required parameter: id" }, { status: 400 });
@@ -40,8 +70,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized to edit this album" }, { status: 403 });
     }
 
+    const pricing = normalizePricing({ forSale, price });
+    if ("error" in pricing) {
+      return NextResponse.json({ error: pricing.error }, { status: 400 });
+    }
+
     if (!uploaded) {
-      // If an image file is being uploaded, return a presigned S3 URL
       if (fileType && fileSize) {
         const imageKey = crypto.randomBytes(8).toString("hex");
         const command = new PutObjectCommand({
@@ -59,11 +93,12 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ url, imageKey }, { status: 200 });
       }
 
-      // No image — just update name/artist
-      await prisma.album.update({ where: { id }, data: { name, artist } });
+      await prisma.album.update({
+        where: { id },
+        data: { name, artist, ...pricing.data },
+      });
       return NextResponse.json({ message: "Successfully updated" }, { status: 200 });
     } else {
-      // Image was uploaded to S3 — delete old image and save new key
       if (oldKey) {
         try {
           const command = new DeleteObjectCommand({
@@ -76,7 +111,10 @@ export async function PATCH(req: NextRequest) {
         }
       }
 
-      await prisma.album.update({ where: { id }, data: { name, artist, image: newKey } });
+      await prisma.album.update({
+        where: { id },
+        data: { name, artist, image: newKey, ...pricing.data },
+      });
       return NextResponse.json({ message: "Successfully updated" }, { status: 200 });
     }
   } catch (error) {

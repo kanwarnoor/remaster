@@ -11,6 +11,7 @@ import axios from "axios";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
+import BuyAlbumButton from "@/components/BuyAlbumButton";
 import { usePlayer } from "@/context/PlayerContext";
 import { useRouter } from "next/navigation";
 import { Track, Album, Playlist } from "@/app/generated/prisma/client";
@@ -32,6 +33,7 @@ type AlbumMode = {
   user?: { id: string };
   toggleVisibility?: () => void;
   likedTrackIds?: string[];
+  owned?: boolean;
 };
 
 type SingleMode = {
@@ -176,6 +178,9 @@ export default function MusicPage(props: Props) {
 
   const playerCtx = usePlayer();
 
+  const albumForSale = isAlbum ? (props.data.album.forSale ?? false) : false;
+  const albumPricePaise = isAlbum ? (props.data.album.price ?? null) : null;
+
   const [formData, setFormData] = useState({
     name: itemName,
     artist: itemArtist,
@@ -183,6 +188,9 @@ export default function MusicPage(props: Props) {
       ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/${imagePrefix}/${itemImage}`
       : null,
     art: null as File | null,
+    forSale: albumForSale,
+    priceRupees:
+      albumPricePaise != null ? String(albumPricePaise / 100) : "",
   });
 
   // Albums query (single mode only)
@@ -245,6 +253,18 @@ export default function MusicPage(props: Props) {
       setEditing(false);
 
       if (isAlbum) {
+        const priceRupeesNum = formData.priceRupees.trim()
+          ? Number(formData.priceRupees)
+          : NaN;
+        const pricePaise = Number.isFinite(priceRupeesNum)
+          ? Math.round(priceRupeesNum * 100)
+          : null;
+
+        if (formData.forSale && (pricePaise == null || pricePaise <= 0)) {
+          alert("Enter a price greater than 0 to enable sale.");
+          return;
+        }
+
         const response = await axios.patch("/api/album/edit", {
           id: itemId,
           name: formData.name,
@@ -252,6 +272,8 @@ export default function MusicPage(props: Props) {
           fileType: formData.art?.type,
           fileSize: formData.art?.size,
           uploaded: false,
+          forSale: formData.forSale,
+          price: pricePaise,
         });
 
         if (response.status !== 200) {
@@ -260,6 +282,7 @@ export default function MusicPage(props: Props) {
         }
 
         queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+        router.refresh();
 
         const { url, imageKey } = response.data;
         if (!url) return;
@@ -283,6 +306,8 @@ export default function MusicPage(props: Props) {
           uploaded: true,
           newKey: imageKey,
           oldKey: itemImage || null,
+          forSale: formData.forSale,
+          price: pricePaise,
         });
 
         if (saveImageResponse.status !== 200) {
@@ -291,6 +316,7 @@ export default function MusicPage(props: Props) {
         }
 
         queryClient.invalidateQueries({ queryKey: ["album", itemId] });
+        router.refresh();
       } else {
         const response = await axios.patch(`/api/tracks/edit_track`, {
           id: itemId,
@@ -602,6 +628,9 @@ export default function MusicPage(props: Props) {
 
   const isOwner = !!props.user && props.user.id === itemUserId;
   const isDefaultPlaylist = isPlaylist && props.data.playlist.default;
+  const requiresPurchase =
+    isAlbum && !!props.data.album.forSale && !props.owned;
+  const canPlay = !requiresPurchase;
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !isAlbum) return;
@@ -670,7 +699,7 @@ export default function MusicPage(props: Props) {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute w-fit h-[20rem] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex justify-start items-center px-10"
+            className={`absolute w-fit ${isAlbum ? "h-104" : "h-80"} bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex justify-start items-center px-10`}
           >
             <div className=" w-56 h-56 flex justify-center items-center rounded-lg overflow-hidden group">
               <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
@@ -760,6 +789,47 @@ export default function MusicPage(props: Props) {
                   />
                 </div>
               </div>
+
+              {isAlbum && (
+                <>
+                  <div className="flex mt-2 items-center">
+                    <p className="text-sm">Sell this album</p>
+                    <div>
+                      <Switch
+                        checked={formData.forSale}
+                        handleChange={() =>
+                          setFormData({
+                            ...formData,
+                            forSale: !formData.forSale,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  {formData.forSale && (
+                    <>
+                      <label htmlFor="price" className="text-sm mt-2">
+                        Price (₹)
+                      </label>
+                      <input
+                        type="number"
+                        id="price"
+                        min="1"
+                        step="1"
+                        placeholder="99"
+                        className="bg-white/0 border-2 rounded-lg h-10 text-white px-3 focus:ring-0 focus:outline-none"
+                        value={formData.priceRupees}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            priceRupees: e.target.value,
+                          })
+                        }
+                      />
+                    </>
+                  )}
+                </>
+              )}
 
               <div className="flex text-left mt-auto ">
                 <button
@@ -1008,6 +1078,16 @@ export default function MusicPage(props: Props) {
             </p>
           </div>
           <div className="w-full pl-10 h-[35%] flex items-end">
+            {isAlbum &&
+            props.data.album.forSale &&
+            !props.owned &&
+            props.data.album.price ? (
+              <BuyAlbumButton
+                albumId={props.data.album.id}
+                priceRupees={Math.round(props.data.album.price / 100)}
+                loggedIn={!!props.user}
+              />
+            ) : (
             <div
               className="flex w-28 h-9 pr-1 justify-center items-center cursor-pointer bg-white/20 rounded  hover:bg-white/30 "
               onClick={() => {
@@ -1057,6 +1137,7 @@ export default function MusicPage(props: Props) {
                 {isSingle && props.playing ? "Pause" : "Play"}
               </p>
             </div>
+            )}
 
             {props.user && props.user.id === itemUserId && !isDefaultPlaylist && (
               <div
@@ -1156,6 +1237,7 @@ export default function MusicPage(props: Props) {
                         }
                       }}
                       onDoubleClick={() => {
+                        if (!canPlay) return;
                         if (isList) {
                           const queueTracks = isAlbum
                             ? localTracks.map((t) => ({ ...t, image: props.data.album.image || t.image }))

@@ -16,15 +16,16 @@ enum Visibility {
 model User {
   id        String    @id @default(uuid())
   email     String    @unique()
-  password  String    
+  password  String
   premium   Boolean?  @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  username  String    @unique 
+  username  String    @unique
   albums Album[]
   tracks Track[]
   playlists Playlist[]
   invite Invite? @relation("InviteClaimedBy")
+  purchases Purchase[]
 }
 
 model Album {
@@ -37,8 +38,38 @@ model Album {
   user        User    @relation(fields: [userId], references: [id])
   userId      String
   visibility  Visibility @default(PRIVATE)
+  forSale     Boolean  @default(false)
+  price       Int?
+  currency    String   @default("INR")
+  purchases   Purchase[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum PurchaseStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Purchase {
+  id                String         @id @default(uuid())
+  user              User           @relation(fields: [userId], references: [id])
+  userId            String
+  album             Album          @relation(fields: [albumId], references: [id])
+  albumId           String
+  amount            Int
+  currency          String         @default("INR")
+  razorpayOrderId   String         @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  status            PurchaseStatus @default(PENDING)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([albumId])
+  @@index([userId, albumId, status])
 }
 
 model Playlist {
