@@ -38,7 +38,7 @@ export default function Page() {
 
   const { data: publicTracks, isLoading: publicLoading } = useQuery({
     queryKey: ["publicTracks"],
-    queryFn: async () => (await axios.get("/api/tracks/public_tracks")).data,
+    queryFn: async () => (await axios.get("/api/tracks/public_tracks")).data.data,
     retry: false,
   });
 
@@ -84,10 +84,11 @@ export default function Page() {
         {(publicLoading || publicTracks) && (
           <section className="w-screen h-fit flex flex-col px-20 pt-12">
             <TracksList
-              title="Public Tracks"
-              data={publicTracks}
+              title="New Releases"
+              data={{ tracks: publicTracks }}
+              type={"user"}
               isLoading={publicLoading}
-              type="public"
+              // link="/releases"
             />
           </section>
         )}

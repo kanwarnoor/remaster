@@ -6,6 +6,7 @@ import Tile from "./Tile";
 import Link from "next/link";
 
 interface Track {
+  price: number;
   id: string;
   name: string;
   artist: string;
@@ -133,7 +134,7 @@ export default function TracksList({
                         ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "track" : type === "playlist" ? "playlist" : "track"}/${item.image}`
                         : "/music.jpg"
                     }
-                    link={trackType + item.id}
+                    link={(item?.price ? "/album/" : "/single/") + item.id}
                   />
                 </div>
               );
