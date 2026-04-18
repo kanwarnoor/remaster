@@ -12,6 +12,7 @@ interface Props {
   link?: string;
   index?: number;
   upload?: boolean;
+  price?: number;
 }
 
 export default function Tile({
@@ -20,6 +21,7 @@ export default function Tile({
   art,
   link,
   upload,
+  price,
   index,
 }: Props) {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function Tile({
     }
   };
   return !upload ? (
-    <div className="flex flex-col w-[200px]">
+    <div className="flex flex-col w-[200px] ">
       <div onClick={handleClick}>
         <motion.div
           initial={{ opacity: 0, filter: "blur(20px)" }}
@@ -44,13 +46,28 @@ export default function Tile({
           }}
           className="w-[200px] h-[200px] bg-[#141414] rounded justify-center items-center flex cursor-pointer"
         >
+          {price && (
+            <div className="w-full absolute h-full rounded ">
+              <p className="text-white w-full text-center text-3xl font-bold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30  p-2 rounded">
+                ₹{(price / 100).toLocaleString()}
+              </p>
+              <Image
+                src={"/cover2.jpg"}
+                alt={"art"}
+                height={0}
+                width={0}
+                sizes="100% 100%"
+                className="w-full absolute h-full rounded opacity-50 brightness-100 z-10"
+              />
+            </div>
+          )}
           <Image
             src={art || "/music.jpg"}
             alt={"art"}
             height={0}
             width={0}
             sizes="100% 100%"
-            className="w-full h-full rounded"
+            className={`w-full h-full rounded opacity-100  ${price ? "brightness-150" : ""}`}
           />
         </motion.div>
         <motion.div

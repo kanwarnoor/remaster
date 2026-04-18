@@ -6,6 +6,7 @@ import Tile from "./Tile";
 import Link from "next/link";
 
 interface Track {
+  default: boolean;
   price: number;
   id: string;
   name: string;
@@ -67,7 +68,7 @@ export default function TracksList({
     return (
       <>
         <p className="text-3xl font-bold mb-5">{title}</p>
-        <div className="relative flex-row flex gap-5 pr-20 overflow-x-hidden ">
+        <div className="relative flex-row flex gap-5 pr-20  ">
           {[50, 100, 150, 200].map((delay, index) => {
             return (
               <div className="flex flex-col w-[200px] " key={index}>
@@ -101,7 +102,7 @@ export default function TracksList({
 
   return (
     <>
-      <div className="flex justify-between items-top gap-5 ">
+      <div className="flex justify-between items-top h-full  ">
         <p className="text-3xl font-bold mb-5">{title}</p>
         {link && (
           <Link
@@ -114,7 +115,7 @@ export default function TracksList({
       </div>
 
       <div className="relative">
-        <div className="overflow-hidden" ref={emblaRef}>
+        <div className="overflow-hidden py-3 -my-3" ref={emblaRef}>
           <div className="flex gap-5">
             {(data.tracks ?? []).map((item: Track, index: number) => {
               const trackType =
@@ -125,7 +126,7 @@ export default function TracksList({
                     : "single/";
 
               return (
-                <div key={item.id + index} className="flex-[0_0_200px]">
+                <div key={item.id + index} className="flex-[0_0_200px]  transition-all duration-300">
                   <Tile
                     title={item.name}
                     artist={item.artist}
@@ -134,7 +135,14 @@ export default function TracksList({
                         ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "track" : type === "playlist" ? "playlist" : "track"}/${item.image}`
                         : "/music.jpg"
                     }
-                    link={(item?.price ? "/album/" : "/single/") + item.id}
+                    link={
+                      (item?.price
+                        ? "/album/"
+                        : item?.default
+                          ? "/playlist/"
+                          : "/single/") + item.id
+                    }
+                    price={type !== "album" ? item?.price : undefined}
                   />
                 </div>
               );
@@ -154,7 +162,7 @@ export default function TracksList({
 
         {(data.tracks?.length ?? 0) > 5 && (
           <>
-            <div className="absolute top-0 -right-5 h-full w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
+            <div className="absolute top-0 -right-5 h-[105%] w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
               <button
                 onClick={scrollNext}
                 className="fill-white opacity-0 group-hover:opacity-100 size-12 cursor-pointer bg-white rounded-full p-3 shadow-xl transition-all duration-100 hover:scale-105"
@@ -173,7 +181,7 @@ export default function TracksList({
                 </svg>
               </button>
             </div>
-            <div className="absolute top-0 -left-5 h-full w-[100px] bg-gradient-to-r from-black to-transparent z-10 flex items-center justify-start group">
+            <div className="absolute top-0 -left-5 h-full w-[50px] bg-gradient-to-r from-black to-transparent z-10 flex items-center justify-start group">
               <button
                 onClick={scrollPrev}
                 className="fill-white opacity-0 group-hover:opacity-100 size-12 cursor-pointer bg-white rounded-full p-3 shadow-xl transition-all duration-100 hover:scale-105 rotate-180"

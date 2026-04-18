@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Readable } from "node:stream";
 
 const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
 
@@ -17,34 +17,50 @@ export async function GET(req: NextRequest) {
   const s3Key = searchParams.get("s3key");
 
   if (!s3Key) {
-    return NextResponse.json({ error: "No s3key provided" }, { status: 400 });
+    return new Response(JSON.stringify({ error: "No s3key provided" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
-    const getObjectCommand = new GetObjectCommand({
-      Bucket: AWS_BUCKET_NAME,
-      Key: `audio/${s3Key}`,
-    });
-    const url = await getSignedUrl(s3Client, getObjectCommand, {
-      expiresIn: 3600,
-    });
-    return NextResponse.json({ url });
-  } catch (error) {
-    console.error("Error generating signed URL:", error);
-    return NextResponse.json(
-      { error: "Failed to generate signed URL" },
-      { status: 500 }
+    const range = req.headers.get("range") ?? undefined;
+    const response = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: AWS_BUCKET_NAME,
+        Key: `audio/${s3Key}`,
+        Range: range,
+      }),
     );
+
+    if (!response.Body) {
+      return new Response(JSON.stringify({ error: "Not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const headers = new Headers();
+    headers.set("Content-Type", response.ContentType ?? "audio/mpeg");
+    if (response.ContentLength !== undefined)
+      headers.set("Content-Length", String(response.ContentLength));
+    headers.set("Accept-Ranges", "bytes");
+    if (response.ContentRange)
+      headers.set("Content-Range", response.ContentRange);
+    headers.set("Cache-Control", "private, max-age=3600");
+
+    const nodeStream = response.Body as Readable;
+    const webStream = Readable.toWeb(nodeStream) as unknown as ReadableStream;
+
+    return new Response(webStream, {
+      status: range ? 206 : 200,
+      headers,
+    });
+  } catch (error) {
+    console.error("Error streaming audio:", error);
+    return new Response(JSON.stringify({ error: "Failed to stream audio" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-
-  // get the audio file from s3
-
-  // const getObjectCommand = new GetObjectCommand({
-  //   Bucket: AWS_BUCKET_NAME,
-  //   Key: s3Key,
-  // });
-
-  // const url = await getSignedUrl(s3Client, getObjectCommand, {
-  //   expiresIn: 3600,
-  // });
 }

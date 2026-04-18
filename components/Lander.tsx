@@ -1,7 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 
 export default function Lander() {
@@ -14,12 +12,9 @@ export default function Lander() {
           loop
           muted
           playsInline
-          preload="true"
-          crossOrigin="anonymous"
+          preload="auto"
           poster="/videos/placeholder.webp"
           className="w-full h-full object-cover britness-200 contrast-200  overflow-hidden"
-          // onLoadStart={() => setVideoLoaded(false)}
-          // onCanPlay={() => setVideoLoaded(true)}
         />
         <div className="absolute left-0 pt-3 bottom-0 right-0 top-0 justify-center items-center flex flex-col">
           <div className="font-bold text-white remaster text-9xl -tracking-wide  gap-5 flex">

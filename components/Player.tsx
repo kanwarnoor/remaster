@@ -198,17 +198,9 @@ export default function Player() {
     };
   }, [playerData?.id]);
 
-  const { data: audio } = useQuery({
-    queryKey: ["audio", playerData?.id],
-    queryFn: async () => {
-      const response = await axios.get(
-        `/api/tracks/play?s3key=${playerData?.audio}`,
-      );
-      return response.data;
-    },
-    enabled: !!playerData?.id,
-    refetchOnWindowFocus: false,
-  });
+  const audioSrc = playerData?.audio
+    ? `/api/tracks/play?s3key=${encodeURIComponent(playerData.audio)}`
+    : undefined;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -287,7 +279,7 @@ export default function Player() {
       <div className="hidden ">
         <ReactPlayerComponent
           ref={playerRef as unknown as React.RefObject<HTMLVideoElement>}
-          src={audio?.url}
+          src={audioSrc}
           playing={playing}
           volume={volume.value}
           controls={false}
