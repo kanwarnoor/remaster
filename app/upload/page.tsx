@@ -74,7 +74,7 @@ export default function FileUpload() {
           <Notification message={popup.message} type={popup.type} />
         )}
       </AnimatePresence>
-      <div className="flex flex-col items-center justify-center h-screen w-screen overflow-hidden ">
+      <div className="flex flex-col items-center justify-center min-h-screen w-screen overflow-hidden px-4 text-center">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -90,19 +90,19 @@ export default function FileUpload() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className={`border-2 w-[500px] rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-10 border-dashed ${
+          className={`relative border-2 w-[90vw] max-w-[500px] rounded-2xl md:rounded-full flex flex-col items-center justify-center cursor-pointer border-white/50 p-6 md:p-10 border-dashed mt-4 ${
             uploading && "upload"
           }`}
         >
           {uploading ? (
-            <div className="flex gap-2">
-              <div className="w-10 h-10 remaster-spinner"></div>
-              <p className="font-bold remaster text-5xl">
+            <div className="flex gap-2 items-center">
+              <div className="w-8 h-8 md:w-10 md:h-10 remaster-spinner"></div>
+              <p className="font-bold remaster text-2xl md:text-5xl">
                 Uploading {activeCount} file{activeCount !== 1 ? "s" : ""}
               </p>
             </div>
           ) : (
-            <p className="font-bold remaster text-5xl">
+            <p className="font-bold remaster text-2xl md:text-5xl">
               DROP IT LIKE IT&apos;S HOT🔥
             </p>
           )}
@@ -113,7 +113,7 @@ export default function FileUpload() {
             multiple
             onChange={(e) => onFiles(e.target.files)}
             onDrop={handleFileDrop}
-            className="absolute inset-16 opacity-0"
+            className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </motion.div>
       </div>

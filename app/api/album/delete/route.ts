@@ -38,6 +38,17 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    const purchaseCount = await prisma.purchase.count({
+      where: { albumId: id, status: "PAID" },
+    });
+
+    if (purchaseCount > 0) {
+      return NextResponse.json(
+        { error: "This album has been purchased and cannot be deleted." },
+        { status: 409 },
+      );
+    }
+
     // Delete all AlbumTracks entries for this album before deleting
     await prisma.albumTracks.deleteMany({
       where: { albumId: id },

@@ -60,8 +60,8 @@ export default function Page() {
   return (
     <>
       <Navbar />
-      <div className="grid grid-cols-2 items-center justify-center h-screen">
-        <div className="flex flex-col h-full items-center bg-gradient-to-r from-remaster to-remaster/50 justify-center p-16 z-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-center min-h-screen pt-14 md:pt-0">
+        <div className="hidden md:flex flex-col h-full items-center bg-gradient-to-r from-remaster to-remaster/50 justify-center p-16 z-10">
           <Image
             src="/remaster.png"
             alt="logo"
@@ -72,9 +72,9 @@ export default function Page() {
           />
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-5 ">
+        <div className="flex flex-col items-center justify-center gap-5 py-8 md:py-0">
           <form
-            className="p-6 w-96 gap-5 flex flex-col justify-center m-auto"
+            className="p-6 w-full max-w-96 gap-5 flex flex-col justify-center m-auto"
             onSubmit={handleSignup}
           >
             <div className="flex flex-col items-center justify-center gap-2 mb-5">

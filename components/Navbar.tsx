@@ -155,9 +155,9 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="fixed z-20">
+      <div className="fixed z-20 ">
         {/* Left logo + back button */}
-        <div className="navbar h-16 pl-[13px] text-center fixed left-0 justify-center items-center m-auto flex font-black text-5xl select-none text-remaster z-50 gap-1">
+        <div className="navbar h-14 md:h-16 pl-2 md:pl-[13px] text-center fixed left-0 justify-center items-center m-auto flex font-black text-3xl md:text-5xl select-none text-remaster z-50 gap-1">
           {pathname !== "/" && (
             <button
               onClick={() => router.back()}
@@ -167,7 +167,7 @@ export default function Navbar() {
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="size-8 fill-white"
+                className="size-6 md:size-8 fill-white"
               >
                 <path d="M4 10L3.29289 10.7071L2.58579 10L3.29289 9.29289L4 10ZM21 18C21 18.5523 20.5523 19 20 19C19.4477 19 19 18.5523 19 18L21 18ZM8.29289 15.7071L3.29289 10.7071L4.70711 9.29289L9.70711 14.2929L8.29289 15.7071ZM3.29289 9.29289L8.29289 4.29289L9.70711 5.70711L4.70711 10.7071L3.29289 9.29289ZM4 9L14 9L14 11L4 11L4 9ZM21 16L21 18L19 18L19 16L21 16ZM14 9C17.866 9 21 12.134 21 16L19 16C19 13.2386 16.7614 11 14 11L14 9Z" />
               </svg>
@@ -178,7 +178,7 @@ export default function Navbar() {
               router.push("/");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="mt-1 relative overflow- block cursor-pointer"
+            className="mt-1 relative overflow- md:block hidden cursor-pointer "
           >
             <AnimatePresence mode="wait">
               <motion.span
@@ -196,14 +196,14 @@ export default function Navbar() {
         </div>
 
         {/* Center top bar */}
-        <div className="fixed left-0 right-0 flex justify-center items-center h-16 z-40 pointer-events-none">
+        <div className="fixed left-0 right-0 flex justify-center items-center h-14 md:h-16 z-40 pointer-events-none">
           <div
             ref={searchContainerRef}
             className="pointer-events-auto relative"
           >
             <motion.div
               layout
-              className="h-12 backdrop-blur-md rounded-full flex items-center px-2 gap-1 shadow-lg transition-[background,border,color] duration-300 pt-[2px]"
+              className="h-10 md:h-12 backdrop-blur-md rounded-full flex items-center px-1.5 md:px-2 gap-0.5 md:gap-1 shadow-lg transition-[background,border,color] duration-300 pt-[2px]"
               style={{
                 background: hasPlayerColor
                   ? `rgba(${dark[4]?.[0] ?? 32},${dark[4]?.[1] ?? 32},${dark[4]?.[2] ?? 32},0.50)`
@@ -220,7 +220,7 @@ export default function Navbar() {
                   <motion.form
                     key="search-input"
                     initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 400, opacity: 1 }}
+                    animate={{ width: "min(400px, 70vw)", opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                     onSubmit={handleSearch}
@@ -236,7 +236,7 @@ export default function Navbar() {
                       autoComplete="off"
                       onChange={(e) => setSearch(e.target.value)}
                     />
-              
+
                     <button
                       type="button"
                       onClick={() => {
@@ -338,7 +338,7 @@ export default function Navbar() {
             {/* Search results dropdown */}
             {searchOpen && search && (
               <div
-                className="absolute top-14 left-1/2 -translate-x-1/2 rounded-xl p-5 w-[25rem] h-fit flex flex-col bg-black/50 backdrop-blur-sm gap-3 text-base font-normal text-black justify-start items-start shadow-2xl border border-white/10"
+                className="absolute top-12 md:top-14 left-1/2 -translate-x-1/2 rounded-xl p-4 md:p-5 w-[90vw] max-w-[25rem] h-fit max-h-[70vh] overflow-y-auto flex flex-col bg-black/50 backdrop-blur-sm gap-3 text-base font-normal text-black justify-start items-start shadow-2xl border border-white/10"
                 style={{
                   background: hasPlayerColor
                     ? `rgba(${dark[4]?.[0] ?? 32},${dark[4]?.[1] ?? 32},${dark[4]?.[2] ?? 32},0.50)`
@@ -404,12 +404,14 @@ export default function Navbar() {
         </div>
 
         {/* Right side - user info */}
-        <div className="navbar h-16 pr-5 text-center fixed right-0 justify-center items-center m-auto flex font-black text-2xl select-none text-remaster z-50">
+        <div className="navbar h-14 md:h-16 pr-3 md:pr-5 text-center fixed right-0 justify-center items-center m-auto flex font-black text-base md:text-2xl select-none text-remaster z-50 max-w-[40vw]">
           {currentUser ? (
             <>
-              {currentUser.username}
+              <span className="hidden sm:inline truncate max-w-[150px]">
+                {currentUser.username}
+              </span>
               <button
-                className="ml-2 text-white cursor-pointer"
+                className="ml-0 sm:ml-2 text-white cursor-pointer"
                 onClick={() => setPopup(true)}
               >
                 Logout
@@ -446,14 +448,14 @@ const SearchResult = ({ data, type }: { data: any; type: string }) => {
 
   return (
     <div
-      className="flex gap-3 group text-base font-normal text-black justify-start items-start cursor-pointer"
+      className="flex gap-3 group text-base font-normal text-black justify-start items-start cursor-pointer w-full"
       onClick={() => router.push(`/${map}/${data.id}`)}
     >
       <motion.div
         initial={{ opacity: 0, filter: "blur(20px)" }}
         animate={{ opacity: 1, filter: "blur(0px)" }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
-        className="w-[50px] h-[50px] rounded justify-center items-center flex"
+        className="w-[50px] h-[50px] shrink-0 rounded justify-center items-center flex"
       >
         <Image
           src={
@@ -472,7 +474,7 @@ const SearchResult = ({ data, type }: { data: any; type: string }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.3 }}
-        className="w-[18rem] max-w-full group-hover:underline transition-all duration-300"
+        className="flex-1 min-w-0 group-hover:underline transition-all duration-300"
       >
         <p className="font-bold text-base leading-none mt-2 text-ellipsis overflow-hidden line-clamp-1">
           {data.name || data.username}

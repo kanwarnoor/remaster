@@ -22,12 +22,12 @@ export default async function PurchasesPage() {
   return (
     <div>
       <Navbar />
-      <div className="w-fit h-screen flex flex-col pt-16">
-        <h1 className="text-5xl font-bold px-20 pt-12">Purchases</h1>
-        <p className="px-20 pt-2 text-sm opacity-60">
+      <div className="w-full min-h-screen flex flex-col pt-16">
+        <h1 className="text-3xl md:text-5xl font-bold px-5 md:px-20 pt-8 md:pt-12">Purchases</h1>
+        <p className="px-5 md:px-20 pt-2 text-sm opacity-60">
           Albums you have purchased.
         </p>
-        <div className="w-fit flex px-20 flex-wrap h-auto pt-12 pb-32 gap-4">
+        <div className="w-full flex px-5 md:px-20 flex-wrap h-auto pt-6 md:pt-12 pb-40 gap-3 md:gap-4 justify-start">
           {purchases.length === 0 && (
             <p className="opacity-60">You haven&apos;t purchased any albums yet.</p>
           )}

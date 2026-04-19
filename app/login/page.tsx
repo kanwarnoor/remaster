@@ -56,8 +56,8 @@ export default function LoginPage() {
   return (
     <>
       <Navbar />
-      <div className="grid grid-cols-2 items-center justify-center h-screen bg-black text-black">
-        <div className="flex flex-col h-full items-center bg-gradient-to-r from-remaster to-remaster/50 justify-center p-16 z-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-center min-h-screen bg-black text-black pt-14 md:pt-0">
+        <div className="hidden md:flex flex-col h-full items-center bg-gradient-to-r from-remaster to-remaster/50 justify-center p-16 z-10">
           <Image
             src="/remaster.png"
             alt="logo"
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="p-6 w-96 gap-5 flex flex-col justify-center m-auto"
+          className="p-6 w-full max-w-96 gap-5 flex flex-col justify-center m-auto"
         >
           <h1 className="text-5xl text-center font-bold text-white mb-5">
             Login

@@ -25,9 +25,9 @@ export default function Popup({ message, onConfirm, onCancel }: PopupProps) {
             scale: 0.7,
           }}
  
-          className="px-20 py-16 max-w-[50%] flex flex-col m-auto justify-center text-center rounded-xl bg-white/10 backdrop-blur-xl shadow-2xl z-30"
+          className="px-6 py-8 md:px-20 md:py-16 w-[90vw] max-w-[90vw] md:max-w-[50%] flex flex-col m-auto justify-center text-center rounded-xl bg-white/10 backdrop-blur-xl shadow-2xl z-30"
         >
-          <p className="text-3xl font-bold">{message}</p>
+          <p className="text-xl md:text-3xl font-bold">{message}</p>
           <div className="mt-5 flex justify-center">
             <button
               onClick={onCancel}

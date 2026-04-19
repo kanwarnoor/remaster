@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-// import ColorThief from "colorthief";
 import { getPaletteSync } from "colorthief";
-
 import Options from "@/components/Options";
 import axios from "axios";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -87,6 +85,7 @@ export default function MusicPage(props: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [editing, setEditing] = useState(false);
   const [addAlbum, setAddAlbum] = useState(false);
+  const [errorPopup, setErrorPopup] = useState<string | null>(null);
   const [colors, setColors] = useState<[number, number, number][]>([]);
   const isAlbum = props.mode === "album";
   const isPlaylist = props.mode === "playlist";
@@ -214,13 +213,21 @@ export default function MusicPage(props: Props) {
       if (!confirmDelete) return;
 
       if (isAlbum) {
-        const response = await axios.delete("/api/album/delete", {
-          data: { id: itemId },
-        });
-        if (response.status !== 200) {
-          console.error("Failed to delete album");
-        } else {
-          window.location.href = "/";
+        try {
+          const response = await axios.delete("/api/album/delete", {
+            data: { id: itemId },
+          });
+          if (response.status !== 200) {
+            console.error("Failed to delete album");
+          } else {
+            window.location.href = "/";
+          }
+        } catch (err) {
+          if (axios.isAxiosError(err) && err.response?.status === 409) {
+            setErrorPopup(err.response.data.error);
+          } else {
+            console.error("Failed to delete album", err);
+          }
         }
       } else if (isPlaylist) {
         const response = await axios.delete("/api/playlist/delete", {
@@ -675,7 +682,7 @@ export default function MusicPage(props: Props) {
         : "Single";
 
   return (
-    <div className="w-screen min-h-screen pt-10 text-center select-none ">
+    <div className="w-screen min-h-screen pt-10 text-center select-none pb-40">
       <div
         className="absolute top-0 w-screen -z-10  h-[500px]"
         style={
@@ -689,6 +696,36 @@ export default function MusicPage(props: Props) {
         }
       ></div>
 
+      {/* Error popup */}
+      <AnimatePresence>
+        {errorPopup && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div
+              className="fixed inset-0 bg-black/50"
+              onClick={() => setErrorPopup(null)}
+            />
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              className="px-6 py-8 md:px-20 md:py-16 w-[90vw] max-w-[90vw] md:max-w-[50%] flex flex-col m-auto justify-center text-center rounded-xl bg-white/10 backdrop-blur-xl shadow-2xl z-50"
+            >
+              <p className="text-xl md:text-3xl font-bold text-white">
+                {errorPopup}
+              </p>
+              <div className="mt-5 flex justify-center">
+                <button
+                  onClick={() => setErrorPopup(null)}
+                  className="px-6 py-2 font-bold rounded bg-remaster text-white"
+                >
+                  OK
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Edit modal */}
       {editing && (
         <>
@@ -699,10 +736,10 @@ export default function MusicPage(props: Props) {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`absolute w-fit ${isAlbum ? "h-104" : "h-80"} bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex justify-start items-center px-10`}
+            className={`fixed w-[90vw] max-w-[560px] md:w-fit ${isAlbum ? "md:h-104" : "md:h-80"} bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col md:flex-row justify-start items-center p-5 md:px-10 overflow-y-auto max-h-[90vh]`}
           >
-            <div className=" w-56 h-56 flex justify-center items-center rounded-lg overflow-hidden group">
-              <div className="absolute rounded-lg bg-black/0 w-56 h-56  group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
+            <div className=" w-40 h-40 md:w-56 md:h-56 shrink-0 flex justify-center items-center rounded-lg overflow-hidden group relative">
+              <div className="absolute rounded-lg bg-black/0 w-full h-full group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
                 <p className="text-xl font-bold text-whtie hidden group-hover:flex transition-all">
                   Edit
                 </p>
@@ -734,12 +771,12 @@ export default function MusicPage(props: Props) {
                 sizes="100% 100%"
                 alt=""
                 priority
-                className="w-56 h-56 flex transition rounded"
+                className="w-full h-full flex transition rounded"
               />
             </div>
 
             <form
-              className="mx-5 flex h-full flex-col text-left pt-16 pb-12"
+              className="mt-4 md:mx-5 md:mt-0 w-full flex h-full flex-col text-left md:pt-16 md:pb-12"
               onSubmit={() => handleOption("edit")}
             >
               <label htmlFor="title" className="text-sm">
@@ -855,7 +892,7 @@ export default function MusicPage(props: Props) {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute w-[30%] h-fit max-h-[60%] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 text-black"
+            className="fixed w-[90vw] max-w-[420px] md:w-[30%] h-fit max-h-[80vh] md:max-h-[60%] bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 text-black overflow-y-auto"
           >
             <div className="flex justify-between items-center">
               <p className="text-3xl font-bold text-left top-0">Add to Album</p>
@@ -976,7 +1013,7 @@ export default function MusicPage(props: Props) {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed w-fit h-fit bg-white/50 backdrop-blur-lg rounded-xl z-30 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-8  text-left"
+            className="fixed w-[90vw] max-w-[420px] md:w-fit h-fit bg-white/50 backdrop-blur-lg rounded-xl z-30 top-0 bottom-0 left-0 right-0 m-auto flex flex-col p-5 md:p-8 text-left"
           >
             {/* <p className="text-2xl font-bold mb-4">Edit Track</p> */}
             <form
@@ -1031,7 +1068,7 @@ export default function MusicPage(props: Props) {
       )}
 
       {/* Header section */}
-      <div className="h-80 rounded mx-20 mt-10 flex justify-left text-left ">
+      <div className="rounded mx-5 md:mx-20 mt-10 md:mt-10 flex flex-col md:flex-row justify-left text-left md:h-80 gap-5 md:gap-0">
         <motion.div
           initial={{ opacity: 0, filter: "blur(20px)" }}
           animate={{
@@ -1039,7 +1076,7 @@ export default function MusicPage(props: Props) {
             filter: "blur(0px)",
           }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="min-w-80 h-80 -z-10 flex w-80"
+          className="w-48 h-48 sm:w-64 sm:h-64 md:min-w-80 md:h-80 md:w-80 -z-10 flex mx-auto md:mx-0"
         >
           <Image
             src={imageUrl}
@@ -1051,7 +1088,7 @@ export default function MusicPage(props: Props) {
             onError={(e) => {
               e.currentTarget.src = "/music.jpg";
             }}
-            className="w-80 h-full transition rounded"
+            className="w-full h-full transition rounded"
           />
           <img
             ref={imgRef}
@@ -1064,20 +1101,20 @@ export default function MusicPage(props: Props) {
             }}
           />
         </motion.div>
-        <div className="w-full">
-          <div className="w-full h-[65%] text-ellipsis ml-10  justify-center flex flex-col">
-            <p className="text-sm font-bold opacity-60">{typeLabel}</p>
+        <div className="w-full sm:px-5 md:px-0">
+          <div className="w-full md:h-[65%] text-ellipsis md:ml-10 justify-center flex flex-col">
+            <p className="text-[10px] md:text-sm font-bold opacity-60">{typeLabel}</p>
 
-            <p className="text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 pb-1">
+            <p className="text-2xl md:text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 md:pb-1">
               {itemName}
             </p>
-            <p className="text-xl font-bold text-ellipsis overflow-hidden line-clamp-1">
+            <p className="text-md md:text-xl font-bold text-ellipsis overflow-hidden line-clamp-1">
               {isPlaylist
                 ? props.data.playlist.description || ""
                 : itemArtist || "Unknown Artist"}
             </p>
           </div>
-          <div className="w-full pl-10 h-[35%] flex items-end">
+          <div className="w-full md:pl-10 md:h-[35%] flex items-end mt-4 md:mt-0">
             {isAlbum &&
             props.data.album.forSale &&
             !props.owned &&
@@ -1151,7 +1188,7 @@ export default function MusicPage(props: Props) {
           {options && (
             <>
               <div
-                className="fixed inset-0 z-0"
+                className="fixed inset-0 z-0 "
                 onClick={() => setOptions(false)}
               ></div>
               <Options list={list} />
@@ -1170,7 +1207,7 @@ export default function MusicPage(props: Props) {
             <div
               ref={droppableProvided.innerRef}
               {...droppableProvided.droppableProps}
-              className="w-full h-fit justify-start flex flex-col px-20 pt-10"
+              className="w-full h-fit justify-start flex flex-col px-3 sm:px-10 md:px-20 pt-6 md:pt-10"
               {...(isSingle
                 ? {
                     onDoubleClick: () => {
@@ -1252,32 +1289,32 @@ export default function MusicPage(props: Props) {
                       }}
                       className={`flex h-13 rounded-lg cursor-pointer mb-2 group transition-all `}
                     >
-                      <div
-                        className="w-[5%] ml-2 hidden group-hover:flex justify-center items-center flex "
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleLike(track.id);
-                        }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill={likedIds.has(track.id) ? "white" : "none"}
-                          viewBox="0 0 24 24"
-                          strokeWidth="1.5"
-                          className="size-4 stroke-white cursor-pointer hover:scale-125 transition-transform"
+                      <div className="relative w-10 shrink-0 ml-2 flex items-center justify-center text-sm md:text-base font-medium">
+                        <span className="group-hover:invisible">{index + 1}</span>
+                        <div
+                          className="absolute inset-0 hidden group-hover:flex justify-center items-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLike(track.id);
+                          }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="w-[5%] justify-center text-center text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium group-hover:hidden">
-                        {index + 1}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill={likedIds.has(track.id) ? "white" : "none"}
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            className="size-4 stroke-white cursor-pointer hover:scale-125 transition-transform"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+                            />
+                          </svg>
+                        </div>
                       </div>
                       {isPlaylist && (
-                        <div className="flex items-center justify-center ml-2 min-w-10 w-10 h-full">
+                        <div className="flex items-center justify-center ml-2 min-w-10 w-10 h-full shrink-0">
                           <Image
                             src={
                               track.image
@@ -1291,30 +1328,14 @@ export default function MusicPage(props: Props) {
                           />
                         </div>
                       )}
-                      <div className="w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
-                        {track.name}
+                      <div className="flex-1 min-w-0 flex items-center ml-2 text-sm md:text-base font-medium">
+                        <span className="truncate">{track.name}</span>
                       </div>
-                      <div className=" w-[70%] text-ellipsis overflow-hidden flex items-center ml-2 text-base font-medium">
-                        {track.artist}
+                      <div className="hidden md:flex w-[35%] min-w-0 items-center justify-left ml-2 text-base font-medium">
+                        <span className="truncate">{track.artist}</span>
                       </div>
-                      <div className="w-[05%] flex items-center justify-center ml-2 text-base font-medium pr-3 text-center relative">
-                        {isOwner && !isDefaultPlaylist && (
-                          <div
-                            className="hidden group-hover:flex items-center justify-center w-full h-full hover:underline cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveTrackOptions(
-                                activeTrackOptions === track.id
-                                  ? null
-                                  : track.id,
-                              );
-                            }}
-                          >
-                            Edit
-                          </div>
-                        )}
-
-                        {activeTrackOptions === track.id && (
+                      <div className="w-14 shrink-0 flex items-center justify-center ml-2 pr-3 text-sm md:text-base font-medium text-center relative">
+                        {activeTrackOptions === track.id ? (
                           <>
                             <div
                               className="fixed inset-0 z-10"
@@ -1324,13 +1345,33 @@ export default function MusicPage(props: Props) {
                               <Options list={getTrackOptionsList(track.id)} />
                             </div>
                           </>
-                        )}
-                        {activeTrackOptions !== track.id && (
-                          <span className={`flex ${
-                            isPlaylist || !isOwner  ? "" : "group-hover:hidden"
-                          }`}>
-                            {formatTime(track.duration ?? 0)}
-                          </span>
+                        ) : (
+                          <>
+                            <span
+                              className={
+                                isOwner && !isDefaultPlaylist
+                                  ? "group-hover:invisible"
+                                  : ""
+                              }
+                            >
+                              {formatTime(track.duration ?? 0)}
+                            </span>
+                            {isOwner && !isDefaultPlaylist && (
+                              <div
+                                className="absolute inset-0 hidden group-hover:flex items-center justify-center pr-3 hover:underline cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveTrackOptions(
+                                    activeTrackOptions === track.id
+                                      ? null
+                                      : track.id,
+                                  );
+                                }}
+                              >
+                                Edit
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

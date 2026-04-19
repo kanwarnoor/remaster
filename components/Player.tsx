@@ -311,7 +311,7 @@ export default function Player() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "45%", opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed bottom-28 left-0 right-0 m-auto w-[500px] max-h-[400px] z-[59]  border-t-1 backdrop-blur-xl rounded-2xl overflow-hidden"
+              className="fixed bottom-28 left-0 right-0 m-auto w-[92vw] max-w-[500px] max-h-[60vh] md:max-h-[400px] z-[59]  border-t-1 backdrop-blur-xl rounded-2xl overflow-hidden"
               style={{
                 background: dark
                   ? `rgba(${dark[4]?.[0] ?? 32},${dark[4]?.[1] ?? 32},${dark[4]?.[2] ?? 32},0.50)`
@@ -423,9 +423,9 @@ export default function Player() {
             : "2px solid rgba(32,32,32,0.15)",
           color: textColor,
         }}
-        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-10 justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter,width] duration-300 ${repeat !== 0 ? "w-[830px]" : "w-[800px]"}`}
+        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-3 md:mb-10 justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter,width] duration-300 w-[95vw] ${repeat !== 0 ? "md:w-[830px]" : "md:w-[800px]"}`}
       >
-        <div className="w-[240px] h-full flex items-center justify-start px-2 rounded-l-full shrink-0 overflow-hidden">
+        <div className="flex-1 md:flex-none md:w-[240px] h-full flex items-center justify-start px-2 rounded-l-full min-w-0 overflow-hidden">
           <div className="flex items-center gap-2 cursor-pointer">
             <div
               className="shrink-0 flex group"
@@ -460,7 +460,7 @@ export default function Player() {
             </div>
           </div>
         </div>
-        <div className="relative w-[320px] h-full flex items-center justify-center gap-3 shrink-0">
+        <div className="relative w-auto md:w-[320px] h-full flex items-center justify-center gap-2 md:gap-3 shrink-0 px-1">
           <div>
             {/* previous */}
             <div className="cursor-pointer mb-2" onClick={() => playPrev()}>
@@ -569,7 +569,7 @@ export default function Player() {
           </div>
         </div>
 
-        <div className="h-full flex items-center justify-center gap-2 px-2 rounded-r-full shrink-0">
+        <div className="hidden md:flex h-full items-center justify-center gap-2 px-2 rounded-r-full shrink-0">
           {/* Queue button */}
           <button
             className={`p-2 rounded-full transition-all duration-100 shrink-0 ${
@@ -736,7 +736,7 @@ export default function Player() {
               />
             </svg>
 
-            <div className="w-full h-fit flex flex-col justify-center items-center">
+            <div className="w-full h-fit flex flex-col justify-center items-center px-4">
               {playerData ? (
                 <div className="flex flex-col justify-center items-center w-full h-full">
                   <Image
@@ -749,16 +749,16 @@ export default function Player() {
                     width={0}
                     height={0}
                     sizes="100vw"
-                    className="w-[31.3%] h-auto object-cover shadow-2xl rounded-xl"
+                    className="w-[80%] sm:w-[50%] md:w-[31.3%] h-auto object-cover shadow-2xl rounded-xl"
                   />
-                  <div className="flex flex-row w-[31.3%] mt-2 text-left justify-start items-center ">
+                  <div className="flex flex-row w-[80%] sm:w-[50%] md:w-[31.3%] mt-2 text-left justify-start items-center ">
                     {" "}
                     <div className="flex w-[80%] flex-col justify-start items-start ">
-                      <p className="text-2xl text-white font-bold leading-tight">
+                      <p className="text-xl md:text-2xl text-white font-bold leading-tight">
                         {playerData?.name || "LOCKED"}
                       </p>
 
-                      <p className="text-xl text-white leading-tight">
+                      <p className="text-lg md:text-xl text-white leading-tight">
                         {playerData?.artist || "undefined"}
                       </p>
                     </div>

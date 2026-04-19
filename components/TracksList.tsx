@@ -67,13 +67,13 @@ export default function TracksList({
   if (isLoading) {
     return (
       <>
-        <p className="text-3xl font-bold mb-5">{title}</p>
-        <div className="relative flex-row flex gap-5 pr-20  ">
+        <p className="text-2xl md:text-3xl font-bold mb-5">{title}</p>
+        <div className="relative flex-row flex gap-3 md:gap-5 pr-5 md:pr-20 overflow-hidden">
           {[50, 100, 150, 200].map((delay, index) => {
             return (
-              <div className="flex flex-col w-[200px] " key={index}>
+              <div className="flex flex-col w-[140px] sm:w-[170px] md:w-[200px] shrink-0" key={index}>
                 <div className="">
-                  <div className="w-[200px] h-[200px] bg-[#3d3d3d] rounded justify-center items-center flex cursor-pointer animate-pulse"></div>
+                  <div className="w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] md:w-[200px] md:h-[200px] bg-[#3d3d3d] rounded justify-center items-center flex cursor-pointer animate-pulse"></div>
                   <div className="w-[70%] h-[15px] bg-[#3d3d3d] mt-2 animate-pulse"></div>
                   <div className="w-1/2 h-[15px] bg-[#3d3d3d] mt-2 animate-pulse"></div>
                 </div>
@@ -88,9 +88,9 @@ export default function TracksList({
   if (data == null) {
     return (
       <>
-        <p className="text-3xl font-bold mb-5">{title}</p>
-        <div className="w-screen flex flex-col">
-          <p className="text-lg text-white/50">
+        <p className="text-2xl md:text-3xl font-bold mb-5">{title}</p>
+        <div className="w-full flex flex-col">
+          <p className="text-base md:text-lg text-white/50">
             {type === "user" ? "Upload a track!" : "No tracks found!"}
           </p>
         </div>
@@ -103,7 +103,7 @@ export default function TracksList({
   return (
     <>
       <div className="flex justify-between items-top h-full  ">
-        <p className="text-3xl font-bold mb-5">{title}</p>
+        <p className="text-2xl md:text-3xl font-bold mb-5">{title}</p>
         {link && (
           <Link
             href={link || "/"}
@@ -116,7 +116,7 @@ export default function TracksList({
 
       <div className="relative">
         <div className="overflow-hidden py-3 -my-3" ref={emblaRef}>
-          <div className="flex gap-5">
+          <div className="flex gap-3 md:gap-5">
             {(data.tracks ?? []).map((item: Track, index: number) => {
               const trackType =
                 type === "album"
@@ -126,7 +126,7 @@ export default function TracksList({
                     : "single/";
 
               return (
-                <div key={item.id + index} className="flex-[0_0_200px]  transition-all duration-300">
+                <div key={item.id + index} className="flex-[0_0_140px] sm:flex-[0_0_170px] md:flex-[0_0_200px] transition-all duration-300">
                   <Tile
                     title={item.name}
                     artist={item.artist}
@@ -148,7 +148,7 @@ export default function TracksList({
               );
             })}
             {upload && (
-              <div className="flex-[0_0_200px]">
+              <div className="flex-[0_0_140px] sm:flex-[0_0_170px] md:flex-[0_0_200px]">
                 <Tile
                   title="sample"
                   artist="sample"
@@ -162,7 +162,7 @@ export default function TracksList({
 
         {(data.tracks?.length ?? 0) > 5 && (
           <>
-            <div className="absolute top-0 -right-5 h-[105%] w-[100px] bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end group">
+            <div className="hidden md:flex absolute top-0 -right-5 h-[105%] w-[100px] bg-gradient-to-l from-black to-transparent z-10 items-center justify-end group">
               <button
                 onClick={scrollNext}
                 className="fill-white opacity-0 group-hover:opacity-100 size-12 cursor-pointer bg-white rounded-full p-3 shadow-xl transition-all duration-100 hover:scale-105"
@@ -181,7 +181,7 @@ export default function TracksList({
                 </svg>
               </button>
             </div>
-            <div className="absolute top-0 -left-5 h-full w-[50px] bg-gradient-to-r from-black to-transparent z-10 flex items-center justify-start group">
+            <div className="hidden md:flex absolute top-0 -left-5 h-full w-[50px] bg-gradient-to-r from-black to-transparent z-10 items-center justify-start group">
               <button
                 onClick={scrollPrev}
                 className="fill-white opacity-0 group-hover:opacity-100 size-12 cursor-pointer bg-white rounded-full p-3 shadow-xl transition-all duration-100 hover:scale-105 rotate-180"

@@ -10,9 +10,9 @@ export default function Client(tracks: { tracks: Track[] }) {
   return (
     <div>
       <Navbar />
-      <div className="w-fit h-screen flex flex-col pt-16 ">
-        <h1 className="text-5xl font-bold px-25 pt-12">Your Tracks</h1>
-        <div className="w-fit flex px-25 flex-wrap h-auto pt-12 pb-32 gap-4">
+      <div className="w-full min-h-screen flex flex-col pt-16 ">
+        <h1 className="text-3xl md:text-5xl font-bold px-5 md:px-25 pt-8 md:pt-12">Your Tracks</h1>
+        <div className="w-full flex px-5 md:px-25 flex-wrap h-auto pt-6 md:pt-12 pb-40 gap-3 md:gap-4 justify-start">
           {tracks.tracks.map((track: Track, index: number) => (
             <Tile
               key={track.id}

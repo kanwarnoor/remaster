@@ -80,9 +80,9 @@ export default function Page() {
       <Navbar />
       <Lander />
 
-      <div className="w-screen h-fit flex flex-col mb-12">
+      <div className="w-screen h-fit flex flex-col mb-12 pb-32">
         {(publicLoading || publicTracks) && (
-          <section className="w-screen h-fit flex flex-col px-20 pt-12">
+          <section className="w-screen h-fit flex flex-col px-5 sm:px-10 md:px-20 pt-8 md:pt-12">
             <TracksList
               title="New Releases"
               data={{ tracks: publicTracks }}
@@ -93,7 +93,7 @@ export default function Page() {
           </section>
         )}
         {currentUser && (userLoading || userTracks) && (
-          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+          <section className=" w-screen h-fit flex flex-col px-5 sm:px-10 md:px-20 pt-8 md:pt-12">
             <TracksList
               title="Your Tracks"
               link="/tracks"
@@ -106,7 +106,7 @@ export default function Page() {
           </section>
         )}
         {currentUser && (albumsLoading || albums) && albums.length > 0 && (
-          <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+          <section className=" w-screen h-fit flex flex-col px-5 sm:px-10 md:px-20 pt-8 md:pt-12">
             <TracksList
               title="Your Albums"
               data={{ tracks: albums }}
@@ -120,7 +120,7 @@ export default function Page() {
         {currentUser &&
           (playlistsLoading || playlists) &&
           playlists.length > 0 && (
-            <section className=" w-screen h-fit flex flex-col px-20 pt-12">
+            <section className=" w-screen h-fit flex flex-col px-5 sm:px-10 md:px-20 pt-8 md:pt-12">
               <TracksList
                 title="Your Playlists"
                 data={{ tracks: playlists }}

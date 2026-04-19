@@ -5,8 +5,8 @@ import React from "react";
 
 export default function footer() {
   return (
-    <div className="w-screen h-[50vh] flex flex-col bg-remaster/50 mt-auto items-center justify-center">
-      <div className=" font-bold remaster text-center flex flex-row gap-1">
+    <div className="w-screen h-[40vh] md:h-[50vh] flex flex-col bg-remaster/50 mt-auto items-center justify-center px-4">
+      <div className=" font-bold remaster text-center flex flex-row gap-0.5 md:gap-1">
         {["R", "E", "M", "A", "S", "T", "E", "R"].map((letter, index) => (
           <motion.div
             key={index}
@@ -19,7 +19,7 @@ export default function footer() {
             }}
             viewport={{ once: true }}
             exit={{ opacity: 0 }}
-            className="text-9xl font-bold remaster"
+            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold remaster"
           >
             {letter}
           </motion.div>

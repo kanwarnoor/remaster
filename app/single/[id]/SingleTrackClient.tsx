@@ -93,15 +93,16 @@ export default function SingleTrackClient() {
     return (
       <>
         <Navbar />
-        <div className="w-screen h-screen flex flex-col justify-center items-center ">
+        <div className="w-screen min-h-screen flex flex-col justify-center items-center px-4">
           <Image
             src={"/dead.webp"}
             height={500}
             width={500}
             alt={"dead mouse"}
             priority
+            className="w-[60vw] max-w-[500px] h-auto"
           />
-          <p className="text-3xl font-bold mt-5">Track does not exist!</p>
+          <p className="text-2xl md:text-3xl font-bold mt-5 text-center">Track does not exist!</p>
         </div>
       </>
     );

@@ -26,9 +26,9 @@ export default async function Page() {
   return (
     <div>
       <Navbar />
-      <div className="w-fit h-screen flex flex-col pt-16">
-        <h1 className="text-5xl font-bold px-20 pt-12">Your Playlists</h1>
-        <div className="w-fit flex px-20 flex-wrap h-auto pt-12 pb-32 gap-4">
+      <div className="w-full min-h-screen flex flex-col pt-16">
+        <h1 className="text-3xl md:text-5xl font-bold px-5 md:px-20 pt-8 md:pt-12">Your Playlists</h1>
+        <div className="w-full flex px-5 md:px-20 flex-wrap h-auto pt-6 md:pt-12 pb-40 gap-3 md:gap-4 justify-start">
           {playlists.map((playlist, index) => {
             const coverImage = playlist.image || playlist.tracks[0]?.track?.image || null;
             return (
