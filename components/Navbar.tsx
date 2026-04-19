@@ -306,7 +306,7 @@ export default function Navbar() {
               {/* Library */}
               {!searchOpen && currentUser && (
                 <button
-                  onClick={() => router.push("/tracks")}
+                  onClick={() => router.push("/library")}
                   className={`px-3 py-1.5 text-sm rounded-full whitespace-nowrap cursor-pointer ${pathname === "/tracks" ? "bg-current/10 opacity-100" : "opacity-70"}`}
                 >
                   Library

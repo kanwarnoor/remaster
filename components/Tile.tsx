@@ -13,6 +13,7 @@ interface Props {
   index?: number;
   upload?: boolean;
   price?: number;
+  currency?: string;
 }
 
 export default function Tile({
@@ -23,6 +24,7 @@ export default function Tile({
   upload,
   price,
   index,
+  currency,
 }: Props) {
   const router = useRouter();
   const handleClick = () => {
