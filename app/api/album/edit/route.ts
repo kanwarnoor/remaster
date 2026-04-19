@@ -80,7 +80,7 @@ export async function PATCH(req: NextRequest) {
         const imageKey = crypto.randomBytes(8).toString("hex");
         const command = new PutObjectCommand({
           Bucket: process.env.AWS_BUCKET_NAME,
-          Key: `images/track/${imageKey}`,
+          Key: `images/album/${imageKey}`,
           ContentType: fileType,
         });
 
@@ -103,7 +103,7 @@ export async function PATCH(req: NextRequest) {
         try {
           const command = new DeleteObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
-            Key: `images/track/${oldKey}`,
+            Key: `images/album/${oldKey}`,
           });
           await s3Client.send(command);
         } catch (s3Error) {

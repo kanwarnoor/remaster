@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
         data: {
           userId: user.id,
           name: "Favourites",
+          image: "favourites",
           default: true,
         },
       });
@@ -50,13 +51,19 @@ export async function POST(req: NextRequest) {
       data: {
         playlistId: fav.id,
         trackId: track.id,
-        sort: generateKeyBetween(lastEntry ? String(lastEntry.sort) : null, null),
+        sort: generateKeyBetween(
+          lastEntry ? String(lastEntry.sort) : null,
+          null,
+        ),
       },
     });
 
     return NextResponse.json({ liked: true }, { status: 200 });
   } catch (error) {
     console.error("Error in liking track:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 },
+    );
   }
 }

@@ -20,7 +20,7 @@ export default function Client({ albums }: { albums: Album[] }) {
               index={index}
               art={
                 album.image
-                  ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${album.image}`
+                  ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/album/${album.image}`
                   : "/music.jpg"
               }
               link={"/album/" + album.id || ""}

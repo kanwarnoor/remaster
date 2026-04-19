@@ -168,7 +168,7 @@ const SearchResult = ({ data, type }: { data: any; type: string }) => {
         <Image
           src={
             data.image
-              ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${data.image}`
+              ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "album" : "track"}/${data.image}`
               : "/music.jpg"
           }
           alt={"art"}

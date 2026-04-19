@@ -168,7 +168,7 @@ export default function MusicPage(props: Props) {
   const itemImage = source.image;
   const itemUserId = source.userId;
   const itemCreatedAt = source.createdAt;
-  const imagePrefix = isPlaylist ? "images/playlist" : "images/track";
+  const imagePrefix = isPlaylist ? "images/playlist" : isAlbum ? "images/album" : "images/track";
 
   const date = new Date(itemCreatedAt);
   const createdAt = `${date.toLocaleString("default", {
@@ -928,7 +928,7 @@ export default function MusicPage(props: Props) {
                     <Image
                       src={
                         album.image
-                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${album.image}`
+                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/album/${album.image}`
                           : "/music.jpg"
                       }
                       alt={album.name}

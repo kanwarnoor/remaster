@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { User as Auth } from "@/libs/Auth";
 import prisma from "@/libs/prisma";
 import { generateKeyBetween } from "fractional-indexing";
+import crypto from "crypto";
+import {
+  S3Client,
+  CopyObjectCommand,
+  HeadObjectCommand,
+} from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || "",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
 
 export async function GET(req: NextRequest) {
   const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
@@ -66,6 +82,34 @@ export async function POST(req: NextRequest) {
 
     console.log("[POST /api/album] creating album with track_ids:", track_ids);
 
+    let albumImageKey: string | null = null;
+
+    if (image) {
+      const sourceKey = `images/track/${image}`;
+      const newKey = crypto.randomUUID();
+      const destKey = `images/album/${newKey}`;
+
+      try {
+        const head = await s3Client.send(
+          new HeadObjectCommand({ Bucket: AWS_BUCKET_NAME, Key: sourceKey }),
+        );
+
+        await s3Client.send(
+          new CopyObjectCommand({
+            Bucket: AWS_BUCKET_NAME,
+            CopySource: `${AWS_BUCKET_NAME}/${sourceKey}`,
+            Key: destKey,
+            ContentType: head.ContentType,
+            CacheControl: "public, max-age=31536000",
+          }),
+        );
+
+        albumImageKey = newKey;
+      } catch (copyError) {
+        console.error("Failed to copy track image for album:", copyError);
+      }
+    }
+
     const sortKeys: string[] = [];
     for (let i = 0; i < track_ids.length; i++) {
       sortKeys.push(generateKeyBetween(i === 0 ? null : sortKeys[i - 1], null));
@@ -87,7 +131,7 @@ export async function POST(req: NextRequest) {
             sort: sortKeys[index],
           })),
         },
-        image: image,
+        image: albumImageKey,
       },
     });
 

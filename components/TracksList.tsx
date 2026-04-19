@@ -11,6 +11,7 @@ interface Track {
   id: string;
   name: string;
   artist: string;
+  currency: string;
   image: string;
   link: string;
   size: number;
@@ -71,7 +72,10 @@ export default function TracksList({
         <div className="relative flex-row flex gap-3 md:gap-5 pr-5 md:pr-20 overflow-hidden">
           {[50, 100, 150, 200].map((delay, index) => {
             return (
-              <div className="flex flex-col w-[140px] sm:w-[170px] md:w-[200px] shrink-0" key={index}>
+              <div
+                className="flex flex-col w-[140px] sm:w-[170px] md:w-[200px] shrink-0"
+                key={index}
+              >
                 <div className="">
                   <div className="w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] md:w-[200px] md:h-[200px] bg-[#3d3d3d] rounded justify-center items-center flex cursor-pointer animate-pulse"></div>
                   <div className="w-[70%] h-[15px] bg-[#3d3d3d] mt-2 animate-pulse"></div>
@@ -126,22 +130,19 @@ export default function TracksList({
                     : "single/";
 
               return (
-                <div key={item.id + index} className="flex-[0_0_140px] sm:flex-[0_0_170px] md:flex-[0_0_200px] transition-all duration-300">
+                <div
+                  key={item.id + index}
+                  className="flex-[0_0_140px] sm:flex-[0_0_170px] md:flex-[0_0_200px] transition-all duration-300"
+                >
                   <Tile
                     title={item.name}
                     artist={item.artist}
                     art={
                       item.image
-                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "track" : type === "playlist" ? "playlist" : "track"}/${item.image}`
+                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${item.currency === "INR" ? "album" : item.default ? "playlist" : "track"}/${item.image}`
                         : "/music.jpg"
                     }
-                    link={
-                      (item?.price
-                        ? "/album/"
-                        : item?.default
-                          ? "/playlist/"
-                          : "/single/") + item.id
-                    }
+                    link={`/${item.currency === "INR" ? "album" : item.default ? "playlist" : "single"}/${item.id}`}
                     price={type !== "album" ? item?.price : undefined}
                   />
                 </div>

@@ -39,7 +39,7 @@ export default async function PurchasesPage() {
               index={index}
               art={
                 p.album.image
-                  ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${p.album.image}`
+                  ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/album/${p.album.image}`
                   : "/music.jpg"
               }
               link={"/album/" + p.album.id}
