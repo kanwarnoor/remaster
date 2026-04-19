@@ -22,6 +22,14 @@ interface PlayerData {
   duration: number;
 }
 
+function resolveImageUrl(image: string | undefined | null): string {
+  if (!image) return "/music.jpg";
+  if (image.includes("/")) {
+    return `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${image}`;
+  }
+  return `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${image}`;
+}
+
 export default function Player() {
   const [mounted, setMounted] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -288,11 +296,7 @@ export default function Player() {
         />
         <img
           ref={colorImgRef}
-          src={
-            playerData?.image
-              ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData.image}`
-              : "/music.jpg"
-          }
+          src={resolveImageUrl(playerData?.image)}
           crossOrigin="anonymous"
           alt="color-extract"
         />
@@ -362,11 +366,7 @@ export default function Player() {
                       {index + 1}
                     </p>
                     <img
-                      src={
-                        track.image
-                          ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${track.image}`
-                          : "/music.jpg"
-                      }
+                      src={resolveImageUrl(track.image)}
                       alt={track.name || "track"}
                       width={40}
                       height={40}
@@ -441,11 +441,7 @@ export default function Player() {
                 <path d="M10.7071 14.7071L5.41421 20H9C9.55228 20 10 20.4477 10 21C10 21.5523 9.55228 22 9 22H3.00069L2.997 22C2.74301 21.9992 2.48924 21.9023 2.29502 21.7092L2.29078 21.705C2.19595 21.6096 2.12432 21.4999 2.07588 21.3828C2.02699 21.2649 2 21.1356 2 21V15C2 14.4477 2.44772 14 3 14C3.55228 14 4 14.4477 4 15V18.5858L9.29289 13.2929C9.68342 12.9024 10.3166 12.9024 10.7071 13.2929C11.0976 13.6834 11.0976 14.3166 10.7071 14.7071Z" />
               </svg>
               <Image
-                src={
-                  playerData?.image
-                    ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.image}`
-                    : "/music.jpg"
-                }
+                src={resolveImageUrl(playerData?.image)}
                 alt={playerData?.name || "track image"}
                 width={100}
                 height={100}
@@ -740,11 +736,7 @@ export default function Player() {
               {playerData ? (
                 <div className="flex flex-col justify-center items-center w-full h-full">
                   <Image
-                    src={
-                      playerData?.image
-                        ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/track/${playerData?.image}`
-                        : "/music.jpg"
-                    }
+                    src={resolveImageUrl(playerData?.image)}
                     alt={playerData?.name || "track image"}
                     width={0}
                     height={0}

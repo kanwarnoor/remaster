@@ -1132,7 +1132,7 @@ export default function MusicPage(props: Props) {
                   const tracks = props.data.tracks ?? [];
                   if (tracks.length > 0) {
                     const queueTracks = isAlbum
-                      ? tracks.map((t) => ({ ...t, image: props.data.album.image || t.image }))
+                      ? tracks.map((t) => ({ ...t, image: props.data.album.image ? `album/${props.data.album.image}` : t.image }))
                       : tracks;
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     playerCtx.setQueue(queueTracks as any[], 0);
@@ -1277,7 +1277,7 @@ export default function MusicPage(props: Props) {
                         if (!canPlay) return;
                         if (isList) {
                           const queueTracks = isAlbum
-                            ? localTracks.map((t) => ({ ...t, image: props.data.album.image || t.image }))
+                            ? localTracks.map((t) => ({ ...t, image: props.data.album.image ? `album/${props.data.album.image}` : t.image }))
                             : localTracks;
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           playerCtx.setQueue(
