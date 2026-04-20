@@ -10,9 +10,10 @@ export default async function page() {
     return redirect("/login");
   }
 
-  const [tracks, albums, playlists] = await Promise.all([
-    prisma.track.findMany({
-      where: { userId: user.id },
+  const [purchases, albums, playlists, tracks] = await Promise.all([
+    prisma.purchase.findMany({
+      where: { userId: user.id, status: "PAID" },
+      include: { album: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.album.findMany({
@@ -23,7 +24,18 @@ export default async function page() {
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.track.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
-  return <Client tracks={tracks} albums={albums} playlists={playlists} />;
+  return (
+    <Client
+      purchases={purchases}
+      albums={albums}
+      playlists={playlists}
+      tracks={tracks}
+    />
+  );
 }
