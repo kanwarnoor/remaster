@@ -68,7 +68,7 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    // Remove track from all albums before deleting
+    await prisma.playlistTracks.deleteMany({ where: { trackId: id } });
     await prisma.albumTracks.deleteMany({ where: { trackId: id } });
 
     const deletedTrack = await prisma.track.delete({ where: { id } });

@@ -6,10 +6,11 @@ import Image from "next/image";
 import { getPaletteSync } from "colorthief";
 import Options from "@/components/Options";
 import axios from "axios";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import ResizeImage from "@/libs/ResizeImage";
 import Switch from "@/components/Switch";
 import BuyAlbumButton from "@/components/BuyAlbumButton";
+import Notification from "@/components/Notification";
 import { usePlayer } from "@/context/PlayerContext";
 import { useRouter } from "next/navigation";
 import { Track, Album, Playlist } from "@/app/generated/prisma/client";
@@ -29,7 +30,6 @@ type AlbumMode = {
     tracks: Track[];
   };
   user?: { id: string };
-  toggleVisibility?: () => void;
   likedTrackIds?: string[];
   owned?: boolean;
 };
@@ -55,7 +55,6 @@ type SingleMode = {
   playing: boolean;
   setPlaying: (id: string, playing: boolean) => void;
   setData: (data: Track) => void;
-  toggleVisibility: () => void;
 };
 
 type PlaylistMode = {
@@ -99,6 +98,14 @@ export default function MusicPage(props: Props) {
     new Set(isList ? (props.likedTrackIds ?? []) : []),
   );
 
+  const [toast, setToast] = useState<{ message: string; type: "error" | "success" | "info" | "warning" | "" } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   const { data: likedData } = useQuery({
     queryKey: ["liked-tracks"],
     queryFn: async () => {
@@ -111,6 +118,51 @@ export default function MusicPage(props: Props) {
   useEffect(() => {
     if (likedData) setLikedIds(new Set(likedData));
   }, [likedData]);
+
+  // Normalized accessors
+  const source = isAlbum
+    ? props.data.album
+    : isPlaylist
+      ? props.data.playlist
+      : props.data.track;
+  const itemId = source.id;
+
+  const propsVisibility = isAlbum
+    ? props.data.album.visibility
+    : isPlaylist
+      ? props.data.playlist.visibility
+      : props.data.track.visibility;
+
+  const [optimisticVisibility, setOptimisticVisibility] = useState(propsVisibility);
+
+  useEffect(() => {
+    setOptimisticVisibility(propsVisibility);
+  }, [propsVisibility]);
+
+  const visibilityMutation = useMutation({
+    mutationFn: async (newVisibility: string) => {
+      const endpoint = isAlbum
+        ? `/api/album/toggle_visibility?id=${itemId}&visibility=${newVisibility}`
+        : `/api/tracks/toggle_visibility?id=${itemId}&visibility=${newVisibility}`;
+      const res = await axios.put(endpoint);
+      if (res.status !== 200) throw new Error("Failed to toggle visibility");
+    },
+    onMutate: (newVisibility: string) => {
+      const previous = optimisticVisibility;
+      setOptimisticVisibility(newVisibility);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context) setOptimisticVisibility(context.previous);
+      setToast({ message: "Failed to update visibility", type: "error" });
+    },
+    onSettled: () => {
+      if (isSingle) {
+        queryClient.invalidateQueries({ queryKey: ["single", itemId] });
+      }
+      router.refresh();
+    },
+  });
 
   const toggleLike = async (trackId: string) => {
     try {
@@ -138,31 +190,6 @@ export default function MusicPage(props: Props) {
       console.error("Failed to toggle like", error);
     }
   };
-
-  const handleToggleVisibility = async () => {
-    if (!isAlbum) return;
-    const visibility =
-      props.data.album.visibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
-    try {
-      const res = await axios.put(
-        `/api/album/toggle_visibility?id=${itemId}&visibility=${visibility}`,
-      );
-      if (res.status !== 200) {
-        throw new Error("Failed to toggle visibility");
-      }
-      queryClient.invalidateQueries({ queryKey: ["album", itemId] });
-    } catch (error) {
-      console.error("Error toggling visibility:", error);
-    }
-  };
-
-  // Normalized accessors
-  const source = isAlbum
-    ? props.data.album
-    : isPlaylist
-      ? props.data.playlist
-      : props.data.track;
-  const itemId = source.id;
   const itemName = source.name;
   const itemArtist = isAlbum ? props.data.album.artist : isPlaylist ? null : props.data.track.artist;
   const itemImage = source.image;
@@ -245,7 +272,11 @@ export default function MusicPage(props: Props) {
         if (response.status !== 200) {
           console.error("Failed to delete track");
         } else {
-          window.location.href = "/";
+          queryClient.invalidateQueries({ queryKey: ["userTracks"] });
+          queryClient.invalidateQueries({ queryKey: ["albums"] });
+          queryClient.invalidateQueries({ queryKey: ["playlists"] });
+          router.refresh();
+          window.history.back();
         }
       }
     }
@@ -625,7 +656,6 @@ export default function MusicPage(props: Props) {
     }
   }
 
-  // Sync localTracks when album/playlist data refreshes (e.g. after query invalidation)
   useEffect(() => {
     if (isList) {
       setLocalTracks(props.data.tracks ?? []);
@@ -726,6 +756,10 @@ export default function MusicPage(props: Props) {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {toast && <Notification message={toast.message} type={toast.type} />}
+      </AnimatePresence>
+
       {/* Edit modal */}
       {editing && (
         <>
@@ -807,41 +841,29 @@ export default function MusicPage(props: Props) {
 
               <div className="flex mt-2 items-center ">
                 <p className="text-sm capitalize">Public</p>
-                <div>
-                  <Switch
-                    checked={
-                      isAlbum
-                        ? props.data.album.visibility === "PUBLIC"
-                        : isPlaylist
-                          ? props.data.playlist.visibility === "PUBLIC"
-                          : props.data.track.visibility === "PUBLIC"
-                    }
-                    handleChange={() => {
-                      if (isAlbum) {
-                        handleToggleVisibility();
-                      } else if (isSingle) {
-                        props.toggleVisibility();
-                      }
-                    }}
-                  />
-                </div>
+                <Switch
+                  checked={optimisticVisibility === "PUBLIC"}
+                  handleChange={() => {
+                    const next = optimisticVisibility === "PRIVATE" ? "PUBLIC" : "PRIVATE";
+                    visibilityMutation.mutate(next);
+                  }}
+                />
               </div>
 
               {isAlbum && (
                 <>
                   <div className="flex mt-2 items-center">
                     <p className="text-sm">Sell this album</p>
-                    <div>
-                      <Switch
-                        checked={formData.forSale}
-                        handleChange={() =>
-                          setFormData({
-                            ...formData,
-                            forSale: !formData.forSale,
-                          })
-                        }
-                      />
-                    </div>
+                    <Switch
+                      checked={formData.forSale}
+                      handleChange={() =>
+                        setFormData({
+                          ...formData,
+                          forSale: !formData.forSale,
+                          priceRupees: formData.forSale ? "" : formData.priceRupees,
+                        })
+                      }
+                    />
                   </div>
                   {formData.forSale && (
                     <>

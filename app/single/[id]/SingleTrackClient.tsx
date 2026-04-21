@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import Image from "next/image";
 import { User } from "@/libs/Auth";
@@ -23,7 +23,6 @@ interface User {
 export default function SingleTrackClient() {
   const [user, setUser] = useState<User | null>(null);
 
-  const queryClient = useQueryClient();
   const params = useParams();
   const id = params.id as string;
 
@@ -58,24 +57,6 @@ export default function SingleTrackClient() {
       return failureCount < 1;
     },
   });
-
-  const toggleVisibility = async () => {
-    const visibility =
-      trackData.track.visibility == "PRIVATE" ? "PUBLIC" : "PRIVATE";
-    try {
-      const res = await axios.put(
-        `/api/tracks/toggle_visibility?id=${id}&visibility=${visibility}`
-      );
-
-      if (res.status !== 200) {
-        throw new Error("Failed to toggle visibility");
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["single", id] });
-    } catch (error) {
-      console.error("Error toggling visibility:", error);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -118,7 +99,6 @@ export default function SingleTrackClient() {
         user={user || { id: "", username: "" }}
         playing={playing && data?.id === trackData?.track?.id}
         setPlaying={setPlaying}
-        toggleVisibility={toggleVisibility}
       />
     </>
   );
