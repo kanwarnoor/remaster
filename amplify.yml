@@ -13,6 +13,10 @@ frontend:
         - env | grep -e PUBLIC_URL >> .env.production
         - env | grep -e RAZORPAY_KEY_ID >> .env.production
         - env | grep -e RAZORPAY_KEY_SECRET >> .env.production
+        - env | grep -e A_ACCESS_KEY_ID >> .env.production
+        - env | grep -e A_SECRET_ACCESS_KEY >> .env.production
+        - env | grep -e A_REGION >> .env.production
+        - env | grep -e A_BUCKET_NAME >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next

@@ -10,10 +10,10 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Client } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest) {
       if (fileType && fileSize) {
         const imageKey = crypto.randomBytes(8).toString("hex");
         const command = new PutObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME,
+          Bucket: process.env.A_BUCKET_NAME,
           Key: `images/album/${imageKey}`,
           ContentType: fileType,
         });
@@ -102,7 +102,7 @@ export async function PATCH(req: NextRequest) {
       if (oldKey) {
         try {
           const command = new DeleteObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME,
+            Bucket: process.env.A_BUCKET_NAME,
             Key: `images/album/${oldKey}`,
           });
           await s3Client.send(command);

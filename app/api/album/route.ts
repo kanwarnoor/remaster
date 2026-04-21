@@ -10,14 +10,14 @@ import {
 } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 
-const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
+const A_BUCKET_NAME = process.env.A_BUCKET_NAME || "";
 
 export async function GET(req: NextRequest) {
   const limit = parseInt(req.nextUrl.searchParams.get("limit") || "10");
@@ -91,13 +91,13 @@ export async function POST(req: NextRequest) {
 
       try {
         const head = await s3Client.send(
-          new HeadObjectCommand({ Bucket: AWS_BUCKET_NAME, Key: sourceKey }),
+          new HeadObjectCommand({ Bucket: A_BUCKET_NAME, Key: sourceKey }),
         );
 
         await s3Client.send(
           new CopyObjectCommand({
-            Bucket: AWS_BUCKET_NAME,
-            CopySource: `${AWS_BUCKET_NAME}/${sourceKey}`,
+            Bucket: A_BUCKET_NAME,
+            CopySource: `${A_BUCKET_NAME}/${sourceKey}`,
             Key: destKey,
             ContentType: head.ContentType,
             CacheControl: "public, max-age=31536000",

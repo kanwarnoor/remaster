@@ -7,13 +7,13 @@ import { Buffer } from "buffer";
 import { parseBuffer } from "music-metadata";
 import crypto from "crypto";
 
-const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
+const A_BUCKET_NAME = process.env.A_BUCKET_NAME || "";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
       await s3Client.send(
         new PutObjectCommand({
-          Bucket: AWS_BUCKET_NAME,
+          Bucket: A_BUCKET_NAME,
           Key: artS3Key,
           Body: artBuffer,
           ContentType: art.format,
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         })
       );
 
-      coverUrl = `https://${AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artS3Key}`;
+      coverUrl = `https://${A_BUCKET_NAME}.s3.${process.env.A_REGION}.amazonaws.com/${artS3Key}`;
     }
 
     // Save metadata to DB

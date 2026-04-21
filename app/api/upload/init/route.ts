@@ -9,13 +9,13 @@ import {
 import crypto from "crypto";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const bucketName = process.env.AWS_BUCKET_NAME || "";
+const bucketName = process.env.A_BUCKET_NAME || "";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 

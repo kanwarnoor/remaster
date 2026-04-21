@@ -5,13 +5,13 @@ import prisma from "@/libs/prisma";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME;
+const A_BUCKET_NAME = process.env.A_BUCKET_NAME;
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
 
     // get the signed URL for the track image
     // const command = new GetObjectCommand({
-    //   Bucket: AWS_BUCKET_NAME,
+    //   Bucket: A_BUCKET_NAME,
     //   Key: `images/track/${track.s3Key}`,
     // });
 

@@ -8,13 +8,13 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
-const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME || "";
+const A_BUCKET_NAME = process.env.A_BUCKET_NAME || "";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     }
 
     const completeCommand = new CompleteMultipartUploadCommand({
-      Bucket: AWS_BUCKET_NAME,
+      Bucket: A_BUCKET_NAME,
       Key: `audio/${key}`,
       UploadId: uploadId,
       MultipartUpload: {
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
           artKey = crypto.randomUUID();
           await s3Client.send(
             new PutObjectCommand({
-              Bucket: AWS_BUCKET_NAME,
+              Bucket: A_BUCKET_NAME,
               Key: `images/track/${artKey}`,
               Body: artBuffer,
               ContentType: art.format,

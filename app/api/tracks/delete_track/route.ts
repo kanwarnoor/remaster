@@ -4,10 +4,10 @@ import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import prisma from "@/libs/prisma";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "",
+  region: process.env.A_REGION || "",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.A_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.A_SECRET_ACCESS_KEY || "",
   },
 });
 
@@ -42,7 +42,7 @@ export async function DELETE(req: NextRequest) {
     if (track.audio) {
       try {
         const deleteParams = {
-          Bucket: process.env.AWS_BUCKET_NAME || "",
+          Bucket: process.env.A_BUCKET_NAME || "",
           Key: `audio/${track.audio}`,
         };
         const command = new DeleteObjectCommand(deleteParams);
@@ -57,7 +57,7 @@ export async function DELETE(req: NextRequest) {
     if (track.image) {
       try {
         const deleteParams = {
-          Bucket: process.env.AWS_BUCKET_NAME || "",
+          Bucket: process.env.A_BUCKET_NAME || "",
           Key: `images/track/${track.image}`,
         };
         const command = new DeleteObjectCommand(deleteParams);
