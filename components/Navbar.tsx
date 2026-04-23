@@ -407,9 +407,12 @@ export default function Navbar() {
         <div className="navbar h-14 md:h-16 pr-3 md:pr-5 text-center fixed right-0 justify-center items-center m-auto flex font-black text-base md:text-2xl select-none text-remaster z-50 max-w-[40vw]">
           {currentUser ? (
             <>
-              <span className="hidden sm:inline truncate max-w-[150px]">
+              <Link
+                href={`/user/${currentUser.id}`}
+                className="hidden sm:inline truncate max-w-[150px] cursor-pointer hover:underline"
+              >
                 {currentUser.username}
-              </span>
+              </Link>
               <button
                 className="ml-0 sm:ml-2 text-white cursor-pointer"
                 onClick={() => setPopup(true)}
