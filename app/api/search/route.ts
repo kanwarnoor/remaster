@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import connectDb from "@/libs/connectDb";
 import prisma from "@/libs/prisma";
 
 export async function GET(req: Request) {
@@ -8,7 +7,6 @@ export async function GET(req: Request) {
   if (!q) {
     return NextResponse.json({ error: "No query provided" }, { status: 400 });
   }
-  await connectDb();
 
   try {
     const tracks = await prisma.track.findMany({

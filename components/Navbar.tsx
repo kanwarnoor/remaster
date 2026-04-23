@@ -118,9 +118,11 @@ export default function Navbar() {
 
   // Focus input when search opens
   useEffect(() => {
-    if (searchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
+    if (!searchOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [searchOpen]);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -231,6 +233,7 @@ export default function Navbar() {
                       name="remaster-search"
                       type="text"
                       placeholder="Search..."
+                      autoFocus
                       className="w-full h-8 bg-transparent text-current text-sm px-3 outline-none placeholder:opacity-100"
                       value={search}
                       autoComplete="off"
@@ -391,7 +394,7 @@ export default function Navbar() {
                   searchData.users &&
                   searchData.users.length > 0 && (
                     <>
-                      <p className="text-sm text-white/50 mt-3">Users</p>
+                      <p className="text-sm text-black mt-3">Users</p>
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {searchData.users.map((user: any) => (
                         <SearchResult data={user} key={user.id} type="user" />
@@ -463,7 +466,7 @@ const SearchResult = ({ data, type }: { data: any; type: string }) => {
         <Image
           src={
             data.image
-              ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "album" : "track"}/${data.image}`
+              ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${type === "album" ? "album" : type === "user" ? "user" : "track"}/${data.image}`
               : "/music.jpg"
           }
           alt="art"
