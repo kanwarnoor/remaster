@@ -55,16 +55,16 @@ export default function LoginPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar blackBrandText />
       <div className="grid grid-cols-1 md:grid-cols-2 items-center justify-center min-h-screen bg-black text-black pt-14 md:pt-0">
         <div className="hidden md:flex flex-col h-full items-center bg-gradient-to-r from-remaster to-remaster/50 justify-center p-16 z-10">
           <Image
-            src="/remaster.png"
+            src="/freedom.jpg"
             alt="logo"
             width={0}
             height={0}
             sizes="100% 100%"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-xl"
           />
         </div>
 

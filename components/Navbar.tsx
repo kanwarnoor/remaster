@@ -11,7 +11,7 @@ import axios from "axios";
 import Image from "next/image";
 import { usePlayer } from "@/context/PlayerContext";
 
-export default function Navbar() {
+export default function Navbar({ blackBrandText = false }: { blackBrandText?: boolean }) {
   const [popup, setPopup] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -159,7 +159,7 @@ export default function Navbar() {
     <>
       <div className="fixed z-20 ">
         {/* Left logo + back button */}
-        <div className="navbar h-14 md:h-16 pl-2 md:pl-[13px] text-center fixed left-0 justify-center items-center m-auto flex font-black text-3xl md:text-5xl select-none text-remaster z-50 gap-1">
+        <div className={`navbar h-14 md:h-16 pl-2 md:pl-[13px] text-center fixed left-0 justify-center items-center m-auto flex font-black text-3xl md:text-5xl select-none z-50 gap-1 ${blackBrandText ? "text-black" : "text-remaster"}`}>
           {pathname !== "/" && (
             <button
               onClick={() => router.back()}

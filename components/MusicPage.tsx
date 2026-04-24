@@ -21,7 +21,6 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { generateKeyBetween } from "fractional-indexing";
 
 type AlbumMode = {
   mode: "album";
@@ -184,7 +183,6 @@ export default function MusicPage(props: Props) {
         }
         queryClient.invalidateQueries({ queryKey: ["liked-tracks"] });
         queryClient.invalidateQueries({ queryKey: ["playlists"] });
-        router.refresh();
       }
     } catch (error) {
       console.error("Failed to toggle like", error);
@@ -657,9 +655,19 @@ export default function MusicPage(props: Props) {
   }
 
   useEffect(() => {
-    if (isList) {
-      setLocalTracks(props.data.tracks ?? []);
-    }
+    if (!isList) return;
+    const incoming = props.data.tracks ?? [];
+    setLocalTracks((prev) => {
+      // Preserve the user's current order (e.g. after a drag) when the
+      // set of tracks hasn't changed. Only resync if tracks were added
+      // or removed on the server.
+      if (prev.length === incoming.length) {
+        const prevIds = new Set(prev.map((t) => t.id));
+        const sameSet = incoming.every((t) => prevIds.has(t.id));
+        if (sameSet) return prev;
+      }
+      return incoming;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isList ? props.data.tracks : null]);
 
@@ -675,25 +683,26 @@ export default function MusicPage(props: Props) {
     const dst = result.destination.index;
     if (src === dst) return;
 
+    const previousList = [...localTracks];
     const newList = [...localTracks];
     const [moved] = newList.splice(src, 1);
     newList.splice(dst, 0, moved);
 
-    const before =
-      (newList[dst - 1] as Track & { sort?: string })?.sort ?? null;
-    const after = (newList[dst + 1] as Track & { sort?: string })?.sort ?? null;
-    const newSort = generateKeyBetween(before, after);
-
-    newList[dst] = { ...moved, sort: newSort };
     setLocalTracks(newList);
 
-    axios
+    void axios
       .patch("/api/album/sort", {
         albumId: props.data.album.id,
-        trackId: moved.id,
-        sort: newSort,
+        trackIds: newList.map((t) => t.id),
       })
-      .catch(console.error);
+      .then(() => {
+        router.refresh();
+      })
+      .catch((error) => {
+        console.error("Failed to save sort order", error);
+        setLocalTracks(previousList);
+        setToast({ message: "Failed to save sort order", type: "error" });
+      });
   };
 
   // Build tracks list for the tracklist section

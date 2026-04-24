@@ -1,14 +1,15 @@
 import { User } from "@/libs/Auth";
 import prisma from "@/libs/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { generateKeyBetween } from "fractional-indexing";
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { albumId, trackId, sort } = await req.json();
+    const { albumId, trackIds } = await req.json();
 
-    if (!albumId || !trackId || !sort) {
+    if (!albumId || !Array.isArray(trackIds) || trackIds.length === 0) {
       return NextResponse.json(
-        { message: "albumId, trackId and sort are required!" },
+        { message: "albumId and trackIds[] are required!" },
         { status: 400 },
       );
     }
@@ -31,22 +32,36 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: "Not authorized!" }, { status: 401 });
     }
 
-    const albumTrack = await prisma.albumTracks.findUnique({
-      where: { albumId_trackId: { albumId, trackId } },
+    const existing = await prisma.albumTracks.findMany({
+      where: { albumId },
+      select: { trackId: true },
     });
+    const existingIds = new Set(existing.map((e) => e.trackId));
 
-    if (!albumTrack) {
+    const validOrderedIds = trackIds.filter(
+      (id: unknown): id is string =>
+        typeof id === "string" && existingIds.has(id),
+    );
+
+    if (validOrderedIds.length === 0) {
       return NextResponse.json(
-        { message: "Track does not exist in album!" },
-        { status: 404 },
+        { message: "No valid tracks to sort!" },
+        { status: 400 },
       );
     }
 
-    await prisma.albumTracks.update({
-      where: { albumId_trackId: { albumId, trackId } },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: { sort: sort.toString() as any },
+    let prevKey: string | null = null;
+    const updates = validOrderedIds.map((trackId) => {
+      prevKey = generateKeyBetween(prevKey, null);
+      const key = prevKey;
+      return prisma.albumTracks.update({
+        where: { albumId_trackId: { albumId, trackId } },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: { sort: key as any },
+      });
     });
+
+    await prisma.$transaction(updates);
 
     return NextResponse.json({ message: "Sort updated!" }, { status: 200 });
   } catch (error: unknown) {
