@@ -65,6 +65,11 @@ export default async function Page({ params }: Props) {
     take: 12,
   });
 
+  const purchases = await prisma.purchase.findMany({
+    where: { album: { userId: id } },
+    orderBy: { createdAt: "desc" },
+  });
+
   return (
     <div>
       <Navbar />
@@ -72,6 +77,7 @@ export default async function Page({ params }: Props) {
         artist={artist}
         tracks={tracks}
         albums={albums}
+        purchases={purchases}
         viewer={viewer ?? null}
       />
     </div>

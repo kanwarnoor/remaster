@@ -36,7 +36,7 @@ export const User = async () => {
   try {
     const decoded = jwt.verify(
       token.value,
-      process.env.JWT_SECRET || "nimda"
+      process.env.JWT_SECRET as string
     ) as User;
     return decoded;
   } catch (error) {

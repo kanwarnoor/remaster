@@ -8,10 +8,9 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import ResizeImage from "@/libs/ResizeImage";
-import Options from "@/components/Options";
 import Tile from "@/components/Tile";
 import Notification from "@/components/Notification";
-import { Track, Album } from "@/app/generated/prisma/client";
+import { Track, Album, Purchase } from "@/app/generated/prisma/client";
 
 type Artist = {
   id: string;
@@ -23,10 +22,17 @@ interface Props {
   artist: Artist;
   tracks: Track[];
   albums: Album[];
+  purchases: Purchase[];
   viewer: { id: string; username: string } | null;
 }
 
-export default function ArtistPage({ artist, tracks, albums, viewer }: Props) {
+export default function ArtistPage({
+  artist,
+  tracks,
+  albums,
+  purchases,
+  viewer,
+}: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const imgRef = useRef<HTMLImageElement>(null);
@@ -172,13 +178,13 @@ export default function ArtistPage({ artist, tracks, albums, viewer }: Props) {
       {editing && (
         <>
           <div
-            className="fixed inset-0 bg-black/50 z-10"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={() => setEditing(false)}
           ></div>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            className="fixed w-[90vw] max-w-[560px] md:w-fit md:h-80 bg-white/50 backdrop-blur-lg rounded-xl z-10 top-0 bottom-0 left-0 right-0 m-auto flex flex-col md:flex-row justify-start items-center p-5 md:px-10 overflow-y-auto max-h-[90vh]"
+            className="fixed w-[90vw] max-w-[560px] md:w-fit md:h-80 bg-white/50 backdrop-blur-lg rounded-xl z-50 top-0 bottom-0 left-0 right-0 m-auto flex flex-col md:flex-row justify-start items-center p-5 md:px-10 overflow-y-auto max-h-[90vh]"
           >
             <div className="w-40 h-40 md:w-56 md:h-56 shrink-0 flex justify-center items-center rounded-full overflow-hidden group relative">
               <div className="absolute rounded-full bg-black/0 w-full h-full group-hover:bg-black/70 transition-all cursor-pointer justify-center items-center flex">
@@ -247,12 +253,12 @@ export default function ArtistPage({ artist, tracks, albums, viewer }: Props) {
         </>
       )}
 
-      <div className="rounded mx-5 md:mx-20 mt-10 md:mt-10 flex flex-col md:flex-row justify-left text-left md:h-80 gap-5 md:gap-0">
+      <div className="relative rounded mx-5 md:mx-20 mt-10 flex flex-col md:flex-row md:items-center text-left md:min-h-80 gap-5 md:gap-10">
         <motion.div
           initial={{ opacity: 0, filter: "blur(20px)" }}
           animate={{ opacity: 1, filter: "blur(0px)" }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="w-48 h-48 sm:w-64 sm:h-64 md:min-w-80 md:h-80 md:w-80 -z-10 flex mx-auto md:mx-0"
+          className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 md:shrink-0 -z-10 flex mx-auto md:mx-0"
         >
           <Image
             src={imageUrl}
@@ -277,34 +283,80 @@ export default function ArtistPage({ artist, tracks, albums, viewer }: Props) {
             }}
           />
         </motion.div>
-        <div className="w-full sm:px-5 md:px-0">
-          <div className="w-full md:h-[65%] text-ellipsis md:ml-10 justify-center flex flex-col">
-            <p className="text-[10px] md:text-sm font-bold opacity-60">
-              Artist
-            </p>
-            <p className="text-2xl md:text-5xl font-bold text-ellipsis overflow-hidden line-clamp-2 md:pb-1">
-              {artist.username}
-            </p>
-          </div>
-          <div className="w-full md:pl-10 md:h-[35%] flex items-end mt-4 md:mt-0">
+
+        <div className="w-full min-w-0 flex flex-col justify-center">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs md:text-sm font-bold opacity-60">Artist</p>
+              <p className="text-3xl md:text-5xl font-bold line-clamp-2 md:pb-1 wrap-break-word">
+                {artist.username}
+              </p>
+            </div>
             {isOwner && (
-              <div
-                className="justify-end ml-auto flex cursor-pointer"
-                onClick={() => setOptions(!options)}
-              >
-                Edit
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  className="cursor-pointer text-sm px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition"
+                  onClick={() => list[0].handleOption?.()}
+                >
+                  Edit
+                </button>
+                {options && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-0"
+                      onClick={() => setOptions(false)}
+                    ></div>
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white/25 backdrop-blur-xl rounded-md shadow-lg z-10 overflow-hidden">
+                      {list.map((option, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-white/25 cursor-pointer text-center text-sm"
+                          onClick={() => option.handleOption?.()}
+                        >
+                          {option.name}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
-          {options && (
-            <>
-              <div
-                className="fixed inset-0 z-0"
-                onClick={() => setOptions(false)}
-              ></div>
-              <Options list={list} />
-            </>
-          )}
+
+          <div className="flex flex-wrap gap-3 md:gap-4 mt-4 md:mt-6">
+            <div className="flex-1 min-w-[140px] rounded-xl shadow-lg px-5 md:px-6 py-4 md:py-5 flex flex-col items-start relative overflow-hidden group bg-white/5 hover:bg-white/10 transition">
+              <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/70 mb-1 z-10">
+                Total Sales
+              </p>
+              <span className="text-2xl md:text-3xl font-extrabold text-white drop-shadow z-10">
+                {purchases.length}
+              </span>
+              <div className="w-8 h-8 md:w-9 md:h-9 absolute bottom-3 right-3 opacity-25 group-hover:opacity-45 transition">
+                <svg viewBox="0 0 24 24" className="w-full h-full fill-white">
+                  <path d="M5 21q-.825 0-1.412-.587Q3 19.825 3 19V9q0-.825.588-1.412Q4.175 7 5 7h2q0-2.075 1.463-3.537Q9.925 2 12 2t3.538 1.463Q17 4.925 17 7h2q.825 0 1.413.588Q21 8.175 21 9v10q0 .825-.587 1.413Q19.825 21 19 21Zm0-2h14V9H5v10Zm4-12h6q0-1.25-.875-2.125T12 4q-1.25 0-2.125.875T9 7Zm3 7q1.25 0 2.125-.875T15 11h-2q0 .425-.288.713Q12.425 12 12 12t-.713-.287Q11 11.425 11 11H9q0 1.25.875 2.125T12 14ZM5 19V9v10Z" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-[140px] rounded-xl shadow-lg px-5 md:px-6 py-4 md:py-5 flex flex-col items-start relative overflow-hidden group bg-white/5 hover:bg-white/10 transition">
+              <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white/70 mb-1 z-10">
+                Total Earnings
+              </p>
+              <span className="text-xl md:text-3xl font-extrabold text-white drop-shadow z-10 flex items-baseline gap-2">
+                {purchases.reduce((acc, p) => acc + p.amount, 0) / 100}
+                <span className="text-sm md:text-lg font-semibold text-white/70">
+                  {purchases[0]?.currency || "INR"}
+                </span>
+              </span>
+              <div className="w-8 h-8 md:w-9 md:h-9 absolute bottom-3 right-3 opacity-25 group-hover:opacity-45 transition">
+                <svg viewBox="0 0 24 24" className="w-full h-full fill-white">
+                  <path d="M11.025 21v-2.15q-1.625-.375-2.713-1.4Q7.225 16.425 6.75 14.65l1.85-.75q.4 1.5 1.388 2.3.987.8 2.412.8 1.225 0 2.075-.55t.85-1.55q0-.95-.787-1.5-.788-.55-2.638-1.15-1.95-.65-2.825-1.55-.875-.9-.875-2.275 0-1.4.95-2.475t2.625-1.3V2.75h2v2q1.4.225 2.388 1.038.987.812 1.412 2.012l-1.85.75q-.35-.85-1.062-1.337Q13.95 6.725 12.825 6.725q-1.275 0-1.95.563-.675.562-.675 1.412 0 .825.7 1.288.7.462 2.45 1.012 2.225.7 3.075 1.687.85.988.85 2.488 0 1.625-1.05 2.7-1.05 1.075-2.825 1.375V21Z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
