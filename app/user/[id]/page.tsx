@@ -66,7 +66,7 @@ export default async function Page({ params }: Props) {
   });
 
   const purchases = await prisma.purchase.findMany({
-    where: { album: { userId: id } },
+    where: { album: { userId: id }, status: "PAID" },
     orderBy: { createdAt: "desc" },
   });
 
