@@ -1410,7 +1410,7 @@ export default function MusicPage(props: Props) {
                 </Draggable>
               ))}
               {droppableProvided.placeholder}
-              <div className="flex mt-10 text-base text-white select-text">
+              <div className="flex mt-10 md:text-base text-white select-text text-sm">
                 <p>{createdAt}</p>
               </div>
             </div>

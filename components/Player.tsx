@@ -307,7 +307,7 @@ export default function Player() {
         {showQueue && (
           <>
             <div
-              className="fixed inset-0 z-[58]"
+              className="fixed inset-0 z-[71]"
               onClick={() => setShowQueue(false)}
             />
             <motion.div
@@ -315,7 +315,7 @@ export default function Player() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "45%", opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="fixed bottom-28 left-0 right-0 m-auto w-[92vw] max-w-[500px] max-h-[60vh] md:max-h-[400px] z-[59]  border-t-1 backdrop-blur-xl rounded-2xl overflow-hidden"
+              className="fixed bottom-4 md:bottom-28 left-0 right-0 m-auto w-[92vw] max-w-[500px] max-h-[60vh] md:max-h-[400px] z-[72] border-t-1 backdrop-blur-xl rounded-2xl overflow-hidden"
               style={{
                 background: dark
                   ? `rgba(${dark[4]?.[0] ?? 32},${dark[4]?.[1] ?? 32},${dark[4]?.[2] ?? 32},0.50)`
@@ -423,7 +423,7 @@ export default function Player() {
             : "2px solid rgba(32,32,32,0.15)",
           color: textColor,
         }}
-        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-3 md:mb-10 justify-center m-auto items-center h-16 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter,width] duration-300 w-[95vw] ${repeat !== 0 ? "md:w-[830px]" : "md:w-[800px]"}`}
+        className={`fixed shadow-2xl bottom-0 left-0 right-0 mb-3 md:mb-10 justify-center m-auto items-center md:h-16 h-14 z-[60] bg-white/50 backdrop-blur-md rounded-full flex transition-[color,filter,width] duration-300 w-[95vw] ${repeat !== 0 ? "md:w-[830px]" : "md:w-[800px]"}`}
       >
         <div className="flex-1 md:flex-none md:w-[240px] h-full flex items-center justify-start px-2 rounded-l-full min-w-0 overflow-hidden">
           <div className="flex items-center gap-2 cursor-pointer">
@@ -448,7 +448,7 @@ export default function Player() {
                 className="w-12 h-12 rounded-full opacity-100 group-hover:opacity-20 transition-all duration-100"
               />
             </div>
-            <div className="max-w-xs">
+            <div className="max-w-xs" onClick={() => setFullscreen(!fullscreen)}>
               <h3 className="font-medium line-clamp-1">{playerData?.name}</h3>
               <p className="text-xs opacity-70 line-clamp-1">
                 {playerData?.artist}
@@ -459,7 +459,7 @@ export default function Player() {
         <div className="relative w-auto md:w-[320px] h-full flex items-center justify-center gap-2 md:gap-3 shrink-0 px-1">
           <div>
             {/* previous */}
-            <div className="cursor-pointer mb-2" onClick={() => playPrev()}>
+            <div className="cursor-pointer mb-2 md:block hidden" onClick={() => playPrev()}>
               <svg
                 viewBox="0 0 24 24"
                 className="size-9 fill-current"
@@ -476,7 +476,7 @@ export default function Player() {
             </div>
           </div>
           {/* play/pause */}
-          <div className="w-10 h-10 mb-2">
+          <div className="w-10 h-10 md:mb-2">
             {playing ? (
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer  border-black"
@@ -519,7 +519,7 @@ export default function Player() {
           </div>
           <div>
             {/* next */}
-            <div className="cursor-pointer mb-2" onClick={() => playNext()}>
+            <div className="cursor-pointer mb-2 md:block hidden" onClick={() => playNext()}>
               <svg
                 viewBox="0 0 24 24"
                 className="size-9 fill-black rotate-180"
@@ -537,7 +537,7 @@ export default function Player() {
           </div>
           {/* progress bar */}
           <div
-            className="absolute rounded-full w-full bottom-0 left-0 mb-1 py-1 cursor-pointer group/progress"
+            className="absolute md:block hidden rounded-full w-full bottom-0 left-0 mb-1 py-1 cursor-pointer group/progress"
             onMouseDown={(e) => {
               setIsDraggingProgress(true);
               seekToClientX(e.clientX);
@@ -741,12 +741,12 @@ export default function Player() {
                     width={0}
                     height={0}
                     sizes="100vw"
-                    className="w-[80%] sm:w-[50%] md:w-[31.3%] h-auto object-cover shadow-2xl rounded-xl"
+                    className="w-[95%] sm:w-[50%] md:w-[31.3%] h-auto object-cover shadow-2xl rounded-xl"
                   />
-                  <div className="flex flex-row w-[80%] sm:w-[50%] md:w-[31.3%] mt-2 text-left justify-start items-center ">
+                  <div className="flex flex-row w-[95%] sm:w-[50%] md:w-[31.3%] md:mt-2 text-left mt-[15%] justify-start items-center ">
                     {" "}
-                    <div className="flex w-[80%] flex-col justify-start items-start ">
-                      <p className="text-xl md:text-2xl text-white font-bold leading-tight">
+                    <div className="flex w-[95%] flex-col justify-start items-start ">
+                      <p className="text-2xl md:text-2xl text-white font-bold leading-tight">
                         {playerData?.name || "LOCKED"}
                       </p>
 
@@ -755,7 +755,7 @@ export default function Player() {
                       </p>
                     </div>
                     <div
-                      className="flex w-[20%] flex-col items-end"
+                      className="flex w-[20%] flex-col items-end gap-2"
                       onClick={() => toggleLike(playerData.id)}
                     >
                       <svg
@@ -771,6 +771,213 @@ export default function Player() {
                           d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
                         />
                       </svg>
+                    </div>
+                  </div>
+
+                  {/* Mobile-only fullscreen controls */}
+                  <div className="md:hidden w-[95%] sm:w-[50%] mt-6 flex flex-col items-center">
+                    {/* Progress bar - same structure as player bar progress */}
+                    <div
+                      className="w-full rounded-full py-1 cursor-pointer group/progress"
+                      onMouseDown={(e) => {
+                        setIsDraggingProgress(true);
+                        seekToClientX(e.clientX);
+                      }}
+                      onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        seekToClientX(touch.clientX);
+                        const onTouchMove = (ev: TouchEvent) => {
+                          seekToClientX(ev.touches[0].clientX);
+                        };
+                        const onTouchEnd = () => {
+                          window.removeEventListener('touchmove', onTouchMove);
+                          window.removeEventListener('touchend', onTouchEnd);
+                        };
+                        window.addEventListener('touchmove', onTouchMove);
+                        window.addEventListener('touchend', onTouchEnd);
+                      }}
+                    >
+                      <div
+                        ref={progressBarRef}
+                        className={`bg-white/30 flex justify-end relative cursor-pointer group progress-bar rounded-full transition-[height] duration-150 ${
+                          isDraggingProgress ? "h-2" : "h-1 group-hover/progress:h-2"
+                        }`}
+                      >
+                        <div
+                          className="bg-white h-full w-full absolute left-0 top-0 rounded-full"
+                          style={{ width: `${progress.played * 100}%` }}
+                        >
+                          <div
+                            className={`bg-white w-1 absolute right-0 transition-all duration-150 ${
+                              isDraggingProgress
+                                ? "h-4 -top-1 scale-110"
+                                : "h-3 -top-1 group-hover/progress:h-4 group-hover/progress:-top-1"
+                            }`}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Time labels */}
+                    <div className="flex justify-between w-full mt-1">
+                      <span className="text-xs text-white/70 tabular-nums">
+                        {(() => { const s = Math.floor(progress.playedSeconds); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; })()}
+                      </span>
+                      <span className="text-xs text-white/70 tabular-nums">
+                        {(() => {
+                          const dur = progress.loadedSeconds || 0;
+                          const rem = Math.max(0, Math.floor(dur - progress.playedSeconds));
+                          const m = Math.floor(rem / 60);
+                          return `-${m}:${String(rem % 60).padStart(2, '0')}`;
+                        })()}
+                      </span>
+                    </div>
+
+                    {/* Transport controls - reusing exact same SVGs from player bar */}
+                    <div className="flex items-center justify-center gap-14 mt-4 w-full">
+                      {/* Previous - same SVG as line 463 */}
+                      <div className="cursor-pointer" onClick={() => playPrev()}>
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="size-9 fill-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M5 18L5 6M19 6V18L9 12L19 6Z"
+                            stroke="white"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+
+                      {/* Play/Pause - same SVGs as line 479 */}
+                      <div className="w-16 h-16 flex items-center justify-center">
+                        {playing ? (
+                          <div
+                            className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer"
+                            onClick={() => setPlaying(playerData?.id, false)}
+                          >
+                            <svg
+                              viewBox="0 0 16 16"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="size-8 flex fill-white"
+                            >
+                              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                              <g
+                                id="SVGRepo_tracerCarrier"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              ></g>
+                              <g id="SVGRepo_iconCarrier">
+                                <path d="M7 1H2V15H7V1Z"></path>
+                                <path d="M14 1H9V15H14V1Z"></path>
+                              </g>
+                            </svg>
+                          </div>
+                        ) : (
+                          <div
+                            className="w-16 h-16 rounded-full flex items-center justify-center cursor-pointer"
+                            onClick={() => setPlaying(playerData?.id, true)}
+                          >
+                            <svg
+                              fill="white"
+                              viewBox="0 0 32 32"
+                              version="1.1"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="size-12 cursor-pointer flex fill-white ml-1"
+                            >
+                              <title>play</title>
+                              <path d="M5.92 24.096q0 1.088 0.928 1.728 0.512 0.288 1.088 0.288 0.448 0 0.896-0.224l16.16-8.064q0.48-0.256 0.8-0.736t0.288-1.088-0.288-1.056-0.8-0.736l-16.16-8.064q-0.448-0.224-0.896-0.224-0.544 0-1.088 0.288-0.928 0.608-0.928 1.728v16.16z"></path>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Next - same SVG as line 522 */}
+                      <div className="cursor-pointer" onClick={() => playNext()}>
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="size-9  fill-white rotate-180"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M5 18L5 6M19 6V18L9 12L19 6Z"
+                            stroke="white"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Shuffle / Repeat / Queue row */}
+                    <div className="flex items-center justify-center gap-3 mt-auto bottom-0 absolute mb-5 w-full">
+                      {/* Shuffle */}
+                      <button
+                        className={`p-2 rounded-full transition-all duration-100 ${
+                          shuffle ? "bg-white/20" : ""
+                        }`}
+                        onClick={() => setShuffle(!shuffle)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="size-6 fill-white"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M17 17h-1.559l-9.7-10.673A1 1 0 0 0 5.001 6H2v2h2.559l4.09 4.5-4.09 4.501H2v2h3.001a1 1 0 0 0 .74-.327L10 13.987l4.259 4.686a1 1 0 0 0 .74.327H17v3l5-4-5-4v3z" />
+                          <path d="M15.441 8H17v3l5-4-5-4v3h-1.559a1 1 0 0 0-.741.327L13.139 8z" />
+                        </svg>
+                      </button>
+
+                      {/* Repeat */}
+                      <button
+                        className={`p-2 flex items-center justify-center rounded-full transition-all duration-100 ${
+                          repeat !== 0 ? "bg-white/20" : ""
+                        }`}
+                        onClick={() => setRepeat(repeat === 0 ? 1 : repeat === 1 ? 2 : 0)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="size-6 fill-white transition-all duration-100"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M12 16c1.671 0 3-1.331 3-3s-1.329-3-3-3-3 1.331-3 3 1.329 3 3 3z" />
+                          <path d="M20.817 11.186a8.94 8.94 0 0 0-1.355-3.219 9.053 9.053 0 0 0-2.43-2.43 8.95 8.95 0 0 0-3.219-1.355 9.028 9.028 0 0 0-1.838-.18V2L8 5l3.975 3V6.002c.484-.002.968.044 1.435.14a6.961 6.961 0 0 1 2.502 1.053 7.005 7.005 0 0 1 1.892 1.892A6.967 6.967 0 0 1 19 13a7.032 7.032 0 0 1-.55 2.725 7.11 7.11 0 0 1-.644 1.188 7.2 7.2 0 0 1-.858 1.039 7.028 7.028 0 0 1-3.536 1.907 7.13 7.13 0 0 1-2.822 0 6.961 6.961 0 0 1-2.503-1.054 7.002 7.002 0 0 1-1.89-1.89A6.996 6.996 0 0 1 5 13H3a9.02 9.02 0 0 0 1.539 5.034 9.096 9.096 0 0 0 2.428 2.428A8.95 8.95 0 0 0 12 22a9.09 9.09 0 0 0 1.814-.183 9.014 9.014 0 0 0 3.218-1.355 8.886 8.886 0 0 0 1.331-1.099 9.228 9.228 0 0 0 1.1-1.332A8.952 8.952 0 0 0 21 13a9.09 9.09 0 0 0-.183-1.814z" />
+                        </svg>
+                        <span
+                          className={`text-[12px] text-white overflow-hidden whitespace-nowrap inline-block transition-all duration-300 ${repeat !== 0 ? "w-6 ml-1 opacity-100" : "w-0 ml-0 opacity-0"}`}
+                        >
+                          {repeat === 1 ? "All" : repeat === 2 ? "One" : "All"}
+                        </span>
+                      </button>
+
+                      {/* Queue */}
+                      <button
+                        className={`p-2 rounded-full transition-all duration-100 ${
+                          showQueue ? "bg-white/20" : ""
+                        }`}
+                        onClick={() => setShowQueue(!showQueue)}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="size-6"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="white"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="8" y1="6" x2="21" y2="6" />
+                          <line x1="8" y1="12" x2="21" y2="12" />
+                          <line x1="8" y1="18" x2="21" y2="18" />
+                          <line x1="3" y1="6" x2="3.01" y2="6" />
+                          <line x1="3" y1="12" x2="3.01" y2="12" />
+                          <line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
