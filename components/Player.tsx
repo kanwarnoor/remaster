@@ -226,6 +226,40 @@ export default function Player() {
     return () => clearInterval(interval);
   }, [isDraggingProgress]);
 
+  // Media Session API — powers the OS/browser media notification
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || !playerData) return;
+
+    const artwork = resolveImageUrl(playerData.image);
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: playerData.name || "Unknown Title",
+      artist: playerData.artist || "Unknown Artist",
+      artwork: [
+        { src: artwork, sizes: "512x512", type: "image/jpeg" },
+      ],
+    });
+
+    navigator.mediaSession.setActionHandler("play", () => {
+      setPlaying(playerData.id, true);
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      setPlaying(playerData.id, false);
+    });
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
+      playPrev();
+    });
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+      playNext();
+    });
+
+    return () => {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+    };
+  }, [playerData, playing, setPlaying, playNext, playPrev]);
+
   const handleEnded = () => {
     if (repeat === 2) {
       // Repeat one: restart current track
