@@ -15,11 +15,46 @@ export const generateMetadata = async ({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> => {
-  const { id } = await params;
-  const album = await prisma.album.findUnique({ where: { id } });
-  return {
-    title: album?.name || "Remaster",
-  };
+  try {
+    const { id } = await params;
+    const album = await prisma.album.findUnique({ where: { id } });
+
+    if (!album) {
+      return {
+        title: "Album",
+        description: "Loading album details",
+      };
+    }
+
+    const { name, artist, image } = album;
+    const imageUrl = image
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${image}`
+      : `${process.env.NEXT_PUBLIC_URL}/music.jpg`;
+
+    return {
+      title: name || "Album",
+      description: `Listen to ${name || "this album"} by ${artist || "artist"}`,
+      openGraph: {
+        title: name || "Album",
+        description: `Listen to ${name || "this album"} by ${artist || "artist"}`,
+        images: [
+          {
+            url: imageUrl,
+            width: 800,
+            height: 800,
+            alt: `${name || "Album"} by ${artist || "artist"}`,
+          },
+        ],
+        type: "music.album",
+      },
+    };
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return {
+      title: "Loading...",
+      description: "Loading album details",
+    };
+  }
 };
 
 export default async function Page({ params }: Props) {

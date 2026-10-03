@@ -9,18 +9,6 @@ import { useRouter } from "next/navigation";
 import { usePlayer } from "@/context/PlayerContext";
 import { getPaletteSync } from "colorthief";
 
-import type ReactPlayer from "react-player";
-import ReactPlayerComponent from "react-player";
-
-interface PlayerData {
-  id: string;
-  name: string;
-  artist: string;
-  image: string;
-  audio: string;
-  currentTime: number;
-  duration: number;
-}
 
 function resolveImageUrl(image: string | undefined | null): string {
   if (!image) return "/music.jpg";
@@ -96,9 +84,10 @@ export default function Player() {
       console.error("Failed to toggle like", error);
     }
   };
-  const playerRef = useRef<typeof ReactPlayer>(null);
+  const playerRef = useRef<HTMLAudioElement>(null);
   const colorImgRef = useRef<HTMLImageElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const fsProgressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
@@ -109,21 +98,30 @@ export default function Player() {
     loadedSeconds: 0,
   });
 
-  const seekToClientX = (clientX: number) => {
-    const bar = progressBarRef.current;
+  const seekWithBar = useCallback((clientX: number, barRef: React.RefObject<HTMLDivElement | null>) => {
+    const bar = barRef.current;
     if (!bar) return;
     const rect = bar.getBoundingClientRect();
     const pct = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
-    const player = playerRef.current as unknown as PlayerData | null;
-    if (player && !isNaN(player.duration)) {
-      player.currentTime = pct * player.duration;
+    const audio = playerRef.current;
+    if (audio && !isNaN(audio.duration) && isFinite(audio.duration)) {
+      audio.currentTime = pct * audio.duration;
       setProgress((p) => ({
         ...p,
         played: pct,
-        playedSeconds: pct * player.duration,
+        playedSeconds: pct * audio.duration,
       }));
     }
-  };
+  }, []);
+
+  // Convenience wrappers for each bar
+  const seekToClientX = useCallback((clientX: number) => {
+    seekWithBar(clientX, progressBarRef);
+  }, [seekWithBar]);
+
+  const seekToClientXFs = useCallback((clientX: number) => {
+    seekWithBar(clientX, fsProgressBarRef);
+  }, [seekWithBar]);
 
   const setVolumeFromClientX = (clientX: number) => {
     const bar = volumeBarRef.current;
@@ -133,9 +131,13 @@ export default function Player() {
     setVolume((v) => ({ value: pct, preValue: v.value }));
   };
 
+  // activeSeekRef tracks which seek function to use during drag
+  const activeSeekRef = useRef<(clientX: number) => void>(seekToClientX);
+
   useEffect(() => {
     if (!isDraggingProgress) return;
-    const onMove = (e: MouseEvent) => seekToClientX(e.clientX);
+    const currentSeek = activeSeekRef.current;
+    const onMove = (e: MouseEvent) => currentSeek(e.clientX);
     const onUp = () => setIsDraggingProgress(false);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -213,18 +215,36 @@ export default function Player() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (isDraggingProgress) return;
-      const player = playerRef.current as unknown as PlayerData;
-      if (player) {
+      const audio = playerRef.current;
+      if (audio && !isNaN(audio.duration) && isFinite(audio.duration)) {
         setProgress({
-          played: player.currentTime / player.duration,
-          playedSeconds: player.currentTime,
-          loaded: player.duration,
-          loadedSeconds: player.duration,
+          played: audio.currentTime / audio.duration,
+          playedSeconds: audio.currentTime,
+          loaded: audio.duration,
+          loadedSeconds: audio.duration,
         });
       }
-    }, 1000);
+    }, 250);
     return () => clearInterval(interval);
   }, [isDraggingProgress]);
+
+  // Sync play/pause state with the native audio element
+  useEffect(() => {
+    const audio = playerRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }, [playing, audioSrc]);
+
+  // Sync volume with the native audio element
+  useEffect(() => {
+    const audio = playerRef.current;
+    if (!audio) return;
+    audio.volume = volume.value;
+  }, [volume.value]);
 
   // Media Session API — powers the OS/browser media notification
   useEffect(() => {
@@ -263,12 +283,10 @@ export default function Player() {
   const handleEnded = () => {
     if (repeat === 2) {
       // Repeat one: restart current track
-      const mediaEl = document.querySelector(
-        "audio, video",
-      ) as HTMLMediaElement | null;
-      if (mediaEl) {
-        mediaEl.currentTime = 0;
-        mediaEl.play();
+      const audio = playerRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play();
       }
       return;
     }
@@ -319,15 +337,14 @@ export default function Player() {
   return (
     <>
       <div className="hidden ">
-        <ReactPlayerComponent
-          ref={playerRef as unknown as React.RefObject<HTMLVideoElement>}
-          src={audioSrc}
-          playing={playing}
-          volume={volume.value}
-          controls={false}
-          loop={false}
-          onEnded={handleEnded}
-        />
+        {audioSrc && (
+          <audio
+            ref={playerRef}
+            src={audioSrc}
+            autoPlay={playing}
+            onEnded={handleEnded}
+          />
+        )}
         <img
           ref={colorImgRef}
           src={resolveImageUrl(playerData?.image)}
@@ -573,6 +590,7 @@ export default function Player() {
           <div
             className="absolute md:block hidden rounded-full w-full bottom-0 left-0 mb-1 py-1 cursor-pointer group/progress"
             onMouseDown={(e) => {
+              activeSeekRef.current = seekToClientX;
               setIsDraggingProgress(true);
               seekToClientX(e.clientX);
             }}
@@ -814,14 +832,15 @@ export default function Player() {
                     <div
                       className="w-full rounded-full py-1 cursor-pointer group/progress"
                       onMouseDown={(e) => {
+                        activeSeekRef.current = seekToClientXFs;
                         setIsDraggingProgress(true);
-                        seekToClientX(e.clientX);
+                        seekToClientXFs(e.clientX);
                       }}
                       onTouchStart={(e) => {
                         const touch = e.touches[0];
-                        seekToClientX(touch.clientX);
+                        seekToClientXFs(touch.clientX);
                         const onTouchMove = (ev: TouchEvent) => {
-                          seekToClientX(ev.touches[0].clientX);
+                          seekToClientXFs(ev.touches[0].clientX);
                         };
                         const onTouchEnd = () => {
                           window.removeEventListener('touchmove', onTouchMove);
@@ -832,7 +851,7 @@ export default function Player() {
                       }}
                     >
                       <div
-                        ref={progressBarRef}
+                        ref={fsProgressBarRef}
                         className={`bg-white/30 flex justify-end relative cursor-pointer group progress-bar rounded-full transition-[height] duration-150 ${
                           isDraggingProgress ? "h-2" : "h-1 group-hover/progress:h-2"
                         }`}
