@@ -28,8 +28,10 @@ export const generateMetadata = async ({
 
     const { name, artist, image } = album;
     const imageUrl = image
-      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/${image}`
+      ? `https://remaster-storage.s3.ap-south-1.amazonaws.com/images/album/${image}`
       : `${process.env.NEXT_PUBLIC_URL}/music.jpg`;
+
+    console.log(imageUrl);
 
     return {
       title: name || "Album",
@@ -83,7 +85,9 @@ export default async function Page({ params }: Props) {
             priority
             className="w-[60vw] max-w-[500px] h-auto"
           />
-          <p className="text-2xl md:text-3xl font-bold mt-5 text-center">Album does not exist!</p>
+          <p className="text-2xl md:text-3xl font-bold mt-5 text-center">
+            Album does not exist!
+          </p>
         </div>
       </>
     );
@@ -106,7 +110,9 @@ export default async function Page({ params }: Props) {
               priority
               className="w-[60vw] max-w-[500px] h-auto"
             />
-            <p className="text-2xl md:text-3xl font-bold mt-5 text-center">Album does not exist!</p>
+            <p className="text-2xl md:text-3xl font-bold mt-5 text-center">
+              Album does not exist!
+            </p>
           </div>
         </>
       );
